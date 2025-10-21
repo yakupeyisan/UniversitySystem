@@ -95,6 +95,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration", "Integration"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Integration", "tests\Integration\Tests.Integration.csproj", "{9412DDBA-34EB-42B3-834D-A88BC2C672A7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		docs\Kapsamlı Sistem Senaryoları.docx = docs\Kapsamlı Sistem Senaryoları.docx
+		docs\UniversityManagementSystem.docx = docs\UniversityManagementSystem.docx
+		docs\UniversitySystem.erdiagram = docs\UniversitySystem.erdiagram
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -358,5 +365,8 @@ Global
 		{CAEAAF67-B7B1-4741-94D9-EA7D7789EB5A} = {9D556B49-86D1-93A7-9596-FFAAB74EC556}
 		{28A6993C-471E-82FE-7D9E-AD3B1EC22BD9} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{9412DDBA-34EB-42B3-834D-A88BC2C672A7} = {28A6993C-471E-82FE-7D9E-AD3B1EC22BD9}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0A1DD5CB-03C3-46CD-8469-1DCBF8C8B344}
 	EndGlobalSection
 EndGlobal

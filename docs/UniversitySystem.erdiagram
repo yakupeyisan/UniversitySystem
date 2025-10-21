@@ -1,0 +1,2150 @@
+erDiagram
+    %% ============== MULTI-BANK VIRTUAL POS SYSTEM ==============
+    VIRTUAL_POS_PROVIDERS ||--o{ VIRTUAL_POS_INTEGRATIONS : configured_for
+    VIRTUAL_POS_PROVIDERS ||--o{ PAYMENT_PROVIDER_CREDENTIALS : has_credentials
+    VIRTUAL_POS_INTEGRATIONS ||--o{ PERSON_WALLET_TRANSACTIONS : processed_via
+    VIRTUAL_POS_PROVIDERS ||--o{ SETTLEMENT_REPORTS : provides_settlement
+    SETTLEMENT_REPORTS ||--o{ SETTLEMENT_DISCREPANCIES : has_discrepancy
+
+    VIRTUAL_POS_PROVIDERS {
+        guid Id PK
+        string BankName UK
+        string BankCode
+        int ProviderType "enum(VirtualPOS,DirectBank,EFT,Gateway)"
+        string APIEndpoint
+        int APIVersion
+        string SupportedPaymentMethods "JSON array"
+        int TransactionFeeType "enum(Fixed,Percentage,TieredPercentage)"
+        decimal TransactionFee
+        bool RequiresApproval
+        int MinTransactionAmount
+        int MaxTransactionAmount
+        bool IsActive
+        string ContactEmail
+        string TechnicalSupportPhone
+        string DocumentationURL
+        int Status "enum(Active,InDevelopment,Deprecated,Suspended)"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PAYMENT_PROVIDER_CREDENTIALS {
+        guid Id PK
+        guid ProviderId FK
+        string MerchantId UK
+        string MerchantKey "encrypted"
+        string TerminalId UK
+        string APIKey "encrypted"
+        string APISecret "encrypted"
+        string Username "encrypted"
+        string Password "encrypted"
+        string CredentialType "enum(OAuth,APIKey,Basic,Custom)"
+        datetime ValidFrom "UTC"
+        datetime ValidTo "UTC"
+        bool IsPrimary
+        int Status "enum(Active,Inactive,Expired,NeedsRenewal)"
+        guid CreatedBy FK
+        guid LastUpdatedBy FK
+        string LastTestResult
+        datetime LastTestedAt "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    VIRTUAL_POS_INTEGRATIONS {
+        guid Id PK
+        guid ProviderId FK
+        string TransactionType UK "enum(CardRecharge,EventTicket,Parking,Cafeteria,StudentPayment,LibraryFine,Other)"
+        int Priority "1=Primary, 2=Secondary, 3=Backup"
+        bool IsDefault
+        bool IsActive
+        int FailoverBehavior "enum(NoFailover,AllowSecondary,AllowAll)"
+        int RetryPolicy "enum(NoRetry,Linear,Exponential)"
+        int MaxRetryCount
+        int RetryDelayMs
+        decimal MinTransactionAmountOverride
+        decimal MaxTransactionAmountOverride
+        string SuccessCallbackURL
+        string FailureCallbackURL
+        string WebhookSecret
+        string Notes
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PAYMENT_TRANSACTIONS_LOG {
+        guid Id PK
+        guid TransactionId FK
+        string TransactionType "enum(CardRecharge,EventTicket,Parking,Cafeteria,StudentPayment)"
+        guid ProviderId FK
+        string MerchantTransactionNo UK
+        string TransactionReference UK
+        decimal Amount
+        string Currency
+        int Status "enum(Pending,Processing,Authorized,Captured,Failed,Cancelled,Refunded)"
+        string BankResponseCode
+        string BankResponseMessage
+        string AuthorizationCode
+        string BatchNo
+        int ResponseTimeMs
+        bool Settled
+        datetime SettlementDate "UTC"
+        decimal SettlementAmount
+        decimal CommissionAmount
+        string RequestPayload "JSON - sanitized"
+        string ResponsePayload "JSON - sanitized"
+        string IPAddress
+        string UserAgent
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    PAYMENT_REVERSALS {
+        guid Id PK
+        guid OriginalTransactionLogId FK
+        string ReversalReason "enum(CustomerRequest,DuplicateTransaction,ErrorCorrection,ChargBack,SystemError)"
+        decimal ReversalAmount
+        guid InitiatedBy FK
+        datetime ReversalRequestDate "UTC"
+        int Status "enum(Pending,Processing,Completed,Failed,Rejected)"
+        string BankReversalNo
+        datetime BankProcessingDate "UTC"
+        string Notes
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SETTLEMENT_REPORTS {
+        guid Id PK
+        guid ProviderId FK
+        datetime SettlementDate
+        int SettlementPeriod "enum(Daily,Weekly,Monthly)"
+        int TotalTransactions
+        decimal TotalAmount
+        decimal SettledAmount
+        decimal FailedAmount
+        int Status "enum(Pending,Settled,Reconciled,DiscrepancyFound)"
+        string BankSettlementRefNo
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SETTLEMENT_DISCREPANCIES {
+        guid Id PK
+        guid SettlementReportId FK
+        guid OriginalTransactionLogId FK
+        decimal OriginalTransactionAmount
+        decimal SettledAmount
+        decimal DiscrepancyAmount
+        string DiscrepancyReason
+        int Status "enum(Reported,Investigating,Resolved)"
+        string ResolutionNotes
+        guid ResolvedBy FK
+        datetime ResolvedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== WALLET TRANSACTION SYSTEM ==============
+    PERSONS ||--o{ PERSON_WALLET_TRANSACTIONS : has_transactions
+    PERSONS ||--o{ PERSON_WALLET_LOCK : locked_for_transaction
+    CARDS ||--o{ PERSON_WALLET_TRANSACTIONS : associated_with
+
+    PERSON_WALLET_LOCK {
+        guid PersonId PK
+        datetime LockedAt "UTC"
+        string LockedByProcessId
+        int LockTimeoutSeconds
+        datetime CreatedAt "UTC"
+    }
+
+    PERSON_WALLET_TRANSACTIONS {
+        guid Id PK
+        guid PersonId FK
+        guid CardId FK "nullable"
+        int TransactionType "enum(CardRecharge,CafeteriaPurchase,ParkingPayment,EventTicketPurchase,LibraryFine,LibraryLoanReturn,StudentPayment,SubscriptionPayment,AccessFine,OtherPayment)"
+        int TransactionCategory "enum(Income,Expense,Adjustment,Refund)"
+        decimal Amount "Positive=Yükleme, Negative=Harcama"
+        decimal BalanceBefore
+        decimal BalanceAfter
+        int TransactionSource "enum(Turnstile,Cafeteria,Library,Parking,Classroom,WebPortal,Ticketing,Mobile,AdminPanel,ATM,PoS)"
+        string Description
+        string LocationName
+        string LocationCode
+        string ReferenceNo UK
+        guid LinkedEntityId FK
+        string LinkedEntityType "nullable - Cafeteria, ParkingLot, Event, Course"
+        int Status "enum(Pending,Processing,Successful,Failed,Reversed,Cancelled)"
+        string FailureReason
+        guid VirtualPosProviderId FK
+        guid PaymentTransactionLogId FK
+        int PaymentMethod "enum(Cash,Card,BankTransfer,VirtualPOS,Subscription,Internal,AdminCredit)"
+        bool IsReconciled
+        datetime ReconciledAt "UTC"
+        string Notes
+        string ApprovalNotes
+        guid ApprovedBy FK
+        datetime ApprovedAt "UTC"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    WALLET_TRANSACTION_HISTORY {
+        guid Id PK
+        guid PersonWalletTransactionId FK
+        int PreviousStatus "enum(Pending,Processing,Successful,Failed,Reversed,Cancelled)"
+        int NewStatus "enum(Pending,Processing,Successful,Failed,Reversed,Cancelled)"
+        string ReasonForChange
+        guid ChangedBy FK
+        datetime ChangedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== CORE INFRASTRUCTURE ==============
+    USERS ||--o{ AUDIT_LOGS : created_by
+    USERS ||--o{ ACCESS_LOGS : manual_created_by
+    USERS ||--o{ ACCESS_LOGS : cancelled_by
+    USERS ||--o{ CAFETERIA_ACCESS_LOGS : manual_created_by
+    USERS ||--o{ CAFETERIA_ACCESS_LOGS : cancelled_by
+    USERS ||--o{ PARKING_ENTRY_EXIT_LOG : manual_created_by
+    USERS ||--o{ PARKING_ENTRY_EXIT_LOG : cancelled_by
+    USERS ||--o{ MANUAL_CORRECTIONS_LOG : created_by
+    USERS ||--o{ CORRECTION_APPROVAL_REQUESTS : approved_by
+    MANUAL_CORRECTIONS_LOG ||--o{ CORRECTION_APPROVAL_REQUESTS : has_approval
+
+    MANUAL_CORRECTIONS_LOG {
+        guid Id PK
+        int RecordType "enum(AccessLog,CafeteriaLog,ParkingLog)"
+        guid OriginalRecordId FK "İlgili log kaydı"
+        string OperationType "enum(Create,Update,Delete,Restore)"
+        guid CreatedByUserId FK
+        datetime CreatedAt "UTC"
+        string Reason "Neden bu düzeltme yapıldı"
+        string OldValues "JSON - Eski değerler"
+        string NewValues "JSON - Yeni değerler"
+        int ApprovalStatus "enum(NoApprovalNeeded,PendingApproval,Approved,Rejected)"
+        guid ApprovalRequestId FK "nullable"
+        bool RequiresApproval "bool - Sistem config'e göre"
+        string Details "JSON - İlave detaylar"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CORRECTION_APPROVAL_REQUESTS {
+        guid Id PK
+        guid ManualCorrectionLogId FK
+        guid RequestedByUserId FK
+        int RequestStatus "enum(Pending,Approved,Rejected,Returned)"
+        guid ApprovedByUserId FK "nullable"
+        datetime ApprovedAt "UTC"
+        string ApprovalNotes "nullable - Onaylayanın notu"
+        string RejectionReason "nullable - Neden reddedildi"
+        int Priority "enum(Low,Normal,High,Urgent)"
+        datetime RequestedAt "UTC"
+        datetime DueDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    USERS {
+        guid Id PK
+        guid PersonId FK "UK - One to One"
+        string Username UK
+        string Email UK
+        string PasswordHash
+        byte RowVersion
+        bool IsActive
+        bool EmailConfirmed
+        datetime LastLoginAt "UTC"
+        string RefreshToken
+        datetime RefreshTokenExpiryTime "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    ROLES {
+        guid Id PK
+        string Name UK
+        string Description
+        bool IsSystemRole
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    PERMISSIONS {
+        guid Id PK
+        string Name UK
+        string Resource
+        string Action
+        string Description
+        int PermissionScope "enum(Global,Device,Location,Personal)"
+        datetime CreatedAt "UTC"
+    }
+
+    USER_ROLES {
+        guid UserId "PK_FK"
+        guid RoleId "PK_FK"
+        datetime CreatedAt "UTC"
+    }
+
+    ROLE_PERMISSIONS {
+        guid RoleId "PK_FK"
+        guid PermissionId "PK_FK"
+    }
+
+    AUDIT_LOGS {
+        guid Id PK
+        guid UserId FK
+        string TableName
+        string Operation "enum(INSERT,UPDATE,DELETE)"
+        string RecordId
+        string OldValues "JSON"
+        string NewValues "JSON"
+        string IPAddress
+        string UserAgent
+        int ChangeReason "enum(Manual,System,Admin,Scheduled)"
+        datetime CreatedAt "UTC"
+    }
+
+    SYSTEM_SETTINGS {
+        guid Id PK
+        string SettingKey UK
+        string SettingValue
+        string SettingType "enum(String,Int,Bool,Date,Decimal,Json)"
+        string Description
+        bool IsEditable
+        int SettingCategory "enum(System,Security,Performance,Timezone,Notification)"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SYSTEM_NOTIFICATIONS {
+        guid Id PK
+        guid RecipientUserId FK
+        string Title
+        string Message
+        int NotificationType "enum(Info,Warning,Error,Success,Alert)"
+        int Channel "enum(Email,SMS,Push,Dashboard,Both)"
+        int Priority "enum(Low,Normal,High,Urgent)"
+        bool IsRead
+        datetime ReadDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    FILE_ATTACHMENTS {
+        guid Id PK
+        guid EntityId FK
+        string EntityType
+        string FileName
+        string FileType
+        string FilePath
+        long FileSizeBytes
+        guid UploadedByUserId FK
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    WORKFLOW_APPROVALS {
+        guid Id PK
+        guid RequestId FK
+        string RequestType
+        int CurrentStageLevel
+        guid CurrentApproverId FK
+        int Status "enum(Pending,Approved,Rejected,Cancelled)"
+        string ApprovalNotes
+        datetime ApprovedAt "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== PERSON AGGREGATE ==============
+    PERSONS ||--o| ADDRESS : has
+    PERSONS ||--o{ EMERGENCY_CONTACTS : has
+    PERSONS ||--o{ HEALTH_RECORDS : has_health_record
+    STUDENTS ||--|| PERSONS : is_a
+    STAFF ||--|| PERSONS : is_a
+    STUDENTS ||--o{ ENROLLMENTS : enrolls_in
+    STAFF ||--o{ COURSES : teaches
+    STAFF ||--o{ GRADE_OBJECTIONS : reviews
+
+    PERSONS {
+        guid Id PK
+        guid DepartmentId FK "Nullable"
+        string FirstName
+        string LastName
+        string NationalId UK
+        datetime BirthDate
+        int Gender "enum(Male,Female,Other)"
+        string Email
+        string PhoneNumber
+        string ProfilePhotoUrl
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    STUDENTS {
+        guid Id "PK_FK"
+        string StudentNumber UK
+        int EducationLevel "enum(Associate,Bachelor,Master,PhD)"
+        int CurrentSemester
+        int Status "enum(Active,Passive,Suspended,Graduated)"
+        double CGPA
+        double SGPA
+        int TotalCredits
+        int CompletedCredits
+        datetime EnrollmentDate "UTC"
+        datetime GraduationDate "UTC"
+        guid AdvisorId FK
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    STAFF {
+        guid Id "PK_FK"
+        string EmployeeNumber UK
+        int AcademicTitle "enum(Prof,Doçent,Dr,ÖretimGör)"
+        datetime HireDate "UTC"
+        bool IsActive
+        guid AddressId FK
+        guid EmergencyContactId FK
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    ADDRESS {
+        guid Id PK
+        string Street
+        string City
+        string State
+        string PostalCode
+        string Country
+        string FullAddress
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    EMERGENCY_CONTACTS {
+        guid Id PK
+        string FullName
+        string Relationship
+        string PhoneNumber
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    HEALTH_RECORDS {
+        guid Id PK
+        guid PersonId FK
+        string BloodType
+        string Allergies
+        string ChronicDiseases
+        string Medications
+        string EmergencyHealthInfo
+        datetime LastCheckup "UTC"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== PERSON RESTRICTIONS ==============
+    PERSONS ||--o{ PERSON_RESTRICTIONS : has_restriction
+    USERS ||--o{ PERSON_RESTRICTIONS : applied_by
+
+    PERSON_RESTRICTIONS {
+        guid Id PK
+        guid PersonId FK
+        int RestrictionType "enum(Suspended,Banned,CovidQuarantine,CriminalRecord,MedicalReason,Financial,Other)"
+        int RestrictionLevel "enum(General,Cafeteria,AllFacilities,Specific)"
+        guid AppliedBy FK
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        string Reason
+        int Severity "enum(Low,Medium,High,Critical)"
+        bool IsActive
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== CARD SYSTEM ==============
+    PERSONS ||--o{ CARDS : has_card
+
+    CARDS {
+        guid Id PK
+        guid PersonId FK
+        string CardNumber UK
+        string CardType "enum(Student,Staff,Visitor)"
+        int CardStatus "enum(Active,Blocked,Lost,Cancelled,Expired)"
+        string CardCode "QRCode"
+        string Barcode
+        datetime IssuedDate
+        datetime ExpiryDate
+        bool IsPhysicalCard
+        string DigitalCardUrl
+        guid DefaultRechargeProviderId FK
+        datetime CreatedAt
+        datetime UpdatedAt
+        bool IsDeleted
+    }
+
+    %% ============== ACADEMIC AGGREGATE ==============
+    FACULTIES ||--o{ DEPARTMENTS : has
+    DEPARTMENTS ||--o{ COURSES : offers
+    DEPARTMENTS ||--o{ CURRICULUMS : defines
+    DEPARTMENTS ||--o{ LABORATORY : has_laboratory
+    COURSES ||--o{ PREREQUISITES : has
+    COURSES ||--o{ CURRICULUM_COURSES : in
+    COURSES ||--o{ EXAMS : has
+    COURSES ||--o{ COURSE_MATERIALS : has
+    COURSES ||--o{ COURSE_ANNOUNCEMENTS : has
+    COURSES ||--o{ COURSE_ASSIGNMENTS : has
+    COURSES ||--o{ COURSE_SESSIONS : scheduled_in
+    COURSES ||--o{ COURSE_CAPACITY_CONFIG : has_capacity
+    CURRICULUMS ||--o{ CURRICULUM_COURSES : contains
+    CAMPUSES ||--o{ DEPARTMENTS : hosts
+
+    FACULTIES {
+        guid Id PK
+        string Name
+        string Code UK
+        string Description
+        guid DeanId FK
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    DEPARTMENTS {
+        guid Id PK
+        string Name
+        string Code UK
+        guid FacultyId FK
+        guid HeadOfDepartmentId FK
+        string Description
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    COURSES {
+        guid Id PK
+        string Name
+        string Code UK
+        string Description
+        guid DepartmentId FK
+        int CourseType "enum(Compulsory,Elective,General)"
+        int TheoreticalHours
+        int PracticalHours
+        int ECTS
+        int NationalCredit
+        int Semester
+        int EducationLevel "enum(Associate,Bachelor,Master,PhD)"
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    PREREQUISITES {
+        guid Id PK
+        guid CourseId FK
+        guid PrerequisiteCourseId FK
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CURRICULUMS {
+        guid Id PK
+        string Name
+        string Code
+        guid DepartmentId FK
+        int EducationLevel "enum(Associate,Bachelor,Master,PhD)"
+        string AcademicYear
+        int StartYear
+        int EndYear
+        int TotalECTS
+        int TotalRequiredECTS
+        int TotalRequiredNationalCredit
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    CURRICULUM_COURSES {
+        guid Id PK
+        guid CurriculumId FK
+        guid CourseId FK
+        int Semester
+        int CourseType "enum(Compulsory,Elective,General)"
+        bool IsElective
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CAMPUSES {
+        guid Id PK
+        string Name
+        string Location
+        string Address
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    COURSE_CAPACITY_CONFIG {
+        guid Id PK
+        guid CourseId FK
+        string AcademicYear
+        int Semester
+        int MaxCapacity "nullable - (-1) = unlimited"
+        int CurrentEnrollment
+        bool WaitingListEnabled
+        int MaxWaitingListSize
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    COURSE_WAITING_LIST {
+        guid Id PK
+        guid CourseId FK
+        guid StudentId FK
+        guid EnrollmentId FK
+        int QueuePosition
+        datetime RequestedAt "UTC"
+        int Status "enum(Waiting,Admitted,Rejected,Expired)"
+        datetime CreatedAt "UTC"
+    }
+
+    PREREQUISITE_WAIVERS {
+        guid Id PK
+        guid StudentId FK
+        guid PrerequisiteId FK
+        string Reason
+        int WaiverStatus "enum(Pending,Approved,Rejected)"
+        guid ApprovedBy FK
+        datetime ApprovedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== ACADEMIC MODULES ==============
+    STUDENTS ||--o{ MAZERET_RAPORLARI : submits
+    STUDENTS ||--o{ GRADUATION_INFO : has_record
+    STAFF ||--o{ ADVISORY_NOTES : writes
+    COURSE_ASSIGNMENTS ||--o{ STUDENT_ASSIGNMENTS : completes
+
+    EXAMS {
+        guid Id PK
+        guid CourseId FK
+        guid InstructorId FK
+        int ExamType "enum(Midterm,Final,Quiz,Makeup,Practical)"
+        datetime ExamDate "UTC"
+        string ExamLocation
+        int Capacity
+        string Description
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    COURSE_MATERIALS {
+        guid Id PK
+        guid CourseId FK
+        string Name
+        int Type "enum(PDF,Video,Code,PPT,Excel,Link)"
+        string FilePath
+        int WeekNumber
+        bool IsPublished
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    MAZERET_RAPORLARI {
+        guid Id PK
+        guid StudentId FK
+        guid CourseId FK
+        string Reason
+        string DocumentPath
+        int Status "enum(Pending,Approved,Rejected)"
+        datetime SubmissionDate "UTC"
+        guid ReviewedBy FK
+        datetime ReviewDate "UTC"
+        string ReviewNotes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    GRADUATION_INFO {
+        guid Id PK
+        guid StudentId FK
+        int Status "enum(NotEligible,Eligible,Graduated,DiplomaIssued)"
+        double FinalCGPA
+        datetime GraduationDate "UTC"
+        string DiplomaNumber UK
+        datetime DiplomaIssuedDate "UTC"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    ADVISORY_NOTES {
+        guid Id PK
+        guid AdvisorId FK
+        guid StudentId FK
+        string Note
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    COURSE_ANNOUNCEMENTS {
+        guid Id PK
+        guid CourseId FK
+        string Title
+        string Content
+        int Priority "enum(Low,Normal,High,Urgent)"
+        guid PublishedBy FK
+        datetime PublishDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    COURSE_ASSIGNMENTS {
+        guid Id PK
+        guid CourseId FK
+        string Title
+        string Description
+        datetime DueDate "UTC"
+        string FilePath
+        int Type "enum(Assignment,Project,Research)"
+        int TotalPoints
+        guid InstructorId FK
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    STUDENT_ASSIGNMENTS {
+        guid Id PK
+        guid AssignmentId FK
+        guid StudentId FK
+        datetime SubmissionDate "UTC"
+        string SubmissionPath
+        double Score
+        int Status "enum(NotSubmitted,Submitted,Evaluated,LateSubmission)"
+        string Feedback
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== ENROLLMENT AGGREGATE ==============
+    ENROLLMENTS ||--o{ COURSE_REGISTRATIONS : contains
+    COURSE_REGISTRATIONS ||--o{ GRADES : has
+    COURSE_REGISTRATIONS ||--o{ ATTENDANCES : tracks
+    GRADES ||--o{ GRADE_OBJECTIONS : can_have
+
+    ENROLLMENTS {
+        guid Id PK
+        guid StudentId FK
+        string AcademicYear
+        int Semester
+        int Status "enum(Pending,Approved,Cancelled)"
+        datetime EnrollmentDate "UTC"
+        datetime ApprovalDate "UTC"
+        guid ApprovedBy FK
+        int TotalECTS
+        int TotalNationalCredit
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    COURSE_REGISTRATIONS {
+        guid Id PK
+        guid EnrollmentId FK
+        guid CourseId FK
+        guid InstructorId FK
+        int ECTS
+        int NationalCredit
+        int Status "enum(Active,Dropped,Passed,Failed,Incomplete)"
+        datetime RegistrationDate "UTC"
+        datetime DropDate "UTC"
+        bool IsRetake "nullable"
+        guid OriginalCourseRegistrationId FK "nullable"
+        string RetakeReason "enum(GradeTooLow,Failed,TransferCredit)"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    GRADES {
+        guid Id PK
+        guid CourseRegistrationId FK
+        guid StudentId FK
+        guid CourseId FK
+        guid InstructorId FK
+        int GradeType "enum(Midterm,Final,Quiz,Makeup,Assignment,Project)"
+        double NumericScore
+        string LetterGrade "enum(AA,BA,BB,CB,CC,DC,DD,FD,FF)"
+        double GradePoint
+        datetime GradeDate "UTC"
+        string Notes
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    GRADING_SCALE_CONFIG {
+        guid Id PK
+        string LetterGrade UK
+        double GradePoint
+        bool PassingGrade
+        double MinScore
+        double MaxScore
+        string EducationLevel "Associate,Bachelor,Master,PhD"
+        bool IsActive
+        datetime CreatedAt "UTC"
+    }
+
+    ATTENDANCES {
+        guid Id PK
+        guid CourseRegistrationId FK
+        guid StudentId FK
+        guid CourseId FK
+        datetime AttendanceDate "UTC"
+        int WeekNumber
+        bool IsPresent
+        string Notes
+        int Method "enum(Manual,QRCode,Biometric)"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    GRADE_OBJECTIONS {
+        guid Id PK
+        guid GradeId FK
+        guid StudentId FK
+        guid CourseId FK
+        string Reason
+        int Status "enum(Pending,Approved,Rejected)"
+        datetime ObjectionDate "UTC"
+        datetime ObjectionDeadlineDate "UTC"
+        guid ReviewedBy FK
+        datetime ReviewDate "UTC"
+        string ReviewNotes
+        double OldScore
+        double NewScore
+        int AppealLevel "1,2,3..."
+        string FirstReviewerNotes
+        string SecondReviewerNotes
+        int FinalDecision "enum(Approved,Rejected,PartiallyApproved)"
+        datetime StudentNotifiedAt "UTC"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    EXAM_CONFLICT_LOG {
+        guid Id PK
+        guid StudentId FK
+        guid ExamId1 FK
+        guid ExamId2 FK
+        datetime ConflictTime "UTC"
+        int Status "enum(Flagged,Approved,RetakeRequested,RetakeTaken)"
+        guid ApprovedBy FK
+        datetime ApprovedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== SCHEDULE AGGREGATE ==============
+    SCHEDULES ||--o{ COURSE_SESSIONS : contains
+
+    SCHEDULES {
+        guid Id PK
+        string AcademicYear
+        int Semester
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        int Status "enum(Planning,Active,Completed)"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    COURSE_SESSIONS {
+        guid Id PK
+        guid ScheduleId FK
+        guid CourseId FK
+        guid InstructorId FK
+        guid ClassroomId FK
+        int DayOfWeek "enum(Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday)"
+        string StartTime "HH:mm"
+        string EndTime "HH:mm"
+        int SessionType "enum(Theoretical,Practical,Laboratory,Seminar,Workshop)"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    %% ============== FACILITY AGGREGATE ==============
+    CLASSROOMS ||--o{ CLASSROOM_EQUIPMENT : has_equipment
+    EQUIPMENT ||--o{ CLASSROOM_EQUIPMENT : in
+
+    CLASSROOMS {
+        guid Id PK
+        string Name
+        string Code UK
+        string Building
+        int Floor
+        int Capacity
+        int Type "enum(Classroom,Amphitheater,Seminar,Laboratory)"
+        bool HasProjector
+        bool HasSmartBoard
+        bool HasComputers
+        bool HasAirConditioning
+        int ComputerCount
+        bool IsActive
+        string Description
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime DeletedAt "UTC"
+    }
+
+    CLASSROOM_EQUIPMENT {
+        guid Id PK
+        guid ClassroomId FK
+        string EquipmentName
+        int Quantity
+        bool IsWorking
+        datetime LastMaintenanceDate "UTC"
+        datetime NextMaintenanceDate "UTC"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    EQUIPMENT {
+        guid Id PK
+        string Code UK
+        string Name
+        int Type "enum(Computer,Projector,Printer,Scanner,Whiteboard,AudioSystem,VideoConference,Laboratory,MedicalDevice,NetworkDevice,SecurityDevice,HVAC,Elevator,Generator,Furniture,Vehicle,Tool,Other)"
+        int Status "enum(Operational,NeedsRepair,InRepair,OutOfService,Decommissioned,Calibrating,Reserved)"
+        guid ClassroomId FK
+        guid BuildingId FK
+        guid LaboratoryId FK
+        datetime PurchaseDate "UTC"
+        decimal PurchasePrice
+        string Manufacturer
+        string Model
+        string SerialNumber
+        int WarrantyMonths
+        datetime WarrantyExpiryDate "UTC"
+        datetime LastCalibrationDate "UTC"
+        datetime NextCalibrationDate "UTC"
+        string Notes
+        guid AssignedTo FK
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== FINANCIAL MANAGEMENT ==============
+    STUDENTS ||--o{ STUDENT_FEES : owes
+    STUDENTS ||--o{ SCHOLARSHIPS : receives
+    STUDENTS ||--o{ PAYMENT_PLANS : has
+    FEES ||--o{ STUDENT_FEES : assigned_to
+    PAYMENT_PLANS ||--o{ PAYMENT_PLAN_INSTALLMENTS : has_installments
+
+    FEES {
+        guid Id PK
+        string Name
+        guid DepartmentId FK
+        int EducationLevel "enum(Associate,Bachelor,Master,PhD)"
+        decimal Amount
+        int Semester "enum(1,2,3,4,5,6,7,8)"
+        int Status "enum(Active,Cancelled,Archived)"
+        bool IsMandatory
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    STUDENT_FEES {
+        guid Id PK
+        guid StudentId FK
+        guid FeeId FK
+        int AcademicYear
+        int Semester
+        decimal Amount
+        int Status "enum(Pending,PartiallyPaid,Paid,Waived)"
+        datetime DueDate "UTC"
+        datetime PaidDate "UTC"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    SCHOLARSHIPS {
+        guid Id PK
+        guid StudentId FK
+        string ScholarshipName
+        decimal MonthlyAmount
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        int Status "enum(Active,Pending,Expired,Cancelled)"
+        string Reason
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PAYMENT_PLANS {
+        guid Id PK
+        guid StudentId FK
+        guid StudentFeeId FK
+        int NumberOfInstallments
+        decimal InstallmentAmount
+        datetime StartDate "UTC"
+        int Status "enum(Active,Completed,Failed)"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PAYMENT_PLAN_INSTALLMENTS {
+        guid Id PK
+        guid PaymentPlanId FK
+        int InstallmentNumber
+        datetime DueDate "UTC"
+        decimal AmountDue
+        decimal AmountPaid
+        datetime PaidDate "UTC"
+        guid PaymentTransactionId FK
+        int Status "enum(Pending,PartiallyPaid,Paid,Overdue,Waived)"
+        datetime ReminderSentAt "UTC"
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SCHOLARSHIP_DEDUCTIONS {
+        guid Id PK
+        guid ScholarshipId FK
+        guid StudentFeeId FK
+        int DeductionMonth
+        decimal DeductionAmount
+        datetime DeductedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    REFUNDS {
+        guid Id PK
+        guid OriginalTransactionId FK
+        decimal RefundAmount
+        string RefundReason "enum(StudentRequest,FeeWaiver,Error,Overpayment)"
+        string RefundMethod "enum(CardCredit,BankTransfer,StoreCredit)"
+        int RefundStatus "enum(Pending,Processing,Completed,Failed,Disputed)"
+        datetime RequestedAt "UTC"
+        datetime ProcessedAt "UTC"
+        string Notes
+        guid ApprovedBy FK
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== LIBRARY SYSTEM ==============
+    PERSONS ||--o{ LIBRARY_LOANS : borrows
+    PERSONS ||--o{ LIBRARY_RESERVATIONS : reserves
+    LIBRARY_LOANS ||--o{ LIBRARY_FINES : has_fines
+
+    LIBRARY_MATERIALS {
+        guid Id PK
+        string ISBN
+        string Title
+        string Author
+        string Publisher
+        int PublicationYear
+        string Description
+        int MaterialType "enum(Book,Journal,Thesis,eBook,DVD,Map)"
+        int TotalCopies
+        int AvailableCopies
+        string Location
+        string Barcode UK
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    LIBRARY_LOANS {
+        guid Id PK
+        guid PersonId FK
+        guid MaterialId FK
+        datetime LoanDate "UTC"
+        datetime DueDate "UTC"
+        datetime ReturnDate "UTC"
+        int Status "enum(Active,Completed,Overdue)"
+        bool HasDamage
+        string DamageDescription
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    LIBRARY_RESERVATIONS {
+        guid Id PK
+        guid PersonId FK
+        guid MaterialId FK
+        datetime ReservationDate "UTC"
+        int QueuePosition
+        int Status "enum(Pending,Ready,Cancelled)"
+        datetime ExpiryDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    LIBRARY_RESERVATION_NOTIFICATIONS {
+        guid Id PK
+        guid ReservationId FK
+        int NotificationType "enum(Ready,Expired,Cancelled)"
+        datetime NotificationSentAt "UTC"
+        int NotificationChannel "enum(Email,SMS,Dashboard)"
+        bool IsRead
+        datetime ExpiryDate "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    LIBRARY_FINES {
+        guid Id PK
+        guid LoanId FK
+        guid PersonId FK
+        decimal FineAmount
+        decimal PaidAmount
+        int Status "enum(Unpaid,PartiallyPaid,Paid)"
+        datetime DueDate "UTC"
+        datetime PaymentDate "UTC"
+        string Reason
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    LIBRARY_FINE_CONFIG {
+        guid Id PK
+        string MaterialType "Book,Journal,DVD..."
+        decimal FinePerDay
+        decimal MaxFinePerItem
+        decimal MaxTotalFine
+        int GracePeriodDays
+        bool IsActive
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== SECURITY & ACCESS CONTROL ==============
+    ACCESS_CONTROL_DEVICES ||--o{ ACCESS_CONTROL_CHANNELS : has_channels
+    ACCESS_CONTROL_CHANNELS ||--o{ ACCESS_POINTS : controls_doors
+    PERSONS ||--o{ PERSON_ACCESS_GROUPS : belongs_to
+    ACCESS_GROUPS ||--o{ PERSON_ACCESS_GROUPS : has_members
+    ACCESS_GROUPS ||--o{ ACCESS_GROUP_PERMISSIONS : defines_access_to
+    ACCESS_CONTROL_DEVICES ||--o{ ACCESS_GROUP_PERMISSIONS : can_grant_access_to
+    ACCESS_CONTROL_CHANNELS ||--o{ ACCESS_GROUP_PERMISSIONS : can_grant_channel_access
+    ACCESS_POINTS ||--o{ ACCESS_GROUP_PERMISSIONS : has_permission_from
+    ACCESS_CONTROL_CHANNELS ||--o{ ACCESS_LOGS : logged_via
+    ACCESS_CONTROL_DEVICES ||--o{ ACCESS_LOGS : generated_by
+    ACCESS_POINTS ||--o{ ACCESS_LOGS : records_access
+    PERSON_ACCESS_GROUPS ||--o{ ACCESS_LOGS : validated_via
+    ACCESS_CONTROL_DEVICES ||--o{ DEVICE_CONFIG : has_configuration
+    ACCESS_CONTROL_DEVICES ||--o{ DEVICE_HEARTBEAT : sends_heartbeat
+    ACCESS_CONTROL_DEVICES ||--o{ REQUEST_PROCESSING_QUEUE : queues_requests
+    ACCESS_POINTS ||--o{ DAILY_ACCESS_SUMMARY : summarized_in
+    ACCESS_CONTROL_DEVICES ||--o{ DEVICE_OFFLINE_BUFFER : buffered_offline
+
+    ACCESS_CONTROL_DEVICES {
+        guid Id PK
+        string DeviceName UK
+        string DeviceModel "e.g., TC-101"
+        string FirmwareVersion
+        string IPAddress UK
+        int Port
+        int DeviceStatus "enum(Online,Offline,Malfunction,Maintenance)"
+        datetime LastHeartbeat "UTC"
+        datetime LastConfigUpdate "UTC"
+        int MaxChannels "16"
+        int TotalManagedDoors
+        int MaxConcurrentUsers
+        int SyncStatus "enum(InSync,PendingSync,Syncing,SyncError)"
+        guid PrimaryDeviceId FK
+        guid SecondaryDeviceId FK
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    ACCESS_CONTROL_CHANNELS {
+        guid Id PK
+        guid AccessControlDeviceId FK
+        int ChannelType "enum(WiegandInput,WiegandOutput,RelayOutput,SerialOSDPReader,SerialRS232Reader,DigitalInput)"
+        string ChannelName
+        int ChannelNumber
+        int ChannelStatus "enum(Active,Inactive,Malfunction)"
+        int ConnectedDeviceType "enum(CardReader,DoorLock,ExitButton,DoorSensor,Buzzer)"
+        string ConnectedDeviceName
+        int MaxConcurrentConnections
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    ACCESS_POINTS {
+        guid Id PK
+        guid AccessControlChannelId FK
+        string PointName UK
+        string Location
+        int Type "enum(Door,Turnstile,BiometricDevice,Gate,Elevator)"
+        int Status "enum(Active,Inactive,Malfunction)"
+        bool IsActive
+        string Description
+        int MaxConcurrentUsers
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    ACCESS_GROUPS {
+        guid Id PK
+        string GroupName UK
+        string Description
+        int GroupType "enum(Student,Staff,Visitor,Special,VIP,Contractor)"
+        int Priority "enum(Low,Normal,High,Critical)"
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PERSON_ACCESS_GROUPS {
+        guid Id PK
+        guid PersonId FK
+        guid AccessGroupId FK
+        datetime AssignedDate "UTC"
+        datetime ExpiryDate "UTC"
+        bool IsActive
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    ACCESS_GROUP_PERMISSIONS {
+        guid Id PK
+        guid AccessGroupId FK
+        guid AccessControlDeviceId FK
+        guid AccessControlChannelId FK
+        guid AccessPointId FK
+        int PermissionScope "enum(EntireDevice,SpecificChannel,SpecificDoor)"
+        int AccessLevel "enum(NoAccess,ReadOnly,ReadWrite,FullAccess)"
+        int Priority "enum(Low,Normal,High,Critical)"
+        datetime ValidFrom "UTC"
+        datetime ValidTo "UTC"
+        bool AllowedDuringEventTime
+        string AllowedTimeSlot "HH:mm-HH:mm"
+        int MaxDailyAccess
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    ACCESS_SCHEDULE_EXCEPTIONS {
+        guid Id PK
+        guid AccessGroupPermissionId FK
+        int ExceptionType "enum(Grant,Revoke,OverrideSchedule)"
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        string Reason
+        guid ApprovedBy FK
+        datetime CreatedAt "UTC"
+    }
+
+    ACCESS_LOGS {
+        guid Id PK
+        guid PersonId FK
+        guid AccessPointId FK
+        guid AccessControlChannelId FK
+        guid AccessControlDeviceId FK
+        guid AccessGroupId FK
+        datetime AccessTime "UTC"
+        int AccessType "enum(CheckIn,CheckOut,Denied)"
+        int AccessMethod "enum(Card,QRCode,Biometric,Manual)"
+        bool IsSuccessful
+        int DenialReason "enum(InvalidCard,NoPermission,GroupExpired,TimeRestriction,MaxAccessExceeded,PersonRestricted,ScheduleMaintenance)"
+        int WiegandBitFormat
+        string CardDataReceived
+        int RelayOutputActivated "enum(None,Relay1,Relay2)"
+        int RelayDurationMs
+        bool DoorContactSensor
+        bool ExitButtonPressed
+        datetime RelayActivationTime "UTC"
+        int ResponseTimeMs
+        string DeviceLogReference
+        bool IsOfflineRecord
+        int OfflineSyncStatus "enum(NotSynced,Syncing,Synced,Failed)"
+        bool IsManualEntry "Sistem tarafından mı otomatik, insan tarafından mı manuel"
+        guid CreatedByUserId FK "nullable - Manual entry yapan user"
+        guid CancelledByUserId FK "nullable - İptal eden user"
+        datetime CancelledAt "UTC - nullable"
+        string ManualCreationReason "nullable - Neden manuel girildi"
+        string CancellationReason "nullable - Neden iptal edildi"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    DEVICE_OFFLINE_BUFFER {
+        guid Id PK
+        guid AccessControlDeviceId FK
+        string AccessAttemptData "JSON"
+        datetime BufferedAt "UTC"
+        datetime SyncedAt "UTC"
+        int SyncStatus "enum(Pending,Syncing,Synced,Failed)"
+        int SyncRetryCount
+        string LastSyncError
+        datetime CreatedAt "UTC"
+    }
+
+    DEVICE_CONFIG {
+        guid Id PK
+        guid AccessControlDeviceId FK
+        string ConfigKey UK
+        string ConfigValue
+        string ConfigType "enum(String,Integer,Boolean,JSON)"
+        string Description
+        bool IsEditable
+        bool RequiresReboot
+        int AppliedStatus "enum(NotApplied,Applying,Applied,Failed)"
+        guid AppliedBy FK
+        datetime AppliedAt "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    DEVICE_HEARTBEAT {
+        guid Id PK
+        guid AccessControlDeviceId FK
+        datetime HeartbeatTime "UTC"
+        int CPUUsage "0-100"
+        int MemoryUsage "0-100"
+        int OnlineUsersCount
+        int TotalProcessedEvents
+        bool AllRelaysOperational
+        bool NetworkConnectionStable
+        int SignalStrength "-30 to -90 dBm"
+        string FirmwareVersion
+        int UptimeSeconds
+        int PendingSyncEventCount
+        string LastErrorMessage
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    REQUEST_PROCESSING_QUEUE {
+        guid Id PK
+        guid AccessControlDeviceId FK
+        guid AccessPointId FK
+        guid PersonId FK
+        string CardData
+        int Priority "enum(Low,Normal,High,Critical)"
+        int Status "enum(Queued,Processing,Completed,Failed,Timeout)"
+        int RetryCount
+        string ErrorMessage
+        datetime QueuedAt "UTC"
+        datetime ProcessedAt "UTC"
+        int ProcessingTimeMs
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    DAILY_ACCESS_SUMMARY {
+        guid Id PK
+        date SummaryDate
+        guid AccessPointId FK
+        guid AccessControlDeviceId FK
+        int TotalAccess
+        int SuccessfulAccess
+        int DeniedAccess
+        int UniquePersons
+        decimal AverageResponseTimeMs
+        int PeakHourAccess
+        string TopDenialReason
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    HOURLY_ACCESS_SUMMARY {
+        guid Id PK
+        date SummaryDate
+        int SummaryHour "0-23"
+        guid AccessPointId FK
+        guid AccessControlDeviceId FK
+        int TotalAccess
+        int UniquePersons
+        int DenialCount
+        decimal AverageResponseTimeMs
+        datetime CreatedAt "UTC"
+    }
+
+    ANOMALY_ALERTS {
+        guid Id PK
+        guid AccessPointId FK
+        int AnomalyType "enum(SuddenSpike,Failure,UnusualTime,DenialPattern)"
+        datetime DetectedAt "UTC"
+        int Severity "enum(Info,Warning,Critical)"
+        string Details "JSON"
+        bool IsResolved
+        guid ResolvedBy FK
+        datetime ResolvedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== CAFETERIA SYSTEM ==============
+    PERSONS ||--o{ CAFETERIA_SUBSCRIPTIONS : subscribes_to
+    CARDS ||--o{ CAFETERIA_SUBSCRIPTIONS : subscribed_via
+    CAFETERIAS ||--o{ CAFETERIA_SUBSCRIPTIONS : offers
+    CAFETERIAS ||--o{ CAFETERIA_MENU : has_menu
+    CAFETERIAS ||--o{ CAFETERIA_PRICING_RULES : has_pricing
+    CAFETERIA_SUBSCRIPTIONS ||--o{ SUBSCRIPTION_ITEMS : defines
+    CAFETERIAS ||--o{ CAFETERIA_INVENTORY : has_inventory
+    CAFETERIA_SUBSCRIPTIONS ||--o{ SUBSCRIPTION_DISCOUNTS : has_discount
+
+    CAFETERIAS {
+        guid Id PK
+        string CafeteriaName
+        string Location
+        string Code UK
+        guid DepartmentId FK
+        int Capacity
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CAFETERIA_MENU {
+        guid Id PK
+        guid CafeteriaId FK
+        datetime MenuDate "UTC"
+        int MealType "enum(Breakfast,Lunch,Dinner)"
+        int DayOfWeek "enum(Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday)"
+        string MainCourse
+        string SideDish1
+        string SideDish2
+        string Dessert
+        string Beverage
+        int CalorieCount
+        bool ContainsAllergens
+        string AllergenInfo
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CAFETERIA_SUBSCRIPTIONS {
+        guid Id PK
+        guid CardId FK
+        guid PersonId FK
+        guid CafeteriaId FK
+        string SubscriptionName
+        decimal PriceByDepartment "Kişinin departmanına göre"
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        int Status "enum(Active,Expired,Cancelled,Paused)"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SUBSCRIPTION_ITEMS {
+        guid Id PK
+        guid SubscriptionId FK
+        int DayOfWeek "enum(Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday)"
+        int MealType "enum(Breakfast,Lunch,Dinner)"
+        int MaxServingsPerDay "Günlük limit"
+        bool IsActive
+        datetime CreatedAt "UTC"
+    }
+
+    SUBSCRIPTION_DISCOUNTS {
+        guid Id PK
+        guid SubscriptionId FK
+        int DiscountType "enum(BulkMonthly,LongTerm,StudentStatus,MultiMeal,FirstMeal)"
+        decimal DiscountPercentage
+        datetime ApplicableFromDate "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    CAFETERIA_PRICING_RULES {
+        guid Id PK
+        guid CafeteriaId FK
+        guid DepartmentId FK
+        int MealType "enum(Breakfast,Lunch,Dinner)"
+        decimal BasePrice
+        decimal DepartmentPrice "Departmana göre fiyat"
+        int TimeSlot "enum(Early,Peak,Late)"
+        decimal PriceMultiplier "1.0=normal, 1.2=20% artış"
+        datetime ApplicableFromDate "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    CAFETERIA_DAILY_USAGE {
+        guid Id PK
+        guid PersonId FK
+        guid SubscriptionId FK
+        guid CafeteriaId FK
+        date UsageDate
+        int MealType "enum(Breakfast,Lunch,Dinner)"
+        int ServingsToday
+        int MaxAllowed
+        datetime FirstMealTime "UTC"
+        datetime SecondMealTime "UTC"
+        decimal FirstMealPrice "İndirimli"
+        decimal SecondMealPrice "İndirimsiz"
+        datetime CreatedAt "UTC"
+    }
+
+    CAFETERIA_ACCESS_LOGS {
+        guid Id PK
+        guid CardId FK
+        guid PersonId FK
+        guid CafeteriaId FK
+        guid AccessPointId FK
+        guid SubscriptionId FK
+        guid RestrictionId FK
+        int CardStatus "enum(Valid,Expired,Lost,Cancelled,Blocked)"
+        int CardValidationResult "enum(Success,Failed)"
+        int RestrictionStatus "enum(NoRestriction,Restricted,Expired)"
+        int RestrictionCheckResult "enum(Passed,Blocked)"
+        string RestrictionReason
+        bool HasSubscriptionForToday
+        bool SubscriptionValidated
+        decimal BalanceBefore
+        int BalanceCheckResult "enum(Sufficient,Insufficient)"
+        int TransactionType "enum(SubscriptionMeal,DirectPayment,Denied)"
+        decimal Amount
+        decimal BalanceAfter
+        int MealNumber "1st or 2nd meal today"
+        bool DiscountApplied
+        int AccessResult "enum(Granted,Denied)"
+        string DenialReason
+        datetime AccessTime "UTC"
+        bool IsManualEntry "Manuel giriş mi"
+        guid CreatedByUserId FK "nullable - Manuel entry yapan user"
+        guid CancelledByUserId FK "nullable - İptal eden user"
+        datetime CancelledAt "UTC"
+        string ManualCreationReason "nullable - Neden manuel girildi"
+        string CancellationReason "nullable - Neden iptal edildi"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    CAFETERIA_INVENTORY {
+        guid Id PK
+        guid CafeteriaId FK
+        string ItemName
+        string Category "enum(OfficeSupply,CleaningMaterial,LabMaterial,Food,Other)"
+        int CurrentQuantity
+        int MinimumQuantity
+        string Unit "enum(Piece,kg,Liter,Pack)"
+        decimal UnitPrice
+        datetime LastRestockDate "UTC"
+        bool NeedsRestock
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== PARKING SYSTEM ==============
+    PERSONS ||--o{ VEHICLE_REGISTRATION : owns
+    PERSONS ||--o{ PARKING_RESERVATION : reserves
+    PARKING_LOT ||--o{ PARKING_RESERVATION : has_reservation
+    PARKING_LOT ||--o{ PARKING_TRANSACTIONS : at
+    ACCESS_POINTS ||--o{ PARKING_ENTRY_EXIT_LOG : has_entry_gate
+    VEHICLE_REGISTRATION ||--o{ PARKING_ENTRY_EXIT_LOG : vehicle_tracked
+
+    PARKING_LOT {
+        guid Id PK
+        guid CampusId FK
+        string LotName
+        string Location
+        int TotalSpaces
+        int ReservedSpaces
+        int HandicapSpaces
+        int MotorcycleSpaces
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    VEHICLE_REGISTRATION {
+        guid Id PK
+        guid PersonId FK
+        string PlateNumber UK
+        string Brand
+        string Model
+        string Color
+        string VIN
+        int VehicleType "enum(Car,Motorcycle,Bicycle)"
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PARKING_RESERVATION {
+        guid Id PK
+        guid PersonId FK
+        guid ParkingLotId FK
+        int SpaceNumber
+        datetime ReservationDate "UTC"
+        datetime EndDate "UTC"
+        int Status "enum(Active,Expired,Cancelled)"
+        decimal Fee
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PARKING_ENTRY_EXIT_LOG {
+        guid Id PK
+        guid VehicleId FK
+        guid ParkingLotId FK
+        guid EntryGateAccessPoint FK "Hangi kapıdan giriş"
+        datetime EntryTime "UTC"
+        guid ExitGateAccessPoint FK "nullable - Hangi kapıdan çıkış"
+        datetime ExitTime "UTC"
+        int DurationMinutes
+        int Status "enum(InProgress,Completed,Abandoned,NoExit)"
+        string Notes
+        bool IsManualEntry "Manuel giriş mi"
+        guid CreatedByUserId FK "nullable - Manuel entry yapan user"
+        guid CancelledByUserId FK "nullable - İptal eden user"
+        datetime CancelledAt "UTC"
+        string ManualCreationReason "nullable - Neden manuel girildi"
+        string CancellationReason "nullable - Neden iptal edildi"
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    PARKING_TRANSACTIONS {
+        guid Id PK
+        guid EntryExitLogId FK
+        guid VehicleId FK
+        guid ParkingLotId FK
+        datetime EntryTime "UTC"
+        datetime ExitTime "UTC"
+        decimal Amount
+        int Status "enum(Paid,Unpaid)"
+        string LicensePlate
+        guid VirtualPosProviderId FK
+        guid PaymentTransactionLogId FK
+        bool IsSubscription "Abonelik var mı"
+        bool RefundProcessed "Çıkış yapılmazsa refund yok"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    PARKING_RATE_CONFIG {
+        guid Id PK
+        guid ParkingLotId FK
+        int RateType "enum(Hourly,Daily,Monthly)"
+        int TimeSlot "enum(Peak,OffPeak,Overnight)"
+        decimal Rate
+        decimal MaxDailyRate "5 saat = 1 gün"
+        datetime ValidFromDate "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    PARKING_RESERVATION_USAGE {
+        guid Id PK
+        guid ReservationId FK
+        datetime ActualUsedAt "UTC"
+        guid ActualVehicleId FK
+        int Status "enum(Used,Unused,NoShow)"
+        string CancellationReason
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== LABORATORY SYSTEM ==============
+    LABORATORY ||--o{ LABORATORY_EQUIPMENT : has_equipment
+    LABORATORY ||--o{ LABORATORY_BOOKINGS : has_booking
+    LABORATORY_BOOKINGS ||--o{ LABORATORY_EXPERIMENTS : records
+
+    LABORATORY {
+        guid Id PK
+        guid DepartmentId FK
+        string LabName
+        string Description
+        int Capacity
+        int SafetyLevel "enum(Low,Medium,High)"
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    LABORATORY_EQUIPMENT {
+        guid Id PK
+        string EquipmentName
+        guid LaboratoryId FK
+        string SerialNumber UK
+        string Manufacturer
+        string Model
+        string Location
+        datetime PurchaseDate "UTC"
+        datetime LastCalibrationDate "UTC"
+        datetime NextCalibrationDate "UTC"
+        decimal PurchasePrice
+        int Status "enum(Operational,NeedsRepair,InRepair,OutOfService)"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    LABORATORY_BOOKINGS {
+        guid Id PK
+        guid LaboratoryId FK
+        guid CourseId FK
+        guid InstructorId FK
+        datetime BookingDate "UTC"
+        string StartTime "HH:mm"
+        string EndTime "HH:mm"
+        int MaxCapacity
+        string Purpose
+        int Status "enum(Approved,Pending,Cancelled)"
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    LABORATORY_EXPERIMENTS {
+        guid Id PK
+        guid BookingId FK
+        string ExperimentName
+        string Description
+        string SafetyPrecautions
+        int EstimatedDuration
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== COMMUNICATION SYSTEM ==============
+    USERS ||--o{ ANNOUNCEMENTS : publishes
+    PERSONS ||--o{ MESSAGES : sends
+    MESSAGES ||--o{ MESSAGE_RECIPIENTS : has_recipient
+
+    ANNOUNCEMENTS {
+        guid Id PK
+        string Title
+        string Content
+        int Priority "enum(Low,Normal,High,Urgent)"
+        int TargetAudience "enum(All,Students,Staff,Dean,Faculty,Department)"
+        guid PublishedBy FK
+        datetime PublishDate "UTC"
+        datetime ExpiryDate "UTC"
+        bool IsPublished
+        int ViewCount
+        string ImagePath
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    MESSAGES {
+        guid Id PK
+        guid SenderId FK
+        string Subject
+        string Content
+        datetime SentDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    MESSAGE_RECIPIENTS {
+        guid Id PK
+        guid MessageId FK
+        guid RecipientId FK
+        bool IsRead
+        datetime ReadDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    %% ============== DOCUMENT MANAGEMENT ==============
+    PERSONS ||--o{ DOCUMENTS : requests
+
+    DOCUMENTS {
+        guid Id PK
+        guid PersonId FK
+        int DocumentType "enum(StudentCertificate,Transcript,Diploma,ConfirmationLetter,EmploymentLetter)"
+        string RequestNo UK
+        int Quantity
+        int Status "enum(Applied,Processing,Ready,Delivered,Cancelled)"
+        datetime RequestDate "UTC"
+        datetime IssueDate "UTC"
+        datetime DeliveryDate "UTC"
+        decimal Fee
+        bool IsPaid
+        bool RequiresESignature
+        string FilePath
+        guid PreparedBy FK
+        string Notes
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== STUDENT ACTIVITIES & EVENT TICKETING ==============
+    STUDENTS ||--o{ STUDENT_CLUBS : joins
+    STUDENT_CLUBS ||--o{ CLUB_MEMBERS : has_member
+    STUDENT_CLUBS ||--o{ CLUB_EVENTS : organizes
+    CLUB_EVENTS ||--o{ EVENT_PARTICIPANTS : has_participant
+    PERSONS ||--o{ EVENTS : organizes
+    STUDENT_CLUBS ||--o{ EVENTS : organizes_event
+    EVENTS ||--|| VENUE : held_at
+    EVENTS ||--|| SEATING_ARRANGEMENT : uses_arrangement
+    VENUE ||--o{ SEATING_ARRANGEMENT : has_layout
+    SEATING_ARRANGEMENT ||--o{ SEATS : contains_seats
+    SEATS ||--o{ SEAT_RESERVATIONS : has_protocol_reservation
+    SEATS ||--o{ TICKET_RESERVATIONS : temporarily_reserved
+    SEATS ||--o{ EVENT_TICKETS : ticket_for
+    USERS ||--o{ SEAT_RESERVATIONS : reserved_by
+    PERSONS ||--o{ TICKET_RESERVATIONS : reserved_by
+    PERSONS ||--o{ EVENT_TICKETS : purchaser
+    CARDS ||--o{ EVENT_TICKETS : purchased_with
+    EVENTS ||--o{ TICKET_RESERVATIONS : reservation_for
+    EVENTS ||--o{ EVENT_TICKETS : has_sold_tickets
+
+    STUDENT_CLUBS {
+        guid Id PK
+        string ClubName
+        string Description
+        guid PresidentId FK
+        int MemberCount
+        bool IsActive
+        int Status "enum(Active,Inactive,Closed)"
+        datetime FoundingDate "UTC"
+        string Location
+        string MeetingSchedule
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    CLUB_MEMBERS {
+        guid Id PK
+        guid ClubId FK
+        guid StudentId FK
+        int Position "enum(President,VicePresident,Secretary,Member)"
+        datetime JoinDate "UTC"
+        datetime LeaveDate "UTC"
+        bool IsActive
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    CLUB_EVENTS {
+        guid Id PK
+        guid ClubId FK
+        string EventName
+        string Description
+        datetime EventDate "UTC"
+        string EventTime "HH:mm"
+        string Location
+        int ExpectedAttendees
+        string ImagePath
+        int Status "enum(Planning,Approved,Cancelled,Completed)"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    EVENT_PARTICIPANTS {
+        guid Id PK
+        guid EventId FK
+        guid PersonId FK
+        datetime RegistrationDate "UTC"
+        int Status "enum(Registered,Attended,Absent,Cancelled)"
+        string Certificate
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    EVENTS {
+        guid Id PK
+        string EventName
+        string Description
+        guid VenueId FK
+        guid OrganizerId FK
+        int EventType "enum(Concert,Theater,Conference,Exhibition,Workshop,Other)"
+        datetime EventDate "UTC"
+        string EventStartTime "HH:mm"
+        string EventEndTime "HH:mm"
+        int TotalCapacity
+        int AvailableSeats
+        decimal DefaultTicketPrice
+        int Status "enum(Planning,TicketsOnSale,EventDay,Completed,Cancelled)"
+        bool RequiresCheckIn
+        string PosterImagePath
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    EVENT_REFUND_POLICIES {
+        guid Id PK
+        guid EventId FK
+        int DaysBeforeEvent "Kaç gün öncesi refund"
+        decimal RefundPercentage "100% ilk 30 gün"
+        int ProcessingDays
+        bool IsRefundableAfterEventStart
+        datetime CreatedAt "UTC"
+    }
+
+    EVENT_CANCELLATIONS {
+        guid Id PK
+        guid EventId FK
+        datetime CancelledAt "UTC"
+        string CancellationReason
+        int RefundMethod "enum(FullRefund,Voucher,FutureEvent)"
+        datetime RefundProcessedAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    VENUE {
+        guid Id PK
+        string VenueName
+        string Location
+        int TotalCapacity
+        string Building
+        int FloorNumber
+        int TotalRows
+        int TotalColumns
+        bool IsActive
+        string Description
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    SEATING_ARRANGEMENT {
+        guid Id PK
+        guid VenueId FK
+        guid EventId FK
+        int TotalRows
+        int TotalColumns
+        int TotalSeats
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    SEATS {
+        guid Id PK
+        guid SeatingArrangementId FK
+        string SeatNumber "e.g. A1, A2, B1"
+        int RowNumber
+        int ColumnNumber
+        int SeatType "enum(Normal,VIP,Handicap,StageView)"
+        decimal SeatPrice
+        int Status "enum(Available,ReservedByAdmin,SoldOut,Maintenance,Blocked)"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    SEAT_RESERVATIONS {
+        guid Id PK
+        guid SeatId FK
+        guid EventId FK
+        string ReservedForName
+        string ReservationCode UK
+        guid ReservedBy FK
+        datetime ReservationDate "UTC"
+        int Status "enum(Active,Used,Cancelled)"
+        string Notes
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    TICKET_RESERVATIONS {
+        guid Id PK
+        guid SeatId FK
+        guid EventId FK
+        guid PersonId FK
+        string ReservationCode UK
+        decimal ReservedPrice
+        datetime ReservedAt "UTC"
+        datetime ExpiresAt "UTC"
+        int Status "enum(Active,Expired,Completed,Cancelled)"
+        int PaymentAttempts
+        string LastAttemptError
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    EVENT_TICKETS {
+        guid Id PK
+        guid EventId FK
+        guid SeatId FK
+        guid BuyerId FK
+        guid CardId FK
+        decimal TicketPrice
+        datetime PurchaseDate "UTC"
+        int SaleMethod "enum(Card,CashPayment,WebPayment,VirtualPOS)"
+        guid VirtualPosProviderId FK
+        guid PaymentTransactionLogId FK
+        string TicketCode UK
+        int Status "enum(Valid,Used,Refunded,Cancelled)"
+        datetime CheckInTime "UTC"
+        string Notes
+        byte RowVersion
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    TICKET_RESALES {
+        guid Id PK
+        guid OriginalTicketId FK
+        guid OriginalBuyerId FK
+        guid NewBuyerId FK
+        decimal ResalePrice
+        decimal PlatformFee
+        int Status "enum(Listed,Sold,Cancelled)"
+        datetime ListedAt "UTC"
+        datetime SoldAt "UTC"
+        datetime CreatedAt "UTC"
+    }
+
+    RESALE_RESTRICTIONS {
+        guid Id PK
+        guid EventId FK
+        bool AllowResale
+        decimal MaxResaleMarkupPercent
+        int MinDaysBeforeEventToResale
+        datetime CreatedAt "UTC"
+    }
+
+    EVENT_CHECK_INS {
+        guid Id PK
+        guid EventTicketId FK
+        datetime CheckInTime "UTC"
+        int CheckInMethod "enum(QRCode,Manual,RFID)"
+        guid CheckInPersonId FK
+        bool SeatConfirmation
+        string Notes
+        datetime CreatedAt "UTC"
+    }
+
+    EVENT_REAL_TIME_CAPACITY {
+        guid EventId PK
+        int CurrentOccupancy
+        datetime LastUpdatedAt "UTC"
+    }
+
+    %% ============== RESEARCH & PUBLICATIONS ==============
+    STAFF ||--o{ RESEARCH_PROJECTS : leads
+    RESEARCH_PROJECTS ||--o{ RESEARCH_PROJECT_MEMBERS : has_member
+    STAFF ||--o{ RESEARCH_PUBLICATIONS : publishes
+
+    RESEARCH_PROJECTS {
+        guid Id PK
+        string ProjectName
+        string ProjectNo UK
+        guid LeaderStaffId FK
+        int ProjectType "enum(TUBITAK,EU,Industry,InternalResearch)"
+        decimal Budget
+        decimal SpentAmount
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        int Status "enum(Planning,Active,Completed,Cancelled)"
+        string Description
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    RESEARCH_PROJECT_MEMBERS {
+        guid Id PK
+        guid ProjectId FK
+        guid StaffId FK
+        int Role "enum(Manager,Researcher,Technician)"
+        datetime StartDate "UTC"
+        datetime EndDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
+
+    RESEARCH_PUBLICATIONS {
+        guid Id PK
+        guid StaffId FK
+        guid ProjectId FK
+        string Title
+        string Authors
+        string PublicationVenue
+        int PublicationType "enum(Article,Book,Conference,Patent,Copyright)"
+        datetime PublicationDate "UTC"
+        string DOI
+        string URL
+        int CitationCount
+        double ImpactFactor
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+        datetime UpdatedAt "UTC"
+    }
+
+    %% ============== PAYROLL ==============
+    STAFF ||--o{ PAYSLIPS : receives
+
+    PAYSLIPS {
+        guid Id PK
+        guid StaffId FK
+        string MonthYear
+        decimal BasicSalary
+        decimal GrossSalary
+        decimal TotalDeductions
+        decimal NetSalary
+        datetime PaymentDate "UTC"
+        bool IsDeleted
+        datetime CreatedAt "UTC"
+    }
