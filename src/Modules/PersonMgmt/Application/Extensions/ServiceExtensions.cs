@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using PersonMgmt.Application.Mappers;
-using PersonMgmt.Application.Validators;
 
 namespace PersonMgmt.Application.Extensions;
 
@@ -19,9 +18,6 @@ namespace PersonMgmt.Application.Extensions;
 /// </summary>
 public static class ServiceExtensions
 {
-    /// <summary>
-    /// PersonMgmt.Application servisleri ekle
-    /// </summary>
     public static IServiceCollection AddPersonMgmtApplication(
         this IServiceCollection services)
     {
@@ -34,7 +30,7 @@ public static class ServiceExtensions
         // AutoMapper
         services.AddAutoMapper(cfg => { }, typeof(PersonMgmtMappingProfile));
 
-        // Behavior'lar (MediatR Pipeline)
+        // ✅ Behavior'lar (MediatR Pipeline) - Artık derlenecek
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         return services;

@@ -1,4 +1,8 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using Core.Domain.Repositories;
+using Core.Domain.Results;
+using MediatR;
+using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 
 /// <summary>
@@ -8,7 +12,7 @@ using PersonMgmt.Application.DTOs;
 /// var command = new AddRestrictionCommand(personId, new AddRestrictionRequest { ... });
 /// await _mediator.Send(command);
 /// </summary>
-public class AddRestrictionCommand : IRequest<Unit>
+public class AddRestrictionCommand : IRequest<Result<Unit>>
 {
     /// <summary>
     /// Kişi ID

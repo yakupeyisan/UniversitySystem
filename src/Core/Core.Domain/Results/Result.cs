@@ -44,6 +44,8 @@ public abstract record Result<T>
     public static Result<T> Ok(T value) => new Success(value);
     public static Result<T> Fail(string errorCode, string errorMessage) =>
         new Failure(errorCode, errorMessage);
+    public static Result<T> Fail(string errorMessage) =>
+        new Failure("errors.internal_error", errorMessage);
 
     public TResult Match<TResult>(
         Func<T, TResult> onSuccess,
