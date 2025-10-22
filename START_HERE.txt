@@ -420,7 +420,7 @@ public class NameCommand : IRequest<Result<ReturnType>>
 
         public async Task<Result<ReturnType>> Handle(NameCommand request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+          //process 
         }
     }
 }
