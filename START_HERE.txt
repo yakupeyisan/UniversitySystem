@@ -418,7 +418,7 @@ public class NameCommand : IRequest<Result<ReturnType>>
             _logger = logger;
         }
 
-        public async Task<Result<ReturnType>> Handle(AddRestrictionCommand request, CancellationToken cancellationToken)
+        public async Task<Result<ReturnType>> Handle(NameCommand request, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
