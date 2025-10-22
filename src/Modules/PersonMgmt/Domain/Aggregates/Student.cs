@@ -1,7 +1,7 @@
 ﻿using Core.Domain;
 using PersonMgmt.Domain.Enums;
 
-namespace PersonMgmt.Domain.Aggregates.Person.ValueObjects;
+namespace PersonMgmt.Domain.Aggregates;
 
 /// <summary>
 /// Student - Öğrenci bilgileri Entity

@@ -1,6 +1,6 @@
 ﻿using Core.Domain.ValueObjects;
 
-namespace PersonMgmt.Domain.Aggregates.Person.ValueObjects;
+namespace PersonMgmt.Domain.ValueObjects;
 
 /// <summary>
 /// PersonName - Ad ve soyad Value Object

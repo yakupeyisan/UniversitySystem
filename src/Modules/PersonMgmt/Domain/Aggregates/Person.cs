@@ -1,6 +1,7 @@
 ﻿using Core.Domain;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
+using PersonMgmt.Domain.ValueObjects;
 
 namespace PersonMgmt.Domain.Aggregates;
 
