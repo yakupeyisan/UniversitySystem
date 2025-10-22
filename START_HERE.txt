@@ -407,9 +407,9 @@ public class NameCommand : IRequest<Result<ReturnType>>
 
     public class Handler : IRequestHandler<NameCommand, Result<ReturnType>>
     {
-        public IRepository<EnityName> _entityRepository;
-        public IMapper _mapper;
-        public ILogger<Handler> _logger;
+        public readonly IRepository<EnityName> _entityRepository;
+        public readonly IMapper _mapper;
+        public readonly Logger<Handler> _logger;
 
         public Handler(IRepository<EnityName> entityRepository, IMapper mapper, ILogger<Handler> logger)
         {
