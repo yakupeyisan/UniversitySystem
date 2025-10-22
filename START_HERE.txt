@@ -399,3 +399,29 @@
 
 Last Updated: October 22, 2024
 Architecture: Monolithic Clean Architecture
+
+
+public class NameCommand : IRequest<Result<ReturnType>>
+{
+    //initialize field
+
+    public class Handler : IRequestHandler<NameCommand, Result<ReturnType>>
+    {
+        public IRepository<EnityName> _entityRepository;
+        public IMapper _mapper;
+        public ILogger<Handler> _logger;
+
+        public Handler(IRepository<EnityName> entityRepository, IMapper mapper, ILogger<Handler> logger)
+        {
+            _entityRepository = entityRepository;
+            _mapper = mapper;
+            _logger = logger;
+        }
+
+        public async Task<Result<ReturnType>> Handle(AddRestrictionCommand request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+request ve query şablonu yukarıda yer alıyor.
