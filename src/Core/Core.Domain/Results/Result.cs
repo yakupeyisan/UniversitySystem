@@ -19,15 +19,15 @@
 /// </summary>
 public abstract record Result
 {
-    public sealed record Success : Result;
-    public sealed record Failure(string ErrorCode, string ErrorMessage) : Result;
+    public sealed record SuccessResult : Result;
+    public sealed record ErrorResult(string ErrorCode, string ErrorMessage) : Result;
 
-    public bool IsSuccess => this is Success;
-    public bool IsFailure => this is Failure;
+    public bool IsSuccess => this is SuccessResult;
+    public bool IsFailure => this is ErrorResult;
 
-    public static Result Ok() => new Success();
-    public static Result Fail(string errorCode, string errorMessage) =>
-        new Failure(errorCode, errorMessage);
+    public static Result Success() => new SuccessResult();
+    public static Result Failure(string errorCode, string errorMessage) =>
+        new ErrorResult(errorCode, errorMessage);
 }
 
 /// <summary>
@@ -35,25 +35,26 @@ public abstract record Result
 /// </summary>
 public abstract record Result<T>
 {
-    public sealed record Success(T Value) : Result<T>;
-    public sealed record Failure(string ErrorCode, string ErrorMessage) : Result<T>;
+    public sealed record SuccessResult(T Value, string message) : Result<T>;
+    public sealed record ErrorResult(string ErrorCode, string ErrorMessage) : Result<T>;
 
-    public bool IsSuccess => this is Success;
-    public bool IsFailure => this is Failure;
+    public bool IsSuccess => this is SuccessResult;
+    public bool IsFailure => this is ErrorResult;
 
-    public static Result<T> Ok(T value) => new Success(value);
-    public static Result<T> Fail(string errorCode, string errorMessage) =>
-        new Failure(errorCode, errorMessage);
-    public static Result<T> Fail(string errorMessage) =>
-        new Failure("errors.internal_error", errorMessage);
+    public static Result<T> Success(T value) => new SuccessResult(value, "İşlem başarılı");
+    public static Result<T> Success(T value, string message) => new SuccessResult(value, message);
+    public static Result<T> Failure(string errorCode, string errorMessage) =>
+        new ErrorResult(errorCode, errorMessage);
+    public static Result<T> Failure(string errorMessage) =>
+        new ErrorResult("", errorMessage);
 
     public TResult Match<TResult>(
         Func<T, TResult> onSuccess,
         Func<string, string, TResult> onFailure) =>
         this switch
         {
-            Success success => onSuccess(success.Value),
-            Failure failure => onFailure(failure.ErrorCode, failure.ErrorMessage),
+            SuccessResult success => onSuccess(success.Value),
+            ErrorResult failure => onFailure(failure.ErrorCode, failure.ErrorMessage),
             _ => throw new InvalidOperationException("Unknown result type")
         };
 }
