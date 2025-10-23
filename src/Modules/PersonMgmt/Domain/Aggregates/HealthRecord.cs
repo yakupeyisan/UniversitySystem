@@ -3,14 +3,14 @@
 namespace PersonMgmt.Domain.Aggregates;
 
 /// <summary>
-/// HealthRecord - Sağlık bilgileri Entity
+/// 🆕 COMPLETE: HealthRecord - Sağlık kaydı Entity
 /// 
 /// Özellikleri:
 /// - Identity'si var
+/// - Mutable
 /// - Person Aggregate'ine ait (Child entity)
-/// - Tıbbi bilgileri saklar
-/// 
-/// Not: Hassas veri - Encryption/masking gerekebilir
+/// - Person'un sağlık bilgilerini içerir
+/// - ONE-TO-ONE relationship
 /// </summary>
 public class HealthRecord : Entity
 {
@@ -20,7 +20,7 @@ public class HealthRecord : Entity
     public string? BloodType { get; private set; }
 
     /// <summary>
-    /// Alerjiler
+    /// Alerji bilgisi
     /// </summary>
     public string? Allergies { get; private set; }
 
@@ -40,14 +40,14 @@ public class HealthRecord : Entity
     public string? EmergencyHealthInfo { get; private set; }
 
     /// <summary>
-    /// Son muayene tarihi
-    /// </summary>
-    public DateTime? LastCheckup { get; private set; }
-
-    /// <summary>
-    /// Notlar
+    /// Notlar / Açıklamalar
     /// </summary>
     public string? Notes { get; private set; }
+
+    /// <summary>
+    /// Son kontrol tarihi
+    /// </summary>
+    public DateTime? LastCheckupDate { get; private set; }
 
     /// <summary>
     /// Soft delete
@@ -72,7 +72,7 @@ public class HealthRecord : Entity
     }
 
     /// <summary>
-    /// Factory method - Sağlık kaydı oluştur
+    /// Factory method - Yeni sağlık kaydı oluştur
     /// </summary>
     public static HealthRecord Create(
         string? bloodType = null,
@@ -85,97 +85,81 @@ public class HealthRecord : Entity
         return new HealthRecord
         {
             Id = Guid.NewGuid(),
-            BloodType = bloodType,
-            Allergies = allergies,
-            ChronicDiseases = chronicDiseases,
-            Medications = medications,
-            EmergencyHealthInfo = emergencyHealthInfo,
-            Notes = notes,
-            LastCheckup = null,
+            BloodType = string.IsNullOrEmpty(bloodType) ? null : bloodType.Trim(),
+            Allergies = string.IsNullOrEmpty(allergies) ? null : allergies.Trim(),
+            ChronicDiseases = string.IsNullOrEmpty(chronicDiseases) ? null : chronicDiseases.Trim(),
+            Medications = string.IsNullOrEmpty(medications) ? null : medications.Trim(),
+            EmergencyHealthInfo = string.IsNullOrEmpty(emergencyHealthInfo) ? null : emergencyHealthInfo.Trim(),
+            Notes = string.IsNullOrEmpty(notes) ? null : notes.Trim(),
+            LastCheckupDate = DateTime.UtcNow,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
     }
 
+    // ==================== UPDATE METHODS ====================
+
     /// <summary>
     /// Kan grubu güncelle
     /// </summary>
-    public void UpdateBloodType(string bloodType)
+    public void UpdateBloodType(string? bloodType)
     {
-        if (!string.IsNullOrWhiteSpace(bloodType))
-        {
-            // Kan grubu validation (A, B, AB, O + Rh)
-            var validBloodTypes = new[] { "A", "B", "AB", "O" };
-            var cleanType = bloodType.Replace("+", "").Replace("-", "");
-
-            if (!validBloodTypes.Contains(cleanType))
-                throw new ArgumentException("Invalid blood type", nameof(bloodType));
-        }
-
-        BloodType = bloodType;
+        BloodType = string.IsNullOrEmpty(bloodType) ? null : bloodType.Trim();
         UpdatedAt = DateTime.UtcNow;
+        LastCheckupDate = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Alerjileri güncelle
+    /// Alerji bilgisi güncelle
     /// </summary>
     public void UpdateAllergies(string? allergies)
     {
-        Allergies = allergies;
+        Allergies = string.IsNullOrEmpty(allergies) ? null : allergies.Trim();
         UpdatedAt = DateTime.UtcNow;
+        LastCheckupDate = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Kronik hastalıkları güncelle
+    /// Kronik hastalıklar güncelle
     /// </summary>
     public void UpdateChronicDiseases(string? chronicDiseases)
     {
-        ChronicDiseases = chronicDiseases;
+        ChronicDiseases = string.IsNullOrEmpty(chronicDiseases) ? null : chronicDiseases.Trim();
         UpdatedAt = DateTime.UtcNow;
+        LastCheckupDate = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// İlaçları güncelle
+    /// Kullanılan ilaçlar güncelle
     /// </summary>
     public void UpdateMedications(string? medications)
     {
-        Medications = medications;
+        Medications = string.IsNullOrEmpty(medications) ? null : medications.Trim();
         UpdatedAt = DateTime.UtcNow;
+        LastCheckupDate = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Acil durum bilgisini güncelle
+    /// Acil durum sağlık bilgisi güncelle
     /// </summary>
     public void UpdateEmergencyHealthInfo(string? emergencyHealthInfo)
     {
-        EmergencyHealthInfo = emergencyHealthInfo;
+        EmergencyHealthInfo = string.IsNullOrEmpty(emergencyHealthInfo) ? null : emergencyHealthInfo.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Muayene kaydını güncelle
-    /// </summary>
-    public void RecordCheckup(DateTime checkupDate)
-    {
-        if (checkupDate > DateTime.UtcNow)
-            throw new ArgumentException("Checkup date cannot be in the future", nameof(checkupDate));
-
-        LastCheckup = checkupDate;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Notları güncelle
+    /// Notlar güncelle
     /// </summary>
     public void UpdateNotes(string? notes)
     {
-        Notes = notes;
+        Notes = string.IsNullOrEmpty(notes) ? null : notes.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Soft delete
+    /// Soft delete - Sağlık kaydını sil
     /// </summary>
     public void Delete()
     {
@@ -184,11 +168,39 @@ public class HealthRecord : Entity
     }
 
     /// <summary>
-    /// Soft delete geri al
+    /// Soft delete geri al - Sağlık kaydını restore et
     /// </summary>
     public void Restore()
     {
         IsDeleted = false;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Tüm sağlık bilgisini temizle
+    /// </summary>
+    public void ClearAllHealthInfo()
+    {
+        BloodType = null;
+        Allergies = null;
+        ChronicDiseases = null;
+        Medications = null;
+        EmergencyHealthInfo = null;
+        Notes = null;
+        LastCheckupDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Sağlık kaydı boş mu? (tüm bilgiler null ise)
+    /// </summary>
+    public bool IsEmpty =>
+        string.IsNullOrEmpty(BloodType) &&
+        string.IsNullOrEmpty(Allergies) &&
+        string.IsNullOrEmpty(ChronicDiseases) &&
+        string.IsNullOrEmpty(Medications) &&
+        string.IsNullOrEmpty(EmergencyHealthInfo) &&
+        string.IsNullOrEmpty(Notes);
 }
+
+

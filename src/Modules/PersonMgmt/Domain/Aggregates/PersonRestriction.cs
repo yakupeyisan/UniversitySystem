@@ -4,12 +4,13 @@ using PersonMgmt.Domain.Enums;
 namespace PersonMgmt.Domain.Aggregates;
 
 /// <summary>
-/// PersonRestriction - Kişi üzerine konulan kısıtlamalar
+/// 🆕 COMPLETE: PersonRestriction - Kişi üzerine konulan kısıtlamalar Entity
 /// 
 /// Özellikleri:
 /// - Identity'si var (her kısıtlama unique)
 /// - Zaman sınırı olabilir (kalıcı veya geçici)
 /// - Severity seviyesi var
+/// - Person Aggregate'ine ait (Child entity)
 /// 
 /// Örnekler:
 /// - Öğrenci askıya alınması
@@ -24,7 +25,7 @@ public class PersonRestriction : Entity
     public RestrictionType RestrictionType { get; private set; }
 
     /// <summary>
-    /// Kısıtlamanın kapsamı
+    /// Kısıtlamanın kapsamı (Genel, Yemekhanede, Tüm tesislerde, vb.)
     /// </summary>
     public RestrictionLevel RestrictionLevel { get; private set; }
 
@@ -49,7 +50,7 @@ public class PersonRestriction : Entity
     public string Reason { get; private set; }
 
     /// <summary>
-    /// Ciddiyet seviyesi
+    /// Ciddiyet seviyesi (1-10 arası)
     /// </summary>
     public int Severity { get; private set; }
 
@@ -59,7 +60,7 @@ public class PersonRestriction : Entity
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Soft delete
+    /// Soft delete flag
     /// </summary>
     public bool IsDeleted { get; private set; }
 
@@ -92,14 +93,7 @@ public class PersonRestriction : Entity
         string reason,
         int severity)
     {
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new ArgumentException("Reason cannot be empty", nameof(reason));
-
-        if (severity < 1 || severity > 4)
-            throw new ArgumentException("Severity must be between 1-4", nameof(severity));
-
-        if (endDate.HasValue && endDate.Value <= startDate)
-            throw new ArgumentException("End date must be after start date", nameof(endDate));
+        ValidateRestrictionData(reason, severity, startDate, endDate);
 
         return new PersonRestriction
         {
@@ -109,7 +103,7 @@ public class PersonRestriction : Entity
             AppliedBy = appliedBy,
             StartDate = startDate,
             EndDate = endDate,
-            Reason = reason,
+            Reason = reason.Trim(),
             Severity = severity,
             IsActive = true,
             IsDeleted = false,
@@ -118,43 +112,60 @@ public class PersonRestriction : Entity
         };
     }
 
+    // ==================== BUSINESS METHODS ====================
+
     /// <summary>
-    /// Kısıtlama hala aktif mi?
+    /// ✅ FIXED: Kısıtlama şu anda aktif mi?
+    /// Başlama tarihinden sonra ve (bitiş tarihi yoksa kalıcı veya bitiş tarihinden önce) ise aktif
     /// </summary>
     public bool IsCurrentlyActive()
     {
-        if (!IsActive || IsDeleted)
+        var now = DateTime.UtcNow;
+
+        // Silinmişse aktif değil
+        if (IsDeleted)
             return false;
 
-        var now = DateTime.UtcNow;
+        // Aktif flag'ı false ise
+        if (!IsActive)
+            return false;
+
+        // Henüz başlanmamış ise
         if (now < StartDate)
-            return false; // Henüz başlamadı
+            return false;
 
+        // Süresi dolmuş ise (EndDate varsa)
         if (EndDate.HasValue && now > EndDate.Value)
-            return false; // Süresi doldu
+            return false;
 
+        // Diğer tüm durumlarda aktif
         return true;
     }
 
     /// <summary>
-    /// Kısıtlamayı sonlandır (early termination)
+    /// Kısıtlamayı deaktif et
     /// </summary>
-    public void Terminate()
+    public void Deactivate()
     {
-        EndDate = DateTime.UtcNow;
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Bitiş tarihini uzat
+    /// Kısıtlamayı reaktif et
+    /// </summary>
+    public void Reactivate()
+    {
+        IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Kısıtlamanın bitiş tarihini uzat
     /// </summary>
     public void ExtendEndDate(DateTime newEndDate)
     {
-        if (newEndDate <= DateTime.UtcNow)
-            throw new ArgumentException("New end date must be in the future", nameof(newEndDate));
-
-        if (EndDate.HasValue && newEndDate <= EndDate.Value)
+        if (newEndDate <= EndDate)
             throw new ArgumentException("New end date must be after current end date", nameof(newEndDate));
 
         EndDate = newEndDate;
@@ -162,19 +173,7 @@ public class PersonRestriction : Entity
     }
 
     /// <summary>
-    /// Ciddiyet seviyesini güncelle
-    /// </summary>
-    public void UpdateSeverity(int newSeverity)
-    {
-        if (newSeverity < 1 || newSeverity > 4)
-            throw new ArgumentException("Severity must be between 1-4", nameof(newSeverity));
-
-        Severity = newSeverity;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Soft delete
+    /// Soft delete - Kısıtlamayı sil
     /// </summary>
     public void Delete()
     {
@@ -184,11 +183,74 @@ public class PersonRestriction : Entity
     }
 
     /// <summary>
-    /// Soft delete geri al
+    /// Soft delete geri al - Kısıtlamayı restore et
     /// </summary>
     public void Restore()
     {
         IsDeleted = false;
+        // IsActive önceki durumuna bağlı olarak korunur
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Kısıtlamanın kalan gün sayısı
+    /// Null = kalıcı (sonsuz)
+    /// </summary>
+    public int? RemainingDays
+    {
+        get
+        {
+            if (!EndDate.HasValue || IsDeleted)
+                return null;
+
+            var now = DateTime.UtcNow;
+            if (now > EndDate.Value)
+                return 0;
+
+            return (int)(EndDate.Value - now).TotalDays;
+        }
+    }
+
+    /// <summary>
+    /// Kısıtlamanın süre biteli mi?
+    /// </summary>
+    public bool IsExpired
+    {
+        get
+        {
+            if (!EndDate.HasValue)
+                return false;
+
+            return DateTime.UtcNow > EndDate.Value;
+        }
+    }
+
+    /// <summary>
+    /// Kısıtlama kalıcı mı? (bitiş tarihi yok)
+    /// </summary>
+    public bool IsPermanent => !EndDate.HasValue;
+
+    // ==================== VALIDATION ====================
+
+    private static void ValidateRestrictionData(
+        string reason,
+        int severity,
+        DateTime startDate,
+        DateTime? endDate)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Restriction reason cannot be empty", nameof(reason));
+
+        if (reason.Length < 10)
+            throw new ArgumentException("Restriction reason must be at least 10 characters", nameof(reason));
+
+        if (severity < 1 || severity > 10)
+            throw new ArgumentException("Severity must be between 1 and 10", nameof(severity));
+
+        if (startDate > DateTime.UtcNow)
+            throw new ArgumentException("Start date cannot be in the future", nameof(startDate));
+
+        if (endDate.HasValue && endDate.Value <= startDate)
+            throw new ArgumentException("End date must be after start date", nameof(endDate));
     }
 }

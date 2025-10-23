@@ -25,21 +25,65 @@ public class PersonFilterWhitelist : IFilterWhitelist
     /// </summary>
     private static readonly HashSet<string> AllowedProperties = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Temel bilgiler
-        "email",
-        "phonenumber",
-        "name",
-        "gender",
-        "birthdate",
-        "nationalid",
-        "departmentid",
-        "student",
-        "staff",
+        // ==================== BASIC PROPERTIES ====================
         
-        // Timestamp
-        "createdat",
-        "updatedat",
-        "isdeleted"
+        // Ad & Soyad (ValueObject property'leri)
+        "name.firstName",      // PersonName.FirstName
+        "name.lastName",       // PersonName.LastName
+        "name.fullName",       // PersonName.FullName (computed)
+
+        // Contact Information
+        "email",
+        "phoneNumber",
+
+        // Personal Info
+        "gender",              // Gender enum
+        "birthDate",
+
+        // Department
+        "departmentId",
+
+        // Metadata
+        "createdAt",
+        "updatedAt",
+        "isDeleted",
+
+        // ==================== STUDENT-SPECIFIC ====================
+        
+        "student.studentNumber",
+        "student.status",           // StudentStatus enum
+        "student.educationLevel",   // EducationLevel enum
+        "student.currentSemester",
+        "student.cgpa",
+        "student.sgpa",
+        "student.enrollmentDate",
+        "student.graduationDate",
+
+        // ==================== STAFF-SPECIFIC ====================
+        
+        "staff.employeeNumber",
+        "staff.academicTitle",       // AcademicTitle enum
+        "staff.hireDate",
+        "staff.isActive",
+        "staff.address.street",      // Address ValueObject properties
+        "staff.address.city",
+        "staff.address.country",
+
+        // ==================== HEALTH RECORD ====================
+        
+        "healthRecord.bloodType",
+        "healthRecord.allergies",
+        "healthRecord.chronicDiseases",
+        "healthRecord.lastCheckupDate",
+
+        // ==================== RESTRICTIONS ====================
+        
+        "restrictions.restrictionType",   // RestrictionType enum
+        "restrictions.restrictionLevel",  // RestrictionLevel enum
+        "restrictions.isActive",
+        "restrictions.startDate",
+        "restrictions.endDate",
+        "restrictions.severity"
     };
 
     public bool IsAllowed(string propertyName)

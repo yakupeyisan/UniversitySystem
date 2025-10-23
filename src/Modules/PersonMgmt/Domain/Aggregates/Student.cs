@@ -4,10 +4,10 @@ using PersonMgmt.Domain.Enums;
 namespace PersonMgmt.Domain.Aggregates;
 
 /// <summary>
-/// Student - Öğrenci bilgileri Entity
+/// 🆕 COMPLETE: Student - Öğrenci Entity
 /// 
 /// Özellikleri:
-/// - Identity'si var (Id)
+/// - Identity'si var
 /// - Mutable
 /// - Person Aggregate'ine ait (Child entity)
 /// - Öğrenci spesifik bilgilerini içerir
@@ -38,12 +38,12 @@ public class Student : Entity
     public StudentStatus Status { get; private set; }
 
     /// <summary>
-    /// Genel not ortalaması (CGPA)
+    /// Genel not ortalaması (CGPA) 0.0 - 4.0
     /// </summary>
     public double CGPA { get; private set; }
 
     /// <summary>
-    /// Dönem not ortalaması (SGPA)
+    /// Dönem not ortalaması (SGPA) 0.0 - 4.0
     /// </summary>
     public double SGPA { get; private set; }
 
@@ -68,7 +68,7 @@ public class Student : Entity
     public DateTime? GraduationDate { get; private set; }
 
     /// <summary>
-    /// Danışman ID (Staff)
+    /// Danışman ID (Staff/Advisor)
     /// </summary>
     public Guid? AdvisorId { get; private set; }
 
@@ -95,7 +95,7 @@ public class Student : Entity
     }
 
     /// <summary>
-    /// Factory method - Yeni öğrenci oluştur
+    /// ✅ FIXED & COMPLETE: Factory method - Yeni öğrenci oluştur
     /// </summary>
     public static Student Create(
         string studentNumber,
@@ -106,18 +106,22 @@ public class Student : Entity
         if (string.IsNullOrWhiteSpace(studentNumber))
             throw new ArgumentException("Student number cannot be empty", nameof(studentNumber));
 
+        if (enrollmentDate > DateTime.UtcNow)
+            throw new ArgumentException("Enrollment date cannot be in the future", nameof(enrollmentDate));
+
         return new Student
         {
             Id = Guid.NewGuid(),
-            StudentNumber = studentNumber,
+            StudentNumber = studentNumber.Trim(),
             EducationLevel = educationLevel,
             CurrentSemester = 1,
             Status = StudentStatus.Active,
-            CGPA = 0,
-            SGPA = 0,
+            CGPA = 0.0,
+            SGPA = 0.0,
             TotalCredits = 0,
             CompletedCredits = 0,
             EnrollmentDate = enrollmentDate,
+            GraduationDate = null,
             AdvisorId = advisorId,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
@@ -125,55 +129,120 @@ public class Student : Entity
         };
     }
 
-    /// <summary>
-    /// Dönem ilerlet
-    /// </summary>
-    public void AdvanceSemester()
-    {
-        if (Status != StudentStatus.Active)
-            throw new InvalidOperationException("Only active students can advance semester");
+    // ==================== STUDENT STATUS METHODS ====================
 
-        CurrentSemester++;
+    /// <summary>
+    /// Öğrenci durumunu güncelle
+    /// </summary>
+    public void UpdateStatus(StudentStatus newStatus)
+    {
+        // Mezun olduktan sonra aktif olamaz
+        if (Status == StudentStatus.Graduated && newStatus != StudentStatus.Graduated)
+            throw new InvalidOperationException("Graduated student cannot change status");
+
+        // Çıkarılan öğrenci durumu değiştiremez
+        if (Status == StudentStatus.Expelled)
+            throw new InvalidOperationException("Expelled student cannot change status");
+
+        Status = newStatus;
         UpdatedAt = DateTime.UtcNow;
+
+        // Mezuniyet durumuna geçerse tarihi set et
+        if (newStatus == StudentStatus.Graduated && !GraduationDate.HasValue)
+            GraduationDate = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Öğrenciyi askıya al
+    /// </summary>
+    public void Suspend()
+    {
+        UpdateStatus(StudentStatus.Suspended);
+    }
+
+    /// <summary>
+    /// Öğrenciyi pasif yap
+    /// </summary>
+    public void MakePassive()
+    {
+        UpdateStatus(StudentStatus.Passive);
+    }
+
+    /// <summary>
+    /// Öğrenciyi aktif yap
+    /// </summary>
+    public void MakeActive()
+    {
+        UpdateStatus(StudentStatus.Active);
+    }
+
+    /// <summary>
+    /// Öğrenciyi mezun yap
+    /// </summary>
+    public void Graduate()
+    {
+        UpdateStatus(StudentStatus.Graduated);
+    }
+
+    /// <summary>
+    /// Öğrenciyi çıkar
+    /// </summary>
+    public void Expel()
+    {
+        UpdateStatus(StudentStatus.Expelled);
+    }
+
+    // ==================== ACADEMIC PERFORMANCE ====================
 
     /// <summary>
     /// CGPA güncelle
     /// </summary>
-    public void UpdateCGPA(double newCGPA)
+    public void UpdateCGPA(double cgpa)
     {
-        if (newCGPA < 0 || newCGPA > 4.0)
-            throw new ArgumentException("CGPA must be between 0 and 4.0", nameof(newCGPA));
+        if (cgpa < 0.0 || cgpa > 4.0)
+            throw new ArgumentException("CGPA must be between 0.0 and 4.0", nameof(cgpa));
 
-        CGPA = newCGPA;
+        CGPA = Math.Round(cgpa, 2);
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// SGPA güncelle
+    /// SGPA (dönem not ortalaması) güncelle
     /// </summary>
-    public void UpdateSGPA(double newSGPA)
+    public void UpdateSGPA(double sgpa)
     {
-        if (newSGPA < 0 || newSGPA > 4.0)
-            throw new ArgumentException("SGPA must be between 0 and 4.0", nameof(newSGPA));
+        if (sgpa < 0.0 || sgpa > 4.0)
+            throw new ArgumentException("SGPA must be between 0.0 and 4.0", nameof(sgpa));
 
-        SGPA = newSGPA;
+        SGPA = Math.Round(sgpa, 2);
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Kredi bilgisini güncelle
+    /// Kredi bilgisi güncelle
     /// </summary>
     public void UpdateCredits(int totalCredits, int completedCredits)
     {
-        if (totalCredits < 0 || completedCredits < 0)
-            throw new ArgumentException("Credits cannot be negative");
+        if (totalCredits < 0)
+            throw new ArgumentException("Total credits cannot be negative", nameof(totalCredits));
+
+        if (completedCredits < 0)
+            throw new ArgumentException("Completed credits cannot be negative", nameof(completedCredits));
 
         if (completedCredits > totalCredits)
-            throw new ArgumentException("Completed credits cannot exceed total credits");
+            throw new ArgumentException("Completed credits cannot exceed total credits", nameof(completedCredits));
 
         TotalCredits = totalCredits;
         CompletedCredits = completedCredits;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Dönem artır
+    /// </summary>
+    public void IncrementSemester()
+    {
+        CurrentSemester++;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -182,22 +251,35 @@ public class Student : Entity
     /// </summary>
     public void AssignAdvisor(Guid advisorId)
     {
+        if (advisorId == Guid.Empty)
+            throw new ArgumentException("Advisor ID cannot be empty", nameof(advisorId));
+
         AdvisorId = advisorId;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Öğrenci durumunu değiştir
+    /// Danışman'ı değiştir
     /// </summary>
-    public void UpdateStatus(StudentStatus newStatus)
+    public void ChangeAdvisor(Guid newAdvisorId)
     {
-        Status = newStatus;
-        if (newStatus == StudentStatus.Graduated && GraduationDate == null)
-        {
-            GraduationDate = DateTime.UtcNow;
-        }
+        if (newAdvisorId == Guid.Empty)
+            throw new ArgumentException("New advisor ID cannot be empty", nameof(newAdvisorId));
+
+        AdvisorId = newAdvisorId;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Danışman'ı kaldır
+    /// </summary>
+    public void RemoveAdvisor()
+    {
+        AdvisorId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    // ==================== SOFT DELETE ====================
 
     /// <summary>
     /// Soft delete - Öğrenciyi sil
@@ -209,11 +291,35 @@ public class Student : Entity
     }
 
     /// <summary>
-    /// Soft delete geri al
+    /// Soft delete geri al - Öğrenciyi restore et
     /// </summary>
     public void Restore()
     {
         IsDeleted = false;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    // ==================== HELPER PROPERTIES ====================
+
+    /// <summary>
+    /// Akademik dersleri başarıyla aldı mı? (GPA >= 2.0)
+    /// </summary>
+    public bool HasPassingGPA => CGPA >= 2.0;
+
+    /// <summary>
+    /// Mezun oldu mu?
+    /// </summary>
+    public bool IsGraduated => Status == StudentStatus.Graduated;
+
+    /// <summary>
+    /// Aktif durumda mı?
+    /// </summary>
+    public bool IsCurrentlyActive => Status == StudentStatus.Active && !IsDeleted;
+
+    /// <summary>
+    /// Tamamlanan derslerin yüzdesi
+    /// </summary>
+    public double CompletionPercentage => TotalCredits > 0
+        ? Math.Round((double)CompletedCredits / TotalCredits * 100, 2)
+        : 0.0;
 }

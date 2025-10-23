@@ -16,7 +16,7 @@ public class PersonDeletedDomainEvent : DomainEvent
         Guid personId,
         string firstName,
         string lastName,
-        DateTime deletedAt)
+        DateTime deletedAt) : base(personId)  
     {
         PersonId = personId;
         FirstName = firstName;

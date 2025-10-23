@@ -3,7 +3,7 @@
 namespace PersonMgmt.Domain.Exceptions;
 
 /// <summary>
-/// Student olarak işaretlenmiş bir kişi hakkında işlem yapılırken throw edilir
+/// 🆕 NEW: Person student değil iken student operasyonu yapılmaya çalışılırsa throw edilen exception
 /// </summary>
 public class PersonIsNotStudentException : DomainException
 {
@@ -15,6 +15,6 @@ public class PersonIsNotStudentException : DomainException
         PersonId = personId;
     }
 
-    public override string ErrorCode => "errors.person.not.student";
+    public override string ErrorCode => "errors.person.is.not.student";
     public override int StatusCode => 400;
 }

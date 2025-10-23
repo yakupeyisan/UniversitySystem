@@ -439,14 +439,131 @@ public class Person : AggregateRoot
         if (phoneNumber.Replace("-", "").Replace(" ", "").Length < 10)
             throw new ArgumentException("Phone number must be at least 10 digits", nameof(phoneNumber));
     }
-
     private static void ValidateBirthDate(DateTime birthDate)
     {
+        // Gelecek tarih olamaz
         if (birthDate > DateTime.UtcNow)
             throw new ArgumentException("Birth date cannot be in the future", nameof(birthDate));
 
-        var age = DateTime.UtcNow.Year - birthDate.Year;
-        if (age < 15 || age > 100)
-            throw new ArgumentException("Age must be between 15 and 100", nameof(birthDate));
+        // Çok eski tarih olamaz (150 yıldan daha eski)
+        var maxBirthDate = DateTime.UtcNow.AddYears(-150);
+        if (birthDate < maxBirthDate)
+            throw new ArgumentException("Birth date is unrealistic (too old)", nameof(birthDate));
+
+        // En az 18 yaşında olmalı (opsiyonel - business rule'a göre değişebilir)
+        var minBirthDate = DateTime.UtcNow.AddYears(-18);
+        if (birthDate > minBirthDate)
+            throw new ArgumentException("Person must be at least 18 years old", nameof(birthDate));
     }
+    private static void ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email cannot be empty", nameof(email));
+
+        // Basic email format validation
+        if (!email.Contains("@") || !email.Contains("."))
+            throw new ArgumentException("Email format is invalid", nameof(email));
+
+        // @ işaretinden sonra en az bir nokta olmalı
+        var atIndex = email.IndexOf("@");
+        var lastDotIndex = email.LastIndexOf(".");
+
+        if (atIndex > lastDotIndex)
+            throw new ArgumentException("Email format is invalid", nameof(email));
+
+        // @ işaretinden en az 1 karakter uzaklıkta nokta
+        if (lastDotIndex - atIndex < 2)
+            throw new ArgumentException("Email domain is invalid", nameof(email));
+
+        // TLD (Top Level Domain) en az 2 karakter
+        if (email.Length - lastDotIndex - 1 < 2)
+            throw new ArgumentException("Email domain extension is invalid", nameof(email));
+
+        // Email length
+        if (email.Length > 254)
+            throw new ArgumentException("Email is too long (max 254 characters)", nameof(email));
+
+        // Spaces not allowed
+        if (email.Contains(" "))
+            throw new ArgumentException("Email cannot contain spaces", nameof(email));
+    }
+    private static void ValidatePhoneNumber(string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
+
+        // Sadece rakam ve +, -, ( ), boşluk allowed
+        var allowedChars = "0123456789+- ()";
+        if (phoneNumber.Any(c => !allowedChars.Contains(c)))
+            throw new ArgumentException("Phone number contains invalid characters", nameof(phoneNumber));
+
+        // En az 10 rakam olmalı (ülke kodları dahil)
+        var digitCount = phoneNumber.Count(char.IsDigit);
+        if (digitCount < 10)
+            throw new ArgumentException("Phone number must have at least 10 digits", nameof(phoneNumber));
+
+        // En fazla 15 rakam (E.164 standardı)
+        if (digitCount > 15)
+            throw new ArgumentException("Phone number has too many digits (max 15)", nameof(phoneNumber));
+
+        // Türkiye numarası ise kontrol
+        if (phoneNumber.StartsWith("+90") || phoneNumber.StartsWith("0090") || phoneNumber.StartsWith("90"))
+        {
+            if (digitCount != 12)  // +90 + 10 rakam = 12
+                throw new ArgumentException("Turkish phone number must have 10 digits after +90", nameof(phoneNumber));
+        }
+    }
+    private static void ValidateNationalId(string nationalId)
+    {
+        if (string.IsNullOrWhiteSpace(nationalId))
+            throw new ArgumentException("National ID cannot be empty", nameof(nationalId));
+
+        // Türk T.C. Kimlik Numarası: 11 hane, sadece rakam
+        if (nationalId.Length != 11 || !nationalId.All(char.IsDigit))
+            throw new ArgumentException("National ID must be 11 digits", nameof(nationalId));
+
+        // İlk rakam 0 olamaz
+        if (nationalId[0] == '0')
+            throw new ArgumentException("National ID cannot start with 0", nameof(nationalId));
+
+        // Luhn algorithm validation (Türk ID checksum'ı)
+        // Not: Türk TC Kimlik No'sunun gerçek validation'ı daha karmaşık
+        // Basit check: 10. ve 11. rakamlar belli kurallar izler
+        // Burada simplified version:
+        int sum = 0;
+        for (int i = 0; i < 10; i++)
+        {
+            sum += int.Parse(nationalId[i].ToString());
+        }
+
+        // 10. rakam (index 9): ilk 10 rakamın toplamının son rakamı
+        int tenthDigitCheck = sum % 10;
+        if (int.Parse(nationalId[9].ToString()) != tenthDigitCheck)
+            throw new ArgumentException("National ID checksum validation failed", nameof(nationalId));
+    }
+    public static void ValidateStudentNumber(string studentNumber)
+    {
+        if (string.IsNullOrWhiteSpace(studentNumber))
+            throw new ArgumentException("Student number cannot be empty", nameof(studentNumber));
+
+        if (studentNumber.Length < 8 || studentNumber.Length > 12)
+            throw new ArgumentException("Student number must be between 8-12 characters", nameof(studentNumber));
+
+        // Alfanumerik allowed
+        if (!studentNumber.All(c => char.IsLetterOrDigit(c)))
+            throw new ArgumentException("Student number must be alphanumeric", nameof(studentNumber));
+    }
+    public static void ValidateEmployeeNumber(string employeeNumber)
+    {
+        if (string.IsNullOrWhiteSpace(employeeNumber))
+            throw new ArgumentException("Employee number cannot be empty", nameof(employeeNumber));
+
+        if (employeeNumber.Length < 5 || employeeNumber.Length > 10)
+            throw new ArgumentException("Employee number must be between 5-10 characters", nameof(employeeNumber));
+
+        // Alfanumerik allowed
+        if (!employeeNumber.All(c => char.IsLetterOrDigit(c)))
+            throw new ArgumentException("Employee number must be alphanumeric", nameof(employeeNumber));
+    }
+
 }

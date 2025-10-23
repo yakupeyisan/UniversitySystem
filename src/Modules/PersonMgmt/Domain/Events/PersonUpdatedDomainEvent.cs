@@ -18,7 +18,7 @@ public class PersonUpdatedDomainEvent : DomainEvent
         string firstName,
         string lastName,
         string email,
-        DateTime updatedAt)
+        DateTime updatedAt) : base(personId) 
     {
         PersonId = personId;
         FirstName = firstName;

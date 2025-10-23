@@ -16,7 +16,7 @@ public class StudentEnrolledDomainEvent : DomainEvent
         Guid personId,
         string studentNumber,
         int educationLevel,
-        DateTime enrollmentDate)
+        DateTime enrollmentDate) : base(personId) 
     {
         PersonId = personId;
         StudentNumber = studentNumber;

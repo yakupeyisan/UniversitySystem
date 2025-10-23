@@ -3,7 +3,7 @@
 namespace PersonMgmt.Domain.Exceptions;
 
 /// <summary>
-/// Staff olarak işaretlenmiş bir kişi hakkında işlem yapılırken throw edilir
+/// 🆕 NEW: Person staff değil iken staff operasyonu yapılmaya çalışılırsa throw edilen exception
 /// </summary>
 public class PersonIsNotStaffException : DomainException
 {
@@ -15,6 +15,6 @@ public class PersonIsNotStaffException : DomainException
         PersonId = personId;
     }
 
-    public override string ErrorCode => "errors.person.not.staff";
+    public override string ErrorCode => "errors.person.is.not.staff";
     public override int StatusCode => 400;
 }
