@@ -35,11 +35,12 @@ public abstract record Result
 /// </summary>
 public abstract record Result<T>
 {
-    public sealed record SuccessResult(T Value, string message) : Result<T>;
+    public sealed record SuccessResult(T Value, string Message) : Result<T>;
     public sealed record ErrorResult(string ErrorCode, string ErrorMessage) : Result<T>;
 
     public bool IsSuccess => this is SuccessResult;
     public bool IsFailure => this is ErrorResult;
+    public T? Value => this is SuccessResult s ? s.Value : default;
 
     public static Result<T> Success(T value) => new SuccessResult(value, "İşlem başarılı");
     public static Result<T> Success(T value, string message) => new SuccessResult(value, message);

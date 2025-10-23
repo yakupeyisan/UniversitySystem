@@ -76,4 +76,5 @@ public interface IPersonRepository : IGenericRepository<Person>
     Task<bool> IsNationalIdUniqueAsync(string requestNationalId, CancellationToken cancellationToken);
     Task<bool> IsEmailUniqueAsync(string requestEmail, CancellationToken cancellationToken, Guid? excludeId = null);
     Task<bool> IsEmployeeNumberUniqueAsync(string requestEmployeeNumber, CancellationToken cancellationToken);
+    Task<bool> IsStudentNumberUniqueAsync(string requestStudentNumber, CancellationToken cancellationToken);
 }

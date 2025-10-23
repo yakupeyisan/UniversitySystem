@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Core.Application.Abstractions.Pagination;
+using Core.Domain.Pagination;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -65,7 +65,7 @@ public class PersonController : ControllerBase
         if (!result.IsSuccess)
             return BadRequest(result);
 
-        return CreatedAtAction(nameof(GetPerson), new { id = result.Data?.Id }, result);
+        return CreatedAtAction(nameof(GetPerson), new { id = result.Value?.Id }, result);
     }
 
     /// <summary>

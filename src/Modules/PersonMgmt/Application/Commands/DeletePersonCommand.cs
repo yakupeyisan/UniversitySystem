@@ -1,4 +1,4 @@
-﻿using Core.Application.Interfaces;
+﻿using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;

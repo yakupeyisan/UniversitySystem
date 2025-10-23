@@ -1,4 +1,4 @@
-﻿using Core.Application.Abstractions.Pagination;
+﻿using Core.Domain.Pagination;
 using Core.Domain.Specifications;
 
 namespace Core.Domain.Repositories;

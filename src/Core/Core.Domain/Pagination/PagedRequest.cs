@@ -1,4 +1,4 @@
-﻿namespace Core.Application.Abstractions.Pagination;
+﻿namespace Core.Domain.Pagination;
 
 /// <summary>
 /// PagedRequest - Pagination parameters
