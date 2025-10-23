@@ -6,13 +6,16 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Queries;
 
 /// <summary>
-/// Tüm kişileri getirme query (PAGINATION ILE)
+/// Tüm kişileri getirme query (PAGINATION + NULLABLE FILTER İLE)
 /// 
 /// Kullanım:
+/// 
+/// 1. Filter olmadan:
 /// var query = new GetAllPersonsQuery(
 ///     new PagedRequest 
 ///     { 
@@ -21,6 +24,12 @@ namespace PersonMgmt.Application.Queries;
 ///         SortBy = "Name", 
 ///         SortDirection = "asc" 
 ///     });
+/// var result = await _mediator.Send(query);
+/// 
+/// 2. Filter ile:
+/// var query = new GetAllPersonsQuery(
+///     new PagedRequest { PageNumber = 1, PageSize = 20 },
+///     "email|contains|@university.edu");
 /// var result = await _mediator.Send(query);
 /// 
 /// Response:
@@ -45,11 +54,19 @@ public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
     public PagedRequest PagedRequest { get; set; }
 
     /// <summary>
+    /// Dinamik filter string (nullable)
+    /// Format: field|operator|value;field2|operator2|value2
+    /// Örnek: "email|contains|@university.edu;gender|eq|Male"
+    /// </summary>
+    public string? FilterString { get; set; }
+
+    /// <summary>
     /// Constructor
     /// </summary>
-    public GetAllPersonsQuery(PagedRequest pagedRequest)
+    public GetAllPersonsQuery(PagedRequest pagedRequest, string? filterString = null)
     {
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
+        FilterString = filterString;
     }
 
     /// <summary>
@@ -84,48 +101,52 @@ public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
                 }
 
                 _logger.LogInformation(
-                    "Fetching all persons - Page: {PageNumber}, Size: {PageSize}, Sort: {SortBy} {SortDirection}",
+                    "Fetching all persons - Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}, Sort: {SortBy} {SortDirection}",
+                    request.FilterString ?? "none",
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize,
                     request.PagedRequest.SortBy ?? "Default",
                     request.PagedRequest.SortDirection);
 
-                var allPersons = await _personRepository.GetAllAsync(cancellationToken);
-
-                var filteredPersons = allPersons
-                    .Where(p => !p.IsDeleted)
-                    .ToList();
-
-                var totalCount = filteredPersons.Count;
-
-
-                var skip = request.PagedRequest.GetSkipCount();
-                var pagedPersons = filteredPersons
-                    .Skip(skip)
-                    .Take(request.PagedRequest.PageSize)
-                    .ToList();
-
-                var responses = _mapper.Map<List<PersonResponse>>(pagedPersons);
-
-                var pagedList = new PagedList<PersonResponse>(
-                    responses,
-                    totalCount,
+                // ✅ Specification kullanarak query oluştur
+                var spec = new GetPersonsWithFiltersSpecification(
+                    request.FilterString,
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize);
 
+                var pagedList = await _personRepository.GetAllAsync(spec, request.PagedRequest, cancellationToken);
+
+                var responses = _mapper.Map<List<PersonResponse>>(pagedList.Data);
+
+                var result = new PagedList<PersonResponse>(
+                    responses,
+                    pagedList.TotalCount,
+                    pagedList.PageNumber,
+                    pagedList.PageSize);
+
                 _logger.LogInformation(
-                    "Retrieved persons successfully - Total: {TotalCount}, Page: {PageNumber}/{TotalPages}",
-                    totalCount,
-                    request.PagedRequest.PageNumber,
-                    pagedList.TotalPages);
+                    "Retrieved persons successfully - Total: {TotalCount}, Returned: {ReturnedCount}, " +
+                    "Page: {PageNumber}/{TotalPages}, Filter: {FilterString}",
+                    result.TotalCount,
+                    responses.Count,
+                    result.PageNumber,
+                    result.TotalPages,
+                    request.FilterString ?? "none");
 
                 return Result<PagedList<PersonResponse>>.Success(
-                    pagedList,
-                    $"Persons retrieved successfully - {pagedList.Data.Count} items on page {request.PagedRequest.PageNumber}");
+                    result,
+                    $"Persons retrieved successfully - {responses.Count} items on page {result.PageNumber} " +
+                    $"({result.TotalCount} total)" +
+                    (string.IsNullOrEmpty(request.FilterString) ? "" : $" with filter: {request.FilterString}"));
+            }
+            catch (Core.Domain.Filtering.FilterParsingException ex)
+            {
+                _logger.LogWarning(ex, "Filter parsing error: {FilterString}", request.FilterString);
+                return Result<PagedList<PersonResponse>>.Failure($"Filter error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching all persons with pagination");
+                _logger.LogError(ex, "Error fetching all persons - Filter: {FilterString}", request.FilterString);
                 return Result<PagedList<PersonResponse>>.Failure(ex.Message);
             }
         }

@@ -1,30 +1,62 @@
 ﻿using AutoMapper;
+using Core.Application.Abstractions.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Queries;
 
 /// <summary>
-/// Aktif kısıtlamalarla kişileri getirme query
+/// Aktif kısıtlamalarla kişileri getirme query (PAGINATION + NULLABLE FILTER İLE)
 /// 
 /// Kullanım:
-/// var query = new GetPersonsWithActiveRestrictionsQuery();
+/// 
+/// 1. Filter olmadan:
+/// var query = new GetPersonsWithActiveRestrictionsQuery(
+///     new PagedRequest { PageNumber = 1, PageSize = 20 });
+/// var result = await _mediator.Send(query);
+/// 
+/// 2. Filter ile:
+/// var query = new GetPersonsWithActiveRestrictionsQuery(
+///     new PagedRequest { PageNumber = 1, PageSize = 20 },
+///     "restrictionLevel|eq|High");
 /// var result = await _mediator.Send(query);
 /// </summary>
-public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<IEnumerable<PersonResponse>>>
+public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
+    /// <summary>
+    /// Sayfalama parametreleri
+    /// </summary>
+    public PagedRequest PagedRequest { get; set; }
+
+    /// <summary>
+    /// Dinamik filter string (nullable)
+    /// Format: field|operator|value;field2|operator2|value2
+    /// Örnek: "restrictionLevel|eq|High;email|contains|@university.edu"
+    /// </summary>
+    public string? FilterString { get; set; }
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public GetPersonsWithActiveRestrictionsQuery(PagedRequest pagedRequest, string? filterString = null)
+    {
+        PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
+        FilterString = filterString;
+    }
+
     /// <summary>
     /// GetPersonsWithActiveRestrictionsQuery Handler
     /// </summary>
-    public class Handler : IRequestHandler<GetPersonsWithActiveRestrictionsQuery, Result<IEnumerable<PersonResponse>>>
+    public class Handler : IRequestHandler<GetPersonsWithActiveRestrictionsQuery, Result<PagedList<PersonResponse>>>
     {
-        public readonly IRepository<Person> _personRepository;
-        public readonly IMapper _mapper;
-        public readonly ILogger<Handler> _logger;
+        private readonly IRepository<Person> _personRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<Handler> _logger;
 
         public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -33,31 +65,69 @@ public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<IEnumerable
             _logger = logger;
         }
 
-        public async Task<Result<IEnumerable<PersonResponse>>> Handle(GetPersonsWithActiveRestrictionsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<PersonResponse>>> Handle(
+            GetPersonsWithActiveRestrictionsQuery request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Fetching persons with active restrictions");
+                if (!request.PagedRequest.IsValid())
+                {
+                    var errorMsg = "Invalid pagination parameters";
+                    _logger.LogWarning("Invalid pagination: PageNumber={PageNumber}, PageSize={PageSize}",
+                        request.PagedRequest.PageNumber,
+                        request.PagedRequest.PageSize);
+                    return Result<PagedList<PersonResponse>>.Failure(errorMsg);
+                }
 
-                // Repository'den tüm kişileri getir
-                var allPersons = await _personRepository.GetAllAsync(cancellationToken);
+                _logger.LogInformation(
+                    "Fetching persons with active restrictions - Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}",
+                    request.FilterString ?? "none",
+                    request.PagedRequest.PageNumber,
+                    request.PagedRequest.PageSize);
 
-                // ✅ GetActiveRestrictions() kullanarak aktif kısıtlaması olanları filtrele
-                var personsWithRestrictions = allPersons
+                // ✅ Specification kullanarak query oluştur
+                var spec = new GetPersonsWithFiltersSpecification(
+                    request.FilterString,
+                    request.PagedRequest.PageNumber,
+                    request.PagedRequest.PageSize);
+
+                var pagedList = await _personRepository.GetAllAsync(spec, request.PagedRequest, cancellationToken);
+
+                // ✅ Aktif kısıtlaması olanları filtrele
+                var personsWithRestrictions = pagedList.Data
                     .Where(p => p.GetActiveRestrictions().Any())
                     .ToList();
 
-                // Response'a map et
-                var responses = _mapper.Map<IEnumerable<PersonResponse>>(personsWithRestrictions);
+                var responses = _mapper.Map<List<PersonResponse>>(personsWithRestrictions);
 
-                _logger.LogInformation("Retrieved {Count} persons with active restrictions successfully", personsWithRestrictions.Count);
+                var result = new PagedList<PersonResponse>(
+                    responses,
+                    personsWithRestrictions.Count,
+                    request.PagedRequest.PageNumber,
+                    request.PagedRequest.PageSize);
 
-                return Result<IEnumerable<PersonResponse>>.Success(responses, "Persons with active restrictions retrieved successfully");
+                _logger.LogInformation(
+                    "Retrieved persons with active restrictions successfully - Total: {TotalCount}, Page: {PageNumber}/{TotalPages}, Filter: {FilterString}",
+                    result.TotalCount,
+                    result.PageNumber,
+                    result.TotalPages,
+                    request.FilterString ?? "none");
+
+                return Result<PagedList<PersonResponse>>.Success(
+                    result,
+                    $"Persons with active restrictions retrieved successfully - {responses.Count} items on page {result.PageNumber}" +
+                    (string.IsNullOrEmpty(request.FilterString) ? "" : $" with filter: {request.FilterString}"));
+            }
+            catch (Core.Domain.Filtering.FilterParsingException ex)
+            {
+                _logger.LogWarning(ex, "Filter parsing error: {FilterString}", request.FilterString);
+                return Result<PagedList<PersonResponse>>.Failure($"Filter error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching persons with active restrictions");
-                return Result<IEnumerable<PersonResponse>>.Failure(ex.Message);
+                _logger.LogError(ex, "Error fetching persons with active restrictions - Filter: {FilterString}", request.FilterString);
+                return Result<PagedList<PersonResponse>>.Failure(ex.Message);
             }
         }
     }
