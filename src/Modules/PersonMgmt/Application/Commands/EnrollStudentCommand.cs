@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
+using PersonMgmt.Domain.Interfaces;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -18,42 +19,31 @@ namespace PersonMgmt.Application.Commands;
 /// </summary>
 public class EnrollStudentCommand : IRequest<Result<Unit>>
 {
-    /// <summary>
-    /// Kişi ID
-    /// </summary>
     public Guid PersonId { get; set; }
-
-    /// <summary>
-    /// Request verisi
-    /// </summary>
     public EnrollStudentRequest Request { get; set; }
 
-    /// <summary>
-    /// Constructor
-    /// </summary>
     public EnrollStudentCommand(Guid personId, EnrollStudentRequest request)
     {
         PersonId = personId;
         Request = request;
     }
 
-    /// <summary>
-    /// EnrollStudentCommand Handler
-    /// </summary>
     public class Handler : IRequestHandler<EnrollStudentCommand, Result<Unit>>
     {
-        public readonly IRepository<Person> _personRepository;
-        public readonly IMapper _mapper;
-        public readonly ILogger<Handler> _logger;
+        private readonly IPersonRepository _personRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<Handler> _logger;
 
-        public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
 
-        public async Task<Result<Unit>> Handle(EnrollStudentCommand request, CancellationToken cancellationToken)
+        public async Task<Result<Unit>> Handle(
+            EnrollStudentCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -64,10 +54,34 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                 if (person == null)
                 {
                     _logger.LogWarning("Person not found with ID: {PersonId}", request.PersonId);
-                    return Result<Unit>.Failure($"Person with ID {request.PersonId} not found");
+                    return Result<Unit>.Failure("Person not found");
                 }
 
-                // ✅ EducationLevel byte'ı enum'a dönüştür
+                // ✅ FIX 1: Duplicate StudentNumber check
+                var isStudentNumberUnique = await _personRepository.IsStudentNumberUniqueAsync(
+                    request.Request.StudentNumber,
+                    cancellationToken: cancellationToken);
+
+                if (!isStudentNumberUnique)
+                {
+                    _logger.LogWarning("Student number already exists: {StudentNumber}",
+                        request.Request.StudentNumber);
+                    return Result<Unit>.Failure("Student number already exists");
+                }
+
+                // Zaten öğrenci mi?
+                if (person.Student != null)
+                {
+                    return Result<Unit>.Failure("Person is already enrolled as a student");
+                }
+
+                // Zaten personel mi?
+                if (person.Staff != null)
+                {
+                    return Result<Unit>.Failure("Person is already registered as staff - cannot enroll as student");
+                }
+
+                // EducationLevel byte'ı enum'a dönüştür
                 var educationLevel = (EducationLevel)request.Request.EducationLevel;
 
                 // Öğrenciyi kayıt et
@@ -75,10 +89,13 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                     studentNumber: request.Request.StudentNumber,
                     educationLevel: educationLevel,
                     enrollmentDate: request.Request.EnrollmentDate,
-                    advisorId: null);  // Advisor bilgisi request'te yok
+                    advisorId: null);
 
-                // Repository'ye kaydet (UpdateAsync)
+                // Repository'de güncelle
                 await _personRepository.UpdateAsync(person, cancellationToken);
+
+                // ✅ FIX 2: SaveChangesAsync() - CRITICAL!
+                await _personRepository.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Student enrolled successfully for person with ID: {PersonId}", person.Id);
 

@@ -1,0 +1,42 @@
+﻿namespace API.Middlewares;
+
+/// <summary>
+/// Request/Response Logging Middleware
+/// </summary>
+public class RequestLoggingMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<RequestLoggingMiddleware> _logger;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Invoke middleware
+    /// </summary>
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var startTime = DateTime.UtcNow;
+
+        _logger.LogInformation(
+            "HTTP Request: {Method} {Path} - IP: {IP}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Connection.RemoteIpAddress);
+
+        await _next(context);
+
+        var duration = DateTime.UtcNow - startTime;
+
+        _logger.LogInformation(
+            "HTTP Response: {StatusCode} - Duration: {Duration}ms",
+            context.Response.StatusCode,
+            duration.TotalMilliseconds);
+    }
+}

@@ -22,11 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Modules\PersonMgmt\Domain\PersonMgmt.Domain.csproj" />
     <ProjectReference Include="..\Core.Domain\Core.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Persistence\Repositories\" />
+    <Folder Include="Persistence\Repositories\PersonMgmt\" />
   </ItemGroup>
 
 </Project>
