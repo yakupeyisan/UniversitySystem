@@ -59,8 +59,7 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
 
                 // ✅ FIX 1: Duplicate StudentNumber check
                 var isStudentNumberUnique = await _personRepository.IsStudentNumberUniqueAsync(
-                    request.Request.StudentNumber,
-                    cancellationToken: cancellationToken);
+                    request.Request.StudentNumber,cancellationToken);
 
                 if (!isStudentNumberUnique)
                 {

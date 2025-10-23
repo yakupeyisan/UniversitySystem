@@ -3,10 +3,8 @@ using API.Middlewares;
 using Core.Application.Extensions;
 using Core.Infrastructure.Extensions;
 using Core.Infrastructure.Persistence.Contexts;
-using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Application.Extensions;
-using Presentation.API.Middlewares;
 using Serilog;
 using Microsoft.OpenApi.Models;
 
@@ -58,7 +56,7 @@ try
 
     // Core layers
     builder.Services.AddCoreApplication();
-    builder.Services.AddCoreInfrastructure();
+    //builder.Services.AddCoreInfrastructure();
 
     // PersonMgmt module
     builder.Services.AddPersonMgmtApplication();

@@ -1,4 +1,5 @@
-﻿using Core.Domain.Repositories;
+﻿using Core.Application.Interfaces;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -34,11 +35,13 @@ public class DeletePersonCommand : IRequest<Result<Unit>>
     public class Handler : IRequestHandler<DeletePersonCommand, Result<Unit>>
     {
         public readonly IRepository<Person> _personRepository;
+        public readonly ICurrentUserService _currentUserService;
         public readonly ILogger<Handler> _logger;
 
-        public Handler(IRepository<Person> personRepository, ILogger<Handler> logger)
+        public Handler(IRepository<Person> personRepository, ICurrentUserService currentUserService, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
+            _currentUserService = currentUserService;
             _logger = logger;
         }
 
@@ -57,7 +60,7 @@ public class DeletePersonCommand : IRequest<Result<Unit>>
                 }
 
                 // Soft delete yap
-                person.Delete();
+                person.Delete(_currentUserService.UserId);
 
                 // Repository'ye kaydet (UpdateAsync)
                 await _personRepository.UpdateAsync(person, cancellationToken);

@@ -1,4 +1,5 @@
 ﻿using Core.Domain;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
@@ -27,7 +28,7 @@ namespace PersonMgmt.Domain.Aggregates;
 /// - PersonIsNotStudentException
 /// - PersonIsNotStaffException
 /// </summary>
-public class Person : AggregateRoot
+public class Person : AggregateRoot, ISoftDelete
 {
     /// <summary>
     /// Departman ID (opsiyonel)
@@ -117,6 +118,8 @@ public class Person : AggregateRoot
     /// Silinme tarihi
     /// </summary>
     public DateTime? DeletedAt { get; private set; }
+
+    public Guid DeletedBy { get; private set; }
 
     /// <summary>
     /// Private constructor
@@ -364,14 +367,13 @@ public class Person : AggregateRoot
         UpdatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Soft delete - Kişiyi sil
-    /// </summary>
-    public void Delete()
+
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        DeletedBy=deletedBy;    
 
         // Delete child entities
         _student?.Delete();

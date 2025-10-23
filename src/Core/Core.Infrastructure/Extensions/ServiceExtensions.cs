@@ -55,7 +55,7 @@ public static class ServiceExtensions
         // ==================== REPOSITORIES ====================
 
         // PersonMgmt Repositories
-        services.AddScoped<IPersonRepository, PersonRepository>();
+        //services.AddScoped<IPersonRepository, PersonRepository>();
 
         // TODO: Diğer modüller için repositories eklenecek
         // services.AddScoped<IAcademicRepository, AcademicRepository>();

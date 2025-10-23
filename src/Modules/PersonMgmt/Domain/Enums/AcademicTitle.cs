@@ -33,5 +33,9 @@ public enum AcademicTitle
     /// <summary>
     /// Yardımcı
     /// </summary>
-    Assistant = 6
+    Assistant = 6,
+    /// <summary>
+    /// Bilinmeyen
+    /// </summary>
+    Unknown = 99
 }
