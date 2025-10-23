@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.Domain.Specifications;
+using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
 
 namespace Core.Infrastructure.Persistence.Contexts;
@@ -89,7 +90,7 @@ public class AppDbContext : DbContext
         // Tüm queries'de IsDeleted = false filtrelenmesi için
         var deletableEntities = modelBuilder.Model
             .GetEntityTypes()
-            .Where(t => typeof(ISoftDeletable).IsAssignableFrom(t.ClrType));
+            .Where(t => typeof(ISoftDelete).IsAssignableFrom(t.ClrType));
 
         foreach (var entity in deletableEntities)
         {

@@ -2,224 +2,76 @@
 using PersonMgmt.Domain.Aggregates;
 
 namespace PersonMgmt.Domain.Interfaces;
-
 /// <summary>
-/// 🆕 NEW: IPersonRepository - Person Aggregate Root Repository
-/// 
-/// Sorumluluğu:
-/// - Person aggregate'inin persistence'ını yönetmek
-/// - Module-specific query methods sağlamak
-/// - Unique constraints'leri check etmek
-/// - Specification'ları support etmek
-/// 
-/// Kullanım:
-/// var person = await _personRepository.GetByIdAsync(personId);
-/// var byNationalId = await _personRepository.GetByNationalIdAsync("12345678901");
-/// var isUnique = await _personRepository.IsNationalIdUniqueAsync("12345678901");
+/// Person aggregate repository - Domain-specific operasyonlar
+/// DDD: IGenericRepository'den türüyor + Person'a özel metodlar ekliyor
 /// </summary>
-public interface IPersonRepository : IRepository<Person>
+public interface IPersonRepository : IGenericRepository<Person>
 {
-    // ==================== BASIC QUERIES ====================
+    // ==================== PERSON-SPECIFIC QUERIES ====================
 
     /// <summary>
-    /// T.C. Kimlik Numarası'na göre kişi getir
+    /// Kimlik numarasıyla kişi bulma (TR'de kimlik doğruluğu önemli)
     /// </summary>
-    Task<Person?> GetByNationalIdAsync(
-        string nationalId,
-        CancellationToken cancellationToken = default);
+    Task<Person?> GetByIdentificationNumberAsync(string identificationNumber);
 
     /// <summary>
-    /// Silinmemiş kişileri getir
+    /// Email ile kişi bulma (unique constraint olmalı)
     /// </summary>
-    Task<IEnumerable<Person>> GetAllActiveAsync(
-        CancellationToken cancellationToken = default);
+    Task<Person?> GetByEmailAsync(string email);
 
     /// <summary>
-    /// E-posta adresine göre kişi getir
+    /// Telefon numarasıyla kişi bulma
     /// </summary>
-    Task<Person?> GetByEmailAsync(
-        string email,
-        CancellationToken cancellationToken = default);
-
-    // ==================== STUDENT QUERIES ====================
+    Task<Person?> GetByPhoneNumberAsync(string phoneNumber);
 
     /// <summary>
-    /// Öğrenci numarası'na göre kişi (öğrenci) getir
+    /// Adıyla kişi/kişileri arama (partial match)
     /// </summary>
-    Task<Person?> GetByStudentNumberAsync(
-        string studentNumber,
-        CancellationToken cancellationToken = default);
+    Task<ICollection<Person>> SearchByNameAsync(string firstName, string lastName);
+
+    // ==================== STUDENT-SPECIFIC QUERIES ====================
 
     /// <summary>
-    /// Belirli danışmana atanmış öğrencileri getir
+    /// Öğrenci numarasıyla öğrenci bulma
     /// </summary>
-    Task<IEnumerable<Person>> GetStudentsByAdvisorAsync(
-        Guid advisorId,
-        CancellationToken cancellationToken = default);
+    Task<Student?> GetStudentByStudentNumberAsync(string studentNumber);
 
     /// <summary>
-    /// Belirli durumda olan öğrencileri getir
+    /// Programa kayıtlı öğrencileri getir
     /// </summary>
-    Task<IEnumerable<Person>> GetStudentsByStatusAsync(
-        int status,  // StudentStatus enum value
-        CancellationToken cancellationToken = default);
-
-    // ==================== STAFF QUERIES ====================
+    Task<ICollection<Student>> GetStudentsByProgramAsync(Guid programId);
 
     /// <summary>
-    /// Personel numarası'na göre kişi (personel) getir
+    /// GPA aralığında öğrencileri getir
     /// </summary>
-    Task<Person?> GetByEmployeeNumberAsync(
-        string employeeNumber,
-        CancellationToken cancellationToken = default);
+    Task<ICollection<Student>> GetStudentsByGpaRangeAsync(decimal minGpa, decimal maxGpa);
+
+    // ==================== STAFF-SPECIFIC QUERIES ====================
 
     /// <summary>
-    /// Belirli akademik ünvana sahip personeli getir
+    /// Departmandaki personeli getir
     /// </summary>
-    Task<IEnumerable<Person>> GetStaffByAcademicTitleAsync(
-        int academicTitle,  // AcademicTitle enum value
-        CancellationToken cancellationToken = default);
+    Task<ICollection<Staff>> GetStaffByDepartmentAsync(Guid departmentId);
 
     /// <summary>
-    /// Aktif personeli getir
+    /// Görüşe göre personeli getir
     /// </summary>
-    Task<IEnumerable<Person>> GetActiveStaffAsync(
-        CancellationToken cancellationToken = default);
+    Task<ICollection<Staff>> GetStaffByPositionAsync(string position);
 
-    // ==================== UNIQUENESS CHECKS ====================
+    // ==================== RESTRICTION-SPECIFIC QUERIES ====================
 
     /// <summary>
-    /// National ID unique mi kontrol et
-    /// excludeId: Bu ID dışında başka kişi tarafından kullanılıyor mu?
+    /// Kişinin aktif kısıtlamalarını getir
     /// </summary>
-    Task<bool> IsNationalIdUniqueAsync(
-        string nationalId,
-        Guid? excludeId = null,
-        CancellationToken cancellationToken = default);
+    Task<ICollection<PersonRestriction>> GetActiveRestrictionsAsync(Guid personId);
+
+    // ==================== HEALTH RECORD-SPECIFIC QUERIES ====================
 
     /// <summary>
-    /// Student Number unique mi kontrol et
+    /// Kişinin sağlık kayıtlarını tarih aralığında getir
     /// </summary>
-    Task<bool> IsStudentNumberUniqueAsync(
-        string studentNumber,
-        Guid? excludeId = null,
-        CancellationToken cancellationToken = default);
+    Task<ICollection<HealthRecord>> GetHealthRecordsByDateRangeAsync(Guid personId, DateTime startDate, DateTime endDate);
 
-    /// <summary>
-    /// Employee Number unique mi kontrol et
-    /// </summary>
-    Task<bool> IsEmployeeNumberUniqueAsync(
-        string employeeNumber,
-        Guid? excludeId = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Email unique mi kontrol et
-    /// </summary>
-    Task<bool> IsEmailUniqueAsync(
-        string email,
-        Guid? excludeId = null,
-        CancellationToken cancellationToken = default);
-
-    // ==================== RESTRICTION QUERIES ====================
-
-    /// <summary>
-    /// Belirli bir kısıtlama türüne sahip kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsWithRestrictionTypeAsync(
-        int restrictionType,  // RestrictionType enum value
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Belirli bir kısıtlama seviyesine sahip kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsWithRestrictionLevelAsync(
-        int restrictionLevel,  // RestrictionLevel enum value
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Aktif kısıtlaması olan kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsWithActiveRestrictionsAsync(
-        CancellationToken cancellationToken = default);
-
-    // ==================== DEPARTMENT QUERIES ====================
-
-    /// <summary>
-    /// Belirli departmandaki kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsByDepartmentAsync(
-        Guid departmentId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Belirli departmandaki aktif öğrencileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetActiveStudentsByDepartmentAsync(
-        Guid departmentId,
-        CancellationToken cancellationToken = default);
-
-    // ==================== HEALTH RECORD QUERIES ====================
-
-    /// <summary>
-    /// Sağlık kaydı olan kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsWithHealthRecordAsync(
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Belirli kan grubuna sahip kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsByBloodTypeAsync(
-        string bloodType,
-        CancellationToken cancellationToken = default);
-
-    // ==================== SEARCH & FILTER ====================
-
-    /// <summary>
-    /// Ad veya soyada göre kişileri ara
-    /// </summary>
-    Task<IEnumerable<Person>> SearchByNameAsync(
-        string searchTerm,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Belirli yaş aralığındaki kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsByAgeRangeAsync(
-        int minAge,
-        int maxAge,
-        CancellationToken cancellationToken = default);
-
-    // ==================== ADVANCED QUERIES ====================
-
-    /// <summary>
-    /// Kayıt tarihine göre kişileri getir (paging destekler)
-    /// </summary>
-    Task<IEnumerable<Person>> GetPersonsRegisteredBetweenAsync(
-        DateTime startDate,
-        DateTime endDate,
-        int skip = 0,
-        int take = 50,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Silinen kişileri dahil tüm kişileri getir (soft delete dahil)
-    /// </summary>
-    Task<IEnumerable<Person>> GetAllIncludingDeletedAsync(
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Sadece silinen kişileri getir
-    /// </summary>
-    Task<IEnumerable<Person>> GetDeletedPersonsAsync(
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Sayfa sayfalı kişi listesi getir
-    /// </summary>
-    Task<(IEnumerable<Person> Items, int TotalCount)> GetPersonsPaginatedAsync(
-        int pageNumber = 1,
-        int pageSize = 20,
-        CancellationToken cancellationToken = default);
+    Task<bool> IsEmployeeNumberUniqueAsync(string requestEmployeeNumber, CancellationToken cancellationToken);
 }

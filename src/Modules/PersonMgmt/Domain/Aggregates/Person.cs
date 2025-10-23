@@ -88,6 +88,7 @@ public class Person : AggregateRoot
     /// </summary>
     private HealthRecord? _healthRecord;
     public HealthRecord? HealthRecord => _healthRecord;
+    public Address Address { get; private set; }
 
     /// <summary>
     /// Kişi üzerine konulan kısıtlamalar
@@ -188,7 +189,7 @@ public class Person : AggregateRoot
         if (_student != null)
             throw new InvalidOperationException("Person is already enrolled as student");
 
-        _student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId);
+        _student = Student.Create(Id, studentNumber, educationLevel, enrollmentDate, advisorId);
         UpdatedAt = DateTime.UtcNow;
 
         // Raise event

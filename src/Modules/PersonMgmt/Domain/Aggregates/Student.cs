@@ -17,6 +17,7 @@ namespace PersonMgmt.Domain.Aggregates;
 /// </summary>
 public class Student : Entity
 {
+    public Guid PersonId { get; private set; }
     /// <summary>
     /// Öğrenci numarası (unique)
     /// </summary>
@@ -98,6 +99,7 @@ public class Student : Entity
     /// ✅ FIXED & COMPLETE: Factory method - Yeni öğrenci oluştur
     /// </summary>
     public static Student Create(
+        Guid personId,
         string studentNumber,
         EducationLevel educationLevel,
         DateTime enrollmentDate,
@@ -112,6 +114,7 @@ public class Student : Entity
         return new Student
         {
             Id = Guid.NewGuid(),
+            PersonId = personId,
             StudentNumber = studentNumber.Trim(),
             EducationLevel = educationLevel,
             CurrentSemester = 1,

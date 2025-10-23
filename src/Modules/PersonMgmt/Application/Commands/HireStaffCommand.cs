@@ -92,14 +92,10 @@ public class HireStaffCommand : IRequest<Result<Unit>>
                 person.HireAsStaff(
                     employeeNumber: request.Request.EmployeeNumber,
                     academicTitle: academicTitle,
-                    hireDate: request.Request.HireDate,
-                    departmentId: request.Request.DepartmentId);
+                    hireDate: request.Request.HireDate);
 
                 // Repository'de güncelle
                 await _personRepository.UpdateAsync(person, cancellationToken);
-
-                // ✅ FIX 2: SaveChangesAsync() - CRITICAL!
-                await _personRepository.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Staff hired successfully for person with ID: {PersonId}", person.Id);
 

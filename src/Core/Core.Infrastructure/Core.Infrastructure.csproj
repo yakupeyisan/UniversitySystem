@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Persistence\Configurations\PersonMgmt\" />
     <Folder Include="Persistence\Repositories\PersonMgmt\" />
   </ItemGroup>
 

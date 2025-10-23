@@ -21,11 +21,6 @@ public class HireStaffRequest
     public DateTime HireDate { get; set; }
 
     /// <summary>
-    /// Departman ID
-    /// </summary>
-    public Guid DepartmentId { get; set; }
-
-    /// <summary>
     /// Maaş (opsiyonel)
     /// </summary>
     public decimal? Salary { get; set; }
