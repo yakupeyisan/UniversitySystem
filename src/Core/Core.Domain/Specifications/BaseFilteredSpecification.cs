@@ -3,7 +3,6 @@ using Core.Domain.Filtering;
 
 namespace Core.Domain.Specifications;
 
-
 /// <summary>
 /// Dynamic filtering desteği olan base Specification
 /// 
@@ -374,7 +373,7 @@ public abstract class BaseSpecification<T> : ISpecification<T> where T : class
         if (orderByExpression == null)
             throw new ArgumentNullException(nameof(orderByExpression));
 
-        OrderBys.Add((orderByExpression.Cast(), false));
+        OrderBys.Add((CastExpression(orderByExpression), false));
     }
 
     /// <summary>
@@ -388,7 +387,7 @@ public abstract class BaseSpecification<T> : ISpecification<T> where T : class
         if (orderByExpression == null)
             throw new ArgumentNullException(nameof(orderByExpression));
 
-        OrderBys.Add((orderByExpression.Cast(), true));
+        OrderBys.Add((CastExpression(orderByExpression), true));
     }
 
     /// <summary>
@@ -473,7 +472,7 @@ public abstract class BaseSpecification<T> : ISpecification<T> where T : class
     /// Generic OrderBy expression'ı object'e cast et
     /// Iç kullanım için
     /// </summary>
-    private static Expression<Func<T, object>> Cast<TKey>(Expression<Func<T, TKey>> source)
+    private static Expression<Func<T, object>> CastExpression<TKey>(Expression<Func<T, TKey>> source)
     {
         var parameter = source.Parameters[0];
         var body = Expression.Convert(source.Body, typeof(object));
