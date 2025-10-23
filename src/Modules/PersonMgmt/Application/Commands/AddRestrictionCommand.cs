@@ -85,8 +85,6 @@ public class AddRestrictionCommand : IRequest<Result<Unit>>
                 // Repository'de güncelle
                 await _personRepository.UpdateAsync(person, cancellationToken);
 
-                // ✅ FIX 2: SaveChangesAsync() - CRITICAL!
-                await _personRepository.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Restriction added successfully to person with ID: {PersonId}", person.Id);
 

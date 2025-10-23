@@ -189,7 +189,7 @@ public class Person : AggregateRoot
         if (_student != null)
             throw new InvalidOperationException("Person is already enrolled as student");
 
-        _student = Student.Create(Id, studentNumber, educationLevel, enrollmentDate, advisorId);
+        _student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId);
         UpdatedAt = DateTime.UtcNow;
 
         // Raise event

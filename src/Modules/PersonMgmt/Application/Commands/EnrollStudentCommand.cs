@@ -94,8 +94,6 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                 // Repository'de güncelle
                 await _personRepository.UpdateAsync(person, cancellationToken);
 
-                // ✅ FIX 2: SaveChangesAsync() - CRITICAL!
-                await _personRepository.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Student enrolled successfully for person with ID: {PersonId}", person.Id);
 

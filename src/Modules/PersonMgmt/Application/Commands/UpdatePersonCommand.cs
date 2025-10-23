@@ -83,9 +83,6 @@ public class UpdatePersonCommand : IRequest<Result<PersonResponse>>
                 // Repository'de güncelle
                 await _personRepository.UpdateAsync(person, cancellationToken);
 
-                // ✅ FIX 3: SaveChangesAsync() - CRITICAL!
-                await _personRepository.SaveChangesAsync(cancellationToken);
-
                 // Response'a map et
                 var response = _mapper.Map<PersonResponse>(person);
 

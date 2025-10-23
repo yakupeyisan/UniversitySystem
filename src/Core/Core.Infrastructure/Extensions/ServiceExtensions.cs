@@ -43,7 +43,7 @@ public static class ServiceExtensions
                 sqlOptions =>
                 {
                     sqlOptions.MigrationsAssembly("Infrastructure");
-                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelaySeconds: 10);
+                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
                 });
 
             if (IsEnvironmentDevelopment())

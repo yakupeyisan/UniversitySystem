@@ -88,9 +88,6 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                 // Repository'ye ekle
                 await _personRepository.AddAsync(person, cancellationToken);
 
-                // ✅ FIX 3: SaveChangesAsync() - CRITICAL!
-                await _personRepository.SaveChangesAsync(cancellationToken);
-
                 // Response'a map et
                 var response = _mapper.Map<PersonResponse>(person);
 
