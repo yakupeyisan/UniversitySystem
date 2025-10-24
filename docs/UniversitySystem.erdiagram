@@ -373,9 +373,10 @@ erDiagram
     }
 
     %% ============== PERSON AGGREGATE ==============
-    PERSONS ||--o| ADDRESS : has
+    PERSONS ||--o{ ADDRESS : has
     PERSONS ||--o{ EMERGENCY_CONTACTS : has
     PERSONS ||--o{ HEALTH_RECORDS : has_health_record
+    USERS ||--|| PERSONS : is_a
     STUDENTS ||--|| PERSONS : is_a
     STAFF ||--|| PERSONS : is_a
     STUDENTS ||--o{ ENROLLMENTS : enrolls_in
@@ -384,6 +385,7 @@ erDiagram
 
     PERSONS {
         guid Id PK
+        guid UserId FK
         guid DepartmentId FK "Nullable"
         string FirstName
         string LastName
@@ -435,6 +437,7 @@ erDiagram
 
     ADDRESS {
         guid Id PK
+        guid PersonId FK
         string Street
         string City
         string State
@@ -447,6 +450,7 @@ erDiagram
 
     EMERGENCY_CONTACTS {
         guid Id PK
+        guid PersonId FK
         string FullName
         string Relationship
         string PhoneNumber
@@ -471,7 +475,6 @@ erDiagram
 
     %% ============== PERSON RESTRICTIONS ==============
     PERSONS ||--o{ PERSON_RESTRICTIONS : has_restriction
-    USERS ||--o{ PERSON_RESTRICTIONS : applied_by
 
     PERSON_RESTRICTIONS {
         guid Id PK

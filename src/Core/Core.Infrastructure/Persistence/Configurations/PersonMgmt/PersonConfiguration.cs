@@ -27,29 +27,14 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
                 .HasColumnName("LastName")
                 .HasMaxLength(50)
                 .IsRequired();
-        });
-        builder.OwnsOne(p => p.Address, address =>
+        }); 
+        builder.OwnsOne(p => p.Address, b =>
         {
-            address.Property(a => a.Street)
-                .HasColumnName("AddressStreet")
-                .HasMaxLength(200)
-                .IsRequired(false);
-            address.Property(a => a.City)
-                .HasColumnName("AddressCity")
-                .HasMaxLength(50)
-                .IsRequired(false);
-            address.Property(a => a.PostalCode)
-                .HasColumnName("AddressPostalCode")
-                .HasMaxLength(20)
-                .IsRequired(false);
-            address.Property(a => a.Country)
-                .HasColumnName("AddressCountry")
-                .HasMaxLength(50)
-                .IsRequired(false);
-            address.Property(a => a.FullAddress)
-                .HasColumnName("AddressFullAddress")
-                .HasMaxLength(500)
-                .IsRequired(false);
+            b.Property(a => a.Street).HasColumnName("Street");
+            b.Property(a => a.City).HasColumnName("City");
+            b.Property(a => a.PostalCode).HasColumnName("PostalCode");
+            b.Property(a => a.Country).HasColumnName("Country");
+            b.Property(a => a.FullAddress).HasColumnName("FullAddress");
         });
         builder.Property(p => p.NationalId)
             .HasColumnName("NationalId")

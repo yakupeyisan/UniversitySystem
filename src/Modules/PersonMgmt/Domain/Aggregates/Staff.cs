@@ -2,17 +2,14 @@ using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
-using PersonMgmt.Domain.ValueObjects;
 namespace PersonMgmt.Domain.Aggregates;
-public class Staff : AggregateRoot, ISoftDelete
+public class Staff : Entity, ISoftDelete
 {
     public string EmployeeNumber { get; private set; }
     public AcademicTitle AcademicTitle { get; private set; }
     public DateTime HireDate { get; private set; }
     public DateTime? TerminationDate { get; private set; }
     public bool IsActive { get; private set; }
-    public Address? Address { get; private set; }
-    public EmergencyContact? EmergencyContact { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
@@ -24,9 +21,7 @@ public class Staff : AggregateRoot, ISoftDelete
     public static Staff Create(
     string employeeNumber,
     AcademicTitle academicTitle,
-    DateTime hireDate,
-    Address? address = null,
-    EmergencyContact? emergencyContact = null)
+    DateTime hireDate)
     {
         if (string.IsNullOrWhiteSpace(employeeNumber))
             throw new ArgumentException("Employee number cannot be empty", nameof(employeeNumber));
@@ -40,8 +35,6 @@ public class Staff : AggregateRoot, ISoftDelete
             HireDate = hireDate,
             TerminationDate = null,
             IsActive = true,
-            Address = address,
-            EmergencyContact = emergencyContact,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -83,26 +76,6 @@ public class Staff : AggregateRoot, ISoftDelete
             AcademicTitle.Doctor => AcademicTitle.Professor,
             _ => throw new InvalidOperationException($"Unknown academic title: {AcademicTitle}")
         };
-        UpdatedAt = DateTime.UtcNow;
-    }
-    public void UpdateAddress(Address? newAddress)
-    {
-        Address = newAddress;
-        UpdatedAt = DateTime.UtcNow;
-    }
-    public void RemoveAddress()
-    {
-        Address = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
-    public void UpdateEmergencyContact(EmergencyContact? newContact)
-    {
-        EmergencyContact = newContact;
-        UpdatedAt = DateTime.UtcNow;
-    }
-    public void RemoveEmergencyContact()
-    {
-        EmergencyContact = null;
         UpdatedAt = DateTime.UtcNow;
     }
     public int YearsOfService
@@ -174,7 +147,4 @@ public class Staff : AggregateRoot, ISoftDelete
     IsActive &&
     !IsDeleted &&
     (TerminationDate == null || TerminationDate > DateTime.UtcNow);
-    public bool HasCompleteProfile =>
-    Address != null &&
-    EmergencyContact != null;
 }
