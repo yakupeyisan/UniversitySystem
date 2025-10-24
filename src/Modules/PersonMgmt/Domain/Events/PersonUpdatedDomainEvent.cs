@@ -1,10 +1,5 @@
-﻿using Core.Domain.Events;
-
+using Core.Domain.Events;
 namespace PersonMgmt.Domain.Events;
-
-/// <summary>
-/// Person bilgileri güncellendiğinde raise edilen event
-/// </summary>
 public class PersonUpdatedDomainEvent : DomainEvent
 {
     public Guid PersonId { get; set; }
@@ -12,13 +7,12 @@ public class PersonUpdatedDomainEvent : DomainEvent
     public string LastName { get; set; }
     public string Email { get; set; }
     public DateTime UpdatedAt { get; set; }
-
     public PersonUpdatedDomainEvent(
         Guid personId,
         string firstName,
         string lastName,
         string email,
-        DateTime updatedAt) : base(personId) 
+        DateTime updatedAt) : base(personId)
     {
         PersonId = personId;
         FirstName = firstName;

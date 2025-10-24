@@ -1,20 +1,13 @@
-﻿using Core.Domain.Exceptions;
-
+using Core.Domain.Exceptions;
 namespace PersonMgmt.Domain.Exceptions;
-
-/// <summary>
-/// 🆕 NEW: Person staff değil iken staff operasyonu yapılmaya çalışılırsa throw edilen exception
-/// </summary>
 public class PersonIsNotStaffException : DomainException
 {
     public Guid PersonId { get; }
-
     public PersonIsNotStaffException(Guid personId)
         : base($"Person with ID {personId} is not a staff member.")
     {
         PersonId = personId;
     }
-
     public override string ErrorCode => "errors.person.is.not.staff";
     public override int StatusCode => 400;
 }

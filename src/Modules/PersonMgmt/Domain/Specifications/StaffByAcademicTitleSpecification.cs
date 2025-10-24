@@ -1,12 +1,7 @@
-﻿using Core.Domain.Specifications;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-
 namespace PersonMgmt.Domain.Specifications;
-
-/// <summary>
-/// Specification - Personeli akademik ünvana göre getir
-/// </summary>
 public class StaffByAcademicTitleSpecification : Specification<Person>
 {
     public StaffByAcademicTitleSpecification(AcademicTitle academicTitle)
@@ -15,7 +10,6 @@ public class StaffByAcademicTitleSpecification : Specification<Person>
                         p.Staff != null &&
                         p.Staff.IsActive &&
                         p.Staff.AcademicTitle == academicTitle;
-
         AddOrderBy(p => p.Name);
     }
 }

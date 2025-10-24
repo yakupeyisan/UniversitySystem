@@ -1,12 +1,7 @@
-﻿using Core.Domain.Specifications;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-
 namespace PersonMgmt.Domain.Specifications;
-
-/// <summary>
-/// Specification - Danışman olarak görev yapan personeli getir
-/// </summary>
 public class AdvisorsSpecification : Specification<Person>
 {
     public AdvisorsSpecification()
@@ -15,7 +10,6 @@ public class AdvisorsSpecification : Specification<Person>
                         p.Staff != null &&
                         p.Staff.IsActive &&
                         p.Staff.AcademicTitle != AcademicTitle.ResearchAssistant;
-
         AddOrderBy(p => p.Name);
     }
 }

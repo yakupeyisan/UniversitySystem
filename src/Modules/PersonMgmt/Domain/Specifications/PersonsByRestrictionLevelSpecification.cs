@@ -1,12 +1,7 @@
-﻿using Core.Domain.Specifications;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-
 namespace PersonMgmt.Domain.Specifications;
-
-/// <summary>
-/// Specification - Belirli kapsamda kısıtlaması olan kişileri getir
-/// </summary>
 public class PersonsByRestrictionLevelSpecification : Specification<Person>
 {
     public PersonsByRestrictionLevelSpecification(RestrictionLevel restrictionLevel)
@@ -17,7 +12,6 @@ public class PersonsByRestrictionLevelSpecification : Specification<Person>
                                                 r.IsActive &&
                                                 r.StartDate <= DateTime.UtcNow &&
                                                 (r.EndDate == null || r.EndDate >= DateTime.UtcNow));
-
         AddOrderBy(p => p.Name);
     }
 }

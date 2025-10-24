@@ -1,11 +1,6 @@
-﻿using Core.Domain.Specifications;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
-
 namespace PersonMgmt.Domain.Specifications;
-
-/// <summary>
-/// Specification - Aktif kısıtlamaları olan kişileri getir
-/// </summary>
 public class PersonsWithActiveRestrictionsSpecification : Specification<Person>
 {
     public PersonsWithActiveRestrictionsSpecification()
@@ -15,7 +10,6 @@ public class PersonsWithActiveRestrictionsSpecification : Specification<Person>
                                                 r.IsActive &&
                                                 r.StartDate <= DateTime.UtcNow &&
                                                 (r.EndDate == null || r.EndDate >= DateTime.UtcNow));
-
         AddOrderBy(p => p.Name);
     }
 }

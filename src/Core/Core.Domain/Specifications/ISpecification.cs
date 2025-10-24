@@ -1,13 +1,5 @@
-﻿using System.Linq.Expressions;
-
+using System.Linq.Expressions;
 namespace Core.Domain.Specifications;
-
-/// <summary>
-/// ISpecification - Specification contract
-/// 
-/// Repository'ler bu interface'i kullanır
-/// GetAsync(ISpecification<T> spec)
-/// </summary>
 public interface ISpecification<T> where T : class
 {
     Expression<Func<T, bool>>? Criteria { get; }
@@ -19,5 +11,3 @@ public interface ISpecification<T> where T : class
     bool IsPagingEnabled { get; }
     bool IsSplitQuery { get; }
 }
-
-

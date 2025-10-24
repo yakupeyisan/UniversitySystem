@@ -1,17 +1,11 @@
-﻿using Core.Domain.Events;
-
+using Core.Domain.Events;
 namespace PersonMgmt.Domain.Events;
-
-/// <summary>
-/// Öğrenci kaydı yapılırken raise edilen event
-/// </summary>
 public class StudentEnrolledDomainEvent : DomainEvent
 {
     public Guid PersonId { get; set; }
     public string StudentNumber { get; set; }
     public int EducationLevel { get; set; }
     public DateTime EnrollmentDate { get; set; }
-
     public StudentEnrolledDomainEvent(
         Guid personId,
         string studentNumber,
@@ -24,13 +18,8 @@ public class StudentEnrolledDomainEvent : DomainEvent
         EnrollmentDate = enrollmentDate;
     }
 }
-
-/// <summary>
-/// ✅ NEW: Staff member terminated event
-/// </summary>
 public class StaffTerminatedDomainEvent : DomainEvent
 {
-
     public Guid PersonId { get; set; }
     public string EmployeeNumber { get; set; }
     public DateTime TerminationDate { get; set; }

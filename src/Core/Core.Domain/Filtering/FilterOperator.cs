@@ -1,16 +1,4 @@
-﻿namespace Core.Domain.Filtering;
-
-/// <summary>
-/// Filter operatörü enum'ı
-/// 
-/// Desteklenen operatörler:
-/// - Equals, NotEquals (eq, neq)
-/// - Comparison: GreaterThan, GreaterOrEqual, LessThan, LessOrEqual
-/// - String: Contains, StartsWith, EndsWith
-/// - Range: Between
-/// - List: In
-/// - Null check: IsNull, IsNotNull
-/// </summary>
+namespace Core.Domain.Filtering;
 public enum FilterOperator
 {
     Equals,

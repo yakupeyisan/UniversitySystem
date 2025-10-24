@@ -1,6 +1,4 @@
-﻿namespace Core.Application.Abstractions;
-
-
+namespace Core.Application.Abstractions;
 public interface ICurrentUserService
 {
     Guid UserId { get; }
@@ -12,7 +10,6 @@ public interface ICurrentUserService
     Guid? FacultyId { get; }
     bool IsAdmin { get; }
     bool IsAuthenticated { get; }
-
     bool IsInRole(string role);
     bool HasPermission(string permission);
     bool HasAnyRole(params string[] roles);

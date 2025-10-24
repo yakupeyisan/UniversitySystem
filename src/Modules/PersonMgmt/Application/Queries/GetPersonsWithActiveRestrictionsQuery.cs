@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
@@ -7,64 +7,27 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
-/// <summary>
-/// Aktif kısıtlamalarla kişileri getirme query (PAGINATION + NULLABLE FILTER İLE)
-/// 
-/// Kullanım:
-/// 
-/// 1. Filter olmadan:
-/// var query = new GetPersonsWithActiveRestrictionsQuery(
-///     new PagedRequest { PageNumber = 1, PageSize = 20 });
-/// var result = await _mediator.Send(query);
-/// 
-/// 2. Filter ile:
-/// var query = new GetPersonsWithActiveRestrictionsQuery(
-///     new PagedRequest { PageNumber = 1, PageSize = 20 },
-///     "restrictionLevel|eq|High");
-/// var result = await _mediator.Send(query);
-/// </summary>
 public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
-    /// <summary>
-    /// Sayfalama parametreleri
-    /// </summary>
     public PagedRequest PagedRequest { get; set; }
-
-    /// <summary>
-    /// Dinamik filter string (nullable)
-    /// Format: field|operator|value;field2|operator2|value2
-    /// Örnek: "restrictionLevel|eq|High;email|contains|@university.edu"
-    /// </summary>
     public string? FilterString { get; set; }
-
-    /// <summary>
-    /// Constructor
-    /// </summary>
     public GetPersonsWithActiveRestrictionsQuery(PagedRequest pagedRequest, string? filterString = null)
     {
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
         FilterString = filterString;
     }
-
-    /// <summary>
-    /// GetPersonsWithActiveRestrictionsQuery Handler
-    /// </summary>
     public class Handler : IRequestHandler<GetPersonsWithActiveRestrictionsQuery, Result<PagedList<PersonResponse>>>
     {
         private readonly IRepository<Person> _personRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-
         public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PagedList<PersonResponse>>> Handle(
             GetPersonsWithActiveRestrictionsQuery request,
             CancellationToken cancellationToken)
@@ -79,41 +42,31 @@ public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<P
                         request.PagedRequest.PageSize);
                     return Result<PagedList<PersonResponse>>.Failure(errorMsg);
                 }
-
                 _logger.LogInformation(
                     "Fetching persons with active restrictions - Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}",
                     request.FilterString ?? "none",
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize);
-
-                // ✅ Specification kullanarak query oluştur
                 var spec = new GetPersonsWithFiltersSpecification(
                     request.FilterString,
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize);
-
                 var pagedList = await _personRepository.GetAllAsync(spec, request.PagedRequest, cancellationToken);
-
-                // ✅ Aktif kısıtlaması olanları filtrele
                 var personsWithRestrictions = pagedList.Data
                     .Where(p => p.GetActiveRestrictions().Any())
                     .ToList();
-
                 var responses = _mapper.Map<List<PersonResponse>>(personsWithRestrictions);
-
                 var result = new PagedList<PersonResponse>(
                     responses,
                     personsWithRestrictions.Count,
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize);
-
                 _logger.LogInformation(
                     "Retrieved persons with active restrictions successfully - Total: {TotalCount}, Page: {PageNumber}/{TotalPages}, Filter: {FilterString}",
                     result.TotalCount,
                     result.PageNumber,
                     result.TotalPages,
                     request.FilterString ?? "none");
-
                 return Result<PagedList<PersonResponse>>.Success(
                     result,
                     $"Persons with active restrictions retrieved successfully - {responses.Count} items on page {result.PageNumber}" +
