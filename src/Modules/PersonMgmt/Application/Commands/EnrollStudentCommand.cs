@@ -34,7 +34,11 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
         {
             try
             {
-                _logger.LogInformation("Enrolling student for person with ID: {PersonId}", request.PersonId);
+                _logger.LogInformation(
+                    "Enrolling student for person with ID: {PersonId}, StudentNumber: {StudentNumber}, ProgramId: {ProgramId}",
+                    request.PersonId,
+                    request.Request.StudentNumber,
+                    request.Request.ProgramId);
                 var person = await _personRepository.GetByIdAsync(request.PersonId, cancellationToken);
                 if (person == null)
                 {
@@ -64,7 +68,10 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                     enrollmentDate: request.Request.EnrollmentDate,
                     advisorId: null);
                 await _personRepository.UpdateAsync(person, cancellationToken);
-                _logger.LogInformation("Student enrolled successfully for person with ID: {PersonId}", person.Id);
+                _logger.LogInformation(
+                    "Student enrolled successfully for person with ID: {PersonId}, Program: {ProgramId}",
+                    person.Id,
+                    request.Request.ProgramId);
                 return Result<Unit>.Success(Unit.Value, "Student enrolled successfully");
             }
             catch (Exception ex)

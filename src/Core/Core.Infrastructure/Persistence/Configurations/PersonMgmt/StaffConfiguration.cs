@@ -55,44 +55,6 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
             .IsRequired();
         builder.HasIndex(s => s.IsActive)
             .HasDatabaseName("IX_Staff_IsActive");
-        builder.OwnsOne(s => s.Address, address =>
-        {
-            address.Property(a => a.Street)
-                .HasColumnName("AddressStreet")
-                .HasMaxLength(200)
-                .IsRequired(false);
-            address.Property(a => a.City)
-                .HasColumnName("AddressCity")
-                .HasMaxLength(50)
-                .IsRequired(false);
-            address.Property(a => a.PostalCode)
-                .HasColumnName("AddressPostalCode")
-                .HasMaxLength(20)
-                .IsRequired(false);
-            address.Property(a => a.Country)
-                .HasColumnName("AddressCountry")
-                .HasMaxLength(50)
-                .IsRequired(false);
-            address.Property(a => a.FullAddress)
-                .HasColumnName("AddressFullAddress")
-                .HasMaxLength(500)
-                .IsRequired(false);
-        });
-        builder.OwnsOne(s => s.EmergencyContact, emergencyContact =>
-        {
-            emergencyContact.Property(ec => ec.FullName)
-                .HasColumnName("EmergencyContactFullName")
-                .HasMaxLength(100)
-                .IsRequired(false);
-            emergencyContact.Property(ec => ec.Relationship)
-                .HasColumnName("EmergencyContactRelationship")
-                .HasMaxLength(50)
-                .IsRequired(false);
-            emergencyContact.Property(ec => ec.PhoneNumber)
-                .HasColumnName("EmergencyContactPhoneNumber")
-                .HasMaxLength(20)
-                .IsRequired(false);
-        });
         builder.Property(s => s.IsDeleted)
             .HasColumnName("IsDeleted")
             .HasColumnType("bit")

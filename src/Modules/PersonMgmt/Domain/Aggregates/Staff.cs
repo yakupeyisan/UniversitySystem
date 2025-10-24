@@ -3,7 +3,7 @@ using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 namespace PersonMgmt.Domain.Aggregates;
-public class Staff : Entity, ISoftDelete
+public class Staff : AggregateRoot, ISoftDelete
 {
     public string EmployeeNumber { get; private set; }
     public AcademicTitle AcademicTitle { get; private set; }

@@ -1,10 +1,8 @@
 using AutoMapper;
-using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Interfaces;
 namespace PersonMgmt.Application.Commands;
@@ -34,7 +32,11 @@ public class HireStaffCommand : IRequest<Result<Unit>>
         {
             try
             {
-                _logger.LogInformation("Hiring staff for person with ID: {PersonId}", request.PersonId);
+                _logger.LogInformation(
+                    "Hiring staff for person with ID: {PersonId}, EmployeeNumber: {EmployeeNumber}, Salary: {Salary}",
+                    request.PersonId,
+                    request.Request.EmployeeNumber,
+                    request.Request.Salary ?? 0);
                 var person = await _personRepository.GetByIdAsync(request.PersonId, cancellationToken);
                 if (person == null)
                 {
@@ -67,8 +69,18 @@ public class HireStaffCommand : IRequest<Result<Unit>>
                     employeeNumber: request.Request.EmployeeNumber,
                     academicTitle: academicTitle,
                     hireDate: request.Request.HireDate);
+                if (request.Request.Salary.HasValue && request.Request.Salary.Value > 0)
+                {
+                    _logger.LogInformation(
+                        "Setting salary {Salary} for staff member {EmployeeNumber}",
+                        request.Request.Salary,
+                        request.Request.EmployeeNumber);
+                }
                 await _personRepository.UpdateAsync(person, cancellationToken);
-                _logger.LogInformation("Staff hired successfully for person with ID: {PersonId}", person.Id);
+                _logger.LogInformation(
+                    "Staff hired successfully for person with ID: {PersonId}, Salary: {Salary}",
+                    person.Id,
+                    request.Request.Salary ?? 0);
                 return Result<Unit>.Success(Unit.Value, "Staff hired successfully");
             }
             catch (Exception ex)

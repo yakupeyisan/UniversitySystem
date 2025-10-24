@@ -27,7 +27,7 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
                 .HasColumnName("LastName")
                 .HasMaxLength(50)
                 .IsRequired();
-        }); 
+        });
         builder.OwnsOne(p => p.Address, b =>
         {
             b.Property(a => a.Street).HasColumnName("Street");

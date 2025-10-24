@@ -6,12 +6,14 @@ public class AddRestrictionRequestValidator : AbstractValidator<AddRestrictionRe
     public AddRestrictionRequestValidator()
     {
         RuleFor(x => x.RestrictionType)
-            .InclusiveBetween((byte)0, (byte)2).WithMessage("Kısıtlama türü geçerli olmalıdır");
+            .InclusiveBetween((byte)0, (byte)6)
+            .WithMessage("Geçerli bir kısıtlama türü seçin (0-6 aralığında olmalıdır)");
         RuleFor(x => x.RestrictionLevel)
-            .InclusiveBetween((byte)0, (byte)2).WithMessage("Kısıtlama seviyesi geçerli olmalıdır");
+            .InclusiveBetween((byte)0, (byte)3)
+            .WithMessage("Geçerli bir kısıtlama seviyesi seçin (0-3 aralığında olmalıdır)");
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage("Başlangıç tarihi boş olamaz")
-            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Başlangıç tarihi bugünden önce olmalıdır");
+            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Başlangıç tarihi bugünden önce veya bugün olmalıdır");
         RuleFor(x => x.EndDate)
             .GreaterThan(x => x.StartDate).WithMessage("Bitiş tarihi başlangıç tarihinden sonra olmalıdır")
             .When(x => x.EndDate.HasValue);
