@@ -11,7 +11,7 @@ public class CreatePersonRequestValidator : AbstractValidator<CreatePersonReques
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Soyad boş olamaz")
             .MaximumLength(50).WithMessage("Soyad maksimum 50 karakter olabilir");
-        RuleFor(x => x.NationalId)
+        RuleFor(x => x.IdentificationNumber)
             .NotEmpty().WithMessage("T.C. Kimlik Numarası boş olamaz")
             .Length(11).WithMessage("T.C. Kimlik Numarası 11 karakter olmalıdır")
             .Matches(@"^\d+$").WithMessage("T.C. Kimlik Numarası sadece rakam içermelidir");

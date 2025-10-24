@@ -36,14 +36,14 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             b.Property(a => a.Country).HasColumnName("Country");
             b.Property(a => a.FullAddress).HasColumnName("FullAddress");
         });
-        builder.Property(p => p.NationalId)
-            .HasColumnName("NationalId")
+        builder.Property(p => p.IdentificationNumber)
+            .HasColumnName("IdentificationNumber")
             .HasColumnType("nvarchar(11)")
             .HasMaxLength(11)
             .IsRequired();
-        builder.HasIndex(p => p.NationalId)
+        builder.HasIndex(p => p.IdentificationNumber)
             .IsUnique()
-            .HasDatabaseName("IX_Persons_NationalId_Unique");
+            .HasDatabaseName("IX_Persons_IdentificationNumber_Unique");
         builder.HasIndex(p => new { p.Name })
             .HasDatabaseName("IX_Persons_Name");
         builder.Property(p => p.Email)

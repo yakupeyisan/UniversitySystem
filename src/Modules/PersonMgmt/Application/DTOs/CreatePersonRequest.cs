@@ -3,7 +3,7 @@ public class CreatePersonRequest
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public string NationalId { get; set; }
+    public string IdentificationNumber { get; set; }
     public DateTime BirthDate { get; set; }
     public byte Gender { get; set; }
     public string Email { get; set; }

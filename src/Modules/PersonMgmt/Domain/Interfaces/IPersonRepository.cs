@@ -14,7 +14,7 @@ public interface IPersonRepository : IGenericRepository<Person>
     Task<ICollection<Staff>> GetStaffByPositionAsync(string position);
     Task<ICollection<PersonRestriction>> GetActiveRestrictionsAsync(Guid personId);
     Task<ICollection<HealthRecord>> GetHealthRecordsByDateRangeAsync(Guid personId, DateTime startDate, DateTime endDate);
-    Task<bool> IsNationalIdUniqueAsync(string requestNationalId, CancellationToken cancellationToken);
+    Task<bool> IsIdentificationNumberUniqueAsync(string requestIdentificationNumber, CancellationToken cancellationToken);
     Task<bool> IsEmailUniqueAsync(string requestEmail, CancellationToken cancellationToken, Guid? excludeId = null);
     Task<bool> IsEmployeeNumberUniqueAsync(string requestEmployeeNumber, CancellationToken cancellationToken);
     Task<bool> IsStudentNumberUniqueAsync(string requestStudentNumber, CancellationToken cancellationToken);

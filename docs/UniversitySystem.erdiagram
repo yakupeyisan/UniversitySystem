@@ -389,7 +389,7 @@ erDiagram
         guid DepartmentId FK "Nullable"
         string FirstName
         string LastName
-        string NationalId UK
+        string IdentificationNumber UK
         datetime BirthDate
         int Gender "enum(Male,Female,Other)"
         string Email

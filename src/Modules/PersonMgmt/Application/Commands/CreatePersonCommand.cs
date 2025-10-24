@@ -34,12 +34,12 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
             {
                 _logger.LogInformation("Creating new person: {FirstName} {LastName}",
                     request.Request.FirstName, request.Request.LastName);
-                var isNationalIdUnique = await _personRepository.IsNationalIdUniqueAsync(
-                    request.Request.NationalId,
+                var isIdentificationNumberUnique = await _personRepository.IsIdentificationNumberUniqueAsync(
+                    request.Request.IdentificationNumber,
                     cancellationToken: cancellationToken);
-                if (!isNationalIdUnique)
+                if (!isIdentificationNumberUnique)
                 {
-                    _logger.LogWarning("National ID already exists: {NationalId}", request.Request.NationalId);
+                    _logger.LogWarning("National ID already exists: {IdentificationNumber}", request.Request.IdentificationNumber);
                     return Result<PersonResponse>.Failure("National ID already exists");
                 }
                 var isEmailUnique = await _personRepository.IsEmailUniqueAsync(
@@ -54,7 +54,7 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                 var person = Person.Create(
                     firstName: request.Request.FirstName,
                     lastName: request.Request.LastName,
-                    nationalId: request.Request.NationalId,
+                    identificationNumber: request.Request.IdentificationNumber,
                     birthDate: request.Request.BirthDate,
                     gender: gender,
                     email: request.Request.Email,

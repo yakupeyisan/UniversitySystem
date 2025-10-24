@@ -9,7 +9,7 @@ public class Person : AggregateRoot, ISoftDelete
 {
     public Guid? DepartmentId { get; private set; }
     public PersonName Name { get; private set; }
-    public string NationalId { get; private set; }
+    public string IdentificationNumber { get; private set; }
     public DateTime BirthDate { get; private set; }
     public Gender Gender { get; private set; }
     public string Email { get; private set; }
@@ -35,7 +35,7 @@ public class Person : AggregateRoot, ISoftDelete
     public static Person Create(
     string firstName,
     string lastName,
-    string nationalId,
+    string identificationNumber,
     DateTime birthDate,
     Gender gender,
     string email,
@@ -43,14 +43,14 @@ public class Person : AggregateRoot, ISoftDelete
     Guid? departmentId = null,
     string? profilePhotoUrl = null)
     {
-        ValidateBasicInfo(firstName, lastName, nationalId, email, phoneNumber);
+        ValidateBasicInfo(firstName, lastName, identificationNumber, email, phoneNumber);
         ValidateBirthDate(birthDate);
         var person = new Person
         {
             Id = Guid.NewGuid(),
             DepartmentId = departmentId,
             Name = PersonName.Create(firstName, lastName),
-            NationalId = nationalId,
+            IdentificationNumber = identificationNumber,
             BirthDate = birthDate,
             Gender = gender,
             Email = email,
@@ -99,7 +99,7 @@ public class Person : AggregateRoot, ISoftDelete
             throw new InvalidOperationException("Person is already enrolled as student");
         if (_staff != null)
             throw new InvalidOperationException("Person is already registered as staff");
-        _staff = Staff.Create(employeeNumber, academicTitle, hireDate, address, emergencyContact);
+        _staff = Staff.Create(employeeNumber, academicTitle, hireDate);
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new StaffHiredDomainEvent(
             Id,
@@ -275,22 +275,22 @@ public class Person : AggregateRoot, ISoftDelete
                 throw new ArgumentException("Turkish phone number must have 10 digits after +90", nameof(phoneNumber));
         }
     }
-    private static void ValidateNationalId(string nationalId)
+    private static void ValidateIdentificationNumber(string identificationNumber)
     {
-        if (string.IsNullOrWhiteSpace(nationalId))
-            throw new ArgumentException("National ID cannot be empty", nameof(nationalId));
-        if (nationalId.Length != 11 || !nationalId.All(char.IsDigit))
-            throw new ArgumentException("National ID must be 11 digits", nameof(nationalId));
-        if (nationalId[0] == '0')
-            throw new ArgumentException("National ID cannot start with 0", nameof(nationalId));
+        if (string.IsNullOrWhiteSpace(identificationNumber))
+            throw new ArgumentException("National ID cannot be empty", nameof(identificationNumber));
+        if (identificationNumber.Length != 11 || !identificationNumber.All(char.IsDigit))
+            throw new ArgumentException("National ID must be 11 digits", nameof(identificationNumber));
+        if (identificationNumber[0] == '0')
+            throw new ArgumentException("National ID cannot start with 0", nameof(identificationNumber));
         int sum = 0;
         for (int i = 0; i < 10; i++)
         {
-            sum += int.Parse(nationalId[i].ToString());
+            sum += int.Parse(identificationNumber[i].ToString());
         }
         int tenthDigitCheck = sum % 10;
-        if (int.Parse(nationalId[9].ToString()) != tenthDigitCheck)
-            throw new ArgumentException("National ID checksum validation failed", nameof(nationalId));
+        if (int.Parse(identificationNumber[9].ToString()) != tenthDigitCheck)
+            throw new ArgumentException("National ID checksum validation failed", nameof(identificationNumber));
     }
     public static void ValidateStudentNumber(string studentNumber)
     {
@@ -313,7 +313,7 @@ public class Person : AggregateRoot, ISoftDelete
     private static void ValidateBasicInfo(
     string firstName,
     string lastName,
-    string nationalId,
+    string identificationNumber,
     string email,
     string phoneNumber)
     {
@@ -321,16 +321,16 @@ public class Person : AggregateRoot, ISoftDelete
             throw new ArgumentException("First name cannot be empty", nameof(firstName));
         if (string.IsNullOrWhiteSpace(lastName))
             throw new ArgumentException("Last name cannot be empty", nameof(lastName));
-        if (string.IsNullOrWhiteSpace(nationalId))
-            throw new ArgumentException("National ID cannot be empty", nameof(nationalId));
+        if (string.IsNullOrWhiteSpace(identificationNumber))
+            throw new ArgumentException("National ID cannot be empty", nameof(identificationNumber));
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("Email cannot be empty", nameof(email));
         if (string.IsNullOrWhiteSpace(phoneNumber))
             throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
-        if (!IsValidTurkishNationalId(nationalId))
+        if (!IsValidTurkishIdentificationNumber(identificationNumber))
             throw new ArgumentException(
                 "National ID must be 11 digits with valid checksum",
-                nameof(nationalId)
+                nameof(identificationNumber)
             );
         if (!IsValidEmail(email))
             throw new ArgumentException(
@@ -343,7 +343,7 @@ public class Person : AggregateRoot, ISoftDelete
                 nameof(phoneNumber)
             );
     }
-    private static bool IsValidTurkishNationalId(string id)
+    private static bool IsValidTurkishIdentificationNumber(string id)
     {
         if (string.IsNullOrWhiteSpace(id) || id.Length != 11 || !id.All(char.IsDigit))
             return false;
