@@ -3,6 +3,7 @@ using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
+using System.Text.RegularExpressions;
 
 namespace PersonMgmt.Domain.Aggregates;
 
@@ -119,7 +120,7 @@ public class Person : AggregateRoot, ISoftDelete
     /// </summary>
     public DateTime? DeletedAt { get; private set; }
 
-    public Guid DeletedBy { get; private set; }
+    public Guid? DeletedBy { get; private set; }
 
     /// <summary>
     /// Private constructor
@@ -327,13 +328,13 @@ public class Person : AggregateRoot, ISoftDelete
     /// <summary>
     /// Kısıtlamayı kaldır
     /// </summary>
-    public void RemoveRestriction(Guid restrictionId)
+    public void RemoveRestriction(Guid restrictionId, Guid deletedBy)
     {
         var restriction = _restrictions.FirstOrDefault(r => r.Id == restrictionId);
         if (restriction == null)
             throw new InvalidOperationException("Restriction not found");
 
-        restriction.Delete();
+        restriction.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -373,17 +374,17 @@ public class Person : AggregateRoot, ISoftDelete
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
-        DeletedBy=deletedBy;    
+        DeletedBy = deletedBy;
 
         // Delete child entities
-        _student?.Delete();
-        _staff?.Delete();
+        _student?.Delete(deletedBy);
+        _staff?.Delete(deletedBy);
         _healthRecord?.Delete();
 
         // Clear restrictions
         foreach (var restriction in _restrictions)
         {
-            restriction.Delete();
+            restriction.Delete(deletedBy);
         }
 
         // Raise event
@@ -402,6 +403,7 @@ public class Person : AggregateRoot, ISoftDelete
     {
         IsDeleted = false;
         DeletedAt = null;
+        DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
 
         // Restore child entities
@@ -412,52 +414,6 @@ public class Person : AggregateRoot, ISoftDelete
 
     // ==================== VALIDATION HELPERS ====================
 
-    private static void ValidateBasicInfo(
-        string firstName,
-        string lastName,
-        string nationalId,
-        string email,
-        string phoneNumber)
-    {
-        if (string.IsNullOrWhiteSpace(firstName))
-            throw new ArgumentException("First name cannot be empty", nameof(firstName));
-        if (string.IsNullOrWhiteSpace(lastName))
-            throw new ArgumentException("Last name cannot be empty", nameof(lastName));
-        if (string.IsNullOrWhiteSpace(nationalId))
-            throw new ArgumentException("National ID cannot be empty", nameof(nationalId));
-        if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("Email cannot be empty", nameof(email));
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-            throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
-
-        // National ID: 11 haneli, sadece rakam
-        if (nationalId.Length != 11 || !nationalId.All(char.IsDigit))
-            throw new ArgumentException("National ID must be 11 digits", nameof(nationalId));
-
-        // Email validation
-        if (!email.Contains("@") || !email.Contains("."))
-            throw new ArgumentException("Invalid email format", nameof(email));
-
-        // Phone: minimum 10 haneli
-        if (phoneNumber.Replace("-", "").Replace(" ", "").Length < 10)
-            throw new ArgumentException("Phone number must be at least 10 digits", nameof(phoneNumber));
-    }
-    private static void ValidateBirthDate(DateTime birthDate)
-    {
-        // Gelecek tarih olamaz
-        if (birthDate > DateTime.UtcNow)
-            throw new ArgumentException("Birth date cannot be in the future", nameof(birthDate));
-
-        // Çok eski tarih olamaz (150 yıldan daha eski)
-        var maxBirthDate = DateTime.UtcNow.AddYears(-150);
-        if (birthDate < maxBirthDate)
-            throw new ArgumentException("Birth date is unrealistic (too old)", nameof(birthDate));
-
-        // En az 18 yaşında olmalı (opsiyonel - business rule'a göre değişebilir)
-        var minBirthDate = DateTime.UtcNow.AddYears(-18);
-        if (birthDate > minBirthDate)
-            throw new ArgumentException("Person must be at least 18 years old", nameof(birthDate));
-    }
     private static void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -567,6 +523,153 @@ public class Person : AggregateRoot, ISoftDelete
         // Alfanumerik allowed
         if (!employeeNumber.All(c => char.IsLetterOrDigit(c)))
             throw new ArgumentException("Employee number must be alphanumeric", nameof(employeeNumber));
+    }
+    /// <summary>
+    /// ✅ FIX: Improved validation with proper email & phone patterns
+    /// </summary>
+    private static void ValidateBasicInfo(
+        string firstName,
+        string lastName,
+        string nationalId,
+        string email,
+        string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentException("First name cannot be empty", nameof(firstName));
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentException("Last name cannot be empty", nameof(lastName));
+        if (string.IsNullOrWhiteSpace(nationalId))
+            throw new ArgumentException("National ID cannot be empty", nameof(nationalId));
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email cannot be empty", nameof(email));
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
+
+        // ==================== TURKISH NATIONAL ID VALIDATION ====================
+        // Not sadece format ama checksum'u da kontrol et!
+
+        if (!IsValidTurkishNationalId(nationalId))
+            throw new ArgumentException(
+                "National ID must be 11 digits with valid checksum",
+                nameof(nationalId)
+            );
+
+        // ==================== EMAIL VALIDATION ====================
+        if (!IsValidEmail(email))
+            throw new ArgumentException(
+                "Email format is invalid",
+                nameof(email)
+            );
+
+        // ==================== PHONE VALIDATION ====================
+        if (!IsValidPhoneNumber(phoneNumber))
+            throw new ArgumentException(
+                "Phone number must be Turkish format (e.g., +905XX XXX XXXX or 05XX XXX XXXX)",
+                nameof(phoneNumber)
+            );
+
+        // ==================== BIRTH DATE VALIDATION ====================
+        // Kontrol birth date'i validate()  metodunda yap
+    }
+
+    /// <summary>
+    /// ✅ NEW: Turkish National ID validation with checksum
+    /// T.C. Kimlik Numarası Format: 11 digit
+    /// - 1st digit: cannot be 0
+    /// - Last digit: checksum
+    /// </summary>
+    private static bool IsValidTurkishNationalId(string id)
+    {
+        // Format check
+        if (string.IsNullOrWhiteSpace(id) || id.Length != 11 || !id.All(char.IsDigit))
+            return false;
+
+        // First digit cannot be 0
+        if (id[0] == '0')
+            return false;
+
+        // Checksum validation (Turkish algorithm)
+        // Odd positions (1,3,5,7,9) sum
+        int oddSum = 0;
+        for (int i = 0; i < 10; i += 2)
+        {
+            oddSum += int.Parse(id[i].ToString());
+        }
+
+        // Even positions (2,4,6,8,10) sum
+        int evenSum = 0;
+        for (int i = 1; i < 10; i += 2)
+        {
+            evenSum += int.Parse(id[i].ToString());
+        }
+
+        // Checksum calculation
+        int checkSum = ((oddSum * 7) - evenSum) % 11;
+        if (checkSum < 0)
+            checkSum = 11 + checkSum;
+
+        return checkSum == int.Parse(id[10].ToString());
+    }
+
+    /// <summary>
+    /// ✅ NEW: Email validation using MailAddress parser
+    /// </summary>
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// ✅ NEW: Turkish phone number validation
+    /// Formats: +905XX XXX XXXX, 05XX XXX XXXX
+    /// </summary>
+    private static bool IsValidPhoneNumber(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return false;
+
+        // Remove spaces and dashes
+        var cleaned = Regex.Replace(phone, @"[\s\-]", "");
+
+        // Turkish format: +905XX XXX XXXX or 05XX XXX XXXX
+        var turkishPattern = @"^(\+90|0)[1-9]\d{9}$";
+        return Regex.IsMatch(cleaned, turkishPattern);
+    }
+
+    /// <summary>
+    /// ✅ IMPROVED: Birth date validation
+    /// </summary>
+    private static void ValidateBirthDate(DateTime birthDate)
+    {
+        // Cannot be in future
+        if (birthDate > DateTime.UtcNow)
+            throw new ArgumentException(
+                "Birth date cannot be in the future",
+                nameof(birthDate)
+            );
+
+        // Calculate age
+        var today = DateTime.UtcNow;
+        var age = today.Year - birthDate.Year;
+
+        // Adjust if birthday hasn't occurred this year
+        if (birthDate.Date > today.AddYears(-age))
+            age--;
+
+        // University context: 16-100 years old
+        if (age < 16 || age > 100)
+            throw new ArgumentException(
+                "Person must be between 16 and 100 years old",
+                nameof(birthDate)
+            );
     }
 
 }

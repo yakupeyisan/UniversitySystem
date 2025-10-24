@@ -1,4 +1,5 @@
 ﻿using Core.Domain;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 
 namespace PersonMgmt.Domain.Aggregates;
@@ -15,7 +16,7 @@ namespace PersonMgmt.Domain.Aggregates;
 /// Not: Bu entity'nin kendi repository'si yok
 /// Person repository aracılığıyla yönetilir
 /// </summary>
-public class Student : Entity
+public class Student : Entity, ISoftDelete
 {
     /// <summary>
     /// Öğrenci numarası (unique)
@@ -76,6 +77,9 @@ public class Student : Entity
     /// Soft delete flag
     /// </summary>
     public bool IsDeleted { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
 
     /// <summary>
     /// Oluşturulma tarihi
@@ -284,10 +288,12 @@ public class Student : Entity
     /// <summary>
     /// Soft delete - Öğrenciyi sil
     /// </summary>
-    public void Delete()
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
     }
 
     /// <summary>
@@ -296,6 +302,8 @@ public class Student : Entity
     public void Restore()
     {
         IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
 

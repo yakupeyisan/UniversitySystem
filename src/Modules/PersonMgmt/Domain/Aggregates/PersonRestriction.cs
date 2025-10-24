@@ -1,4 +1,5 @@
 ﻿using Core.Domain;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 
 namespace PersonMgmt.Domain.Aggregates;
@@ -17,7 +18,7 @@ namespace PersonMgmt.Domain.Aggregates;
 /// - Mali sorunlar nedeniyle yemekhaneden yasaklama
 /// - COVID karantinası
 /// </summary>
-public class PersonRestriction : Entity
+public class PersonRestriction : Entity, ISoftDelete
 {
     /// <summary>
     /// Kısıtlama türü
@@ -63,6 +64,9 @@ public class PersonRestriction : Entity
     /// Soft delete flag
     /// </summary>
     public bool IsDeleted { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
 
     /// <summary>
     /// Oluşturulma tarihi
@@ -175,11 +179,13 @@ public class PersonRestriction : Entity
     /// <summary>
     /// Soft delete - Kısıtlamayı sil
     /// </summary>
-    public void Delete()
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
     }
 
     /// <summary>
@@ -188,7 +194,8 @@ public class PersonRestriction : Entity
     public void Restore()
     {
         IsDeleted = false;
-        // IsActive önceki durumuna bağlı olarak korunur
+        DeletedBy = null;
+        DeletedAt= null;
         UpdatedAt = DateTime.UtcNow;
     }
 

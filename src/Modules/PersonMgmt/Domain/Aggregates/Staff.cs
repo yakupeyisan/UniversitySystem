@@ -1,5 +1,7 @@
 ﻿using Core.Domain;
+using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
+using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
 
 namespace PersonMgmt.Domain.Aggregates;
@@ -16,7 +18,7 @@ namespace PersonMgmt.Domain.Aggregates;
 /// Not: Bu entity'nin kendi repository'si yok
 /// Person repository aracılığıyla yönetilir
 /// </summary>
-public class Staff : Entity
+public class Staff : AggregateRoot,ISoftDelete
 {
     /// <summary>
     /// Personel numarası (unique)
@@ -57,6 +59,9 @@ public class Staff : Entity
     /// Soft delete flag
     /// </summary>
     public bool IsDeleted { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
 
     /// <summary>
     /// Oluşturulma tarihi
@@ -211,27 +216,6 @@ public class Staff : Entity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // ==================== SOFT DELETE ====================
-
-    /// <summary>
-    /// Soft delete - Personeli sil
-    /// </summary>
-    public void Delete()
-    {
-        IsDeleted = true;
-        IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Soft delete geri al - Personeli restore et
-    /// </summary>
-    public void Restore()
-    {
-        IsDeleted = false;
-        // IsActive önceki durumuna göre restore edilebilir
-        UpdatedAt = DateTime.UtcNow;
-    }
 
     // ==================== HELPER PROPERTIES ====================
 
@@ -247,10 +231,6 @@ public class Staff : Entity
         }
     }
 
-    /// <summary>
-    /// Hala çalışıyor mu? (Aktif ve silinmemiş)
-    /// </summary>
-    public bool IsCurrentlyEmployed => IsActive && !IsDeleted;
 
     /// <summary>
     /// Profesyonel mi? (Professor veya Associate Professor)
@@ -266,8 +246,94 @@ public class Staff : Entity
         AcademicTitle == AcademicTitle.Professor ||
         AcademicTitle == AcademicTitle.AssociateProfessor;
 
+
     /// <summary>
-    /// Tam bilgiler mevcut mi? (Adres ve acil durum iletişi)
+    /// ✅ NEW: Proper termination with validation
     /// </summary>
-    public bool HasCompleteProfile => Address != null && EmergencyContact != null;
+    public void Terminate(DateTime terminationDate)
+    {
+        // Validation
+        if (terminationDate < HireDate)
+            throw new InvalidOperationException(
+                $"Termination date ({terminationDate:yyyy-MM-dd}) cannot be before hire date ({HireDate:yyyy-MM-dd})"
+            );
+
+        if (IsDeleted)
+            throw new InvalidOperationException(
+                "Cannot terminate an already deleted staff member"
+            );
+
+        if (!IsActive)
+            throw new InvalidOperationException(
+                "Staff member is already inactive"
+            );
+
+        // Update state
+        TerminationDate = terminationDate;
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+
+        // Raise domain event
+        AddDomainEvent(new StaffTerminatedDomainEvent(
+            Id,
+            EmployeeNumber,
+            terminationDate,
+            YearsOfService,
+            DateTime.UtcNow
+        ));
+    }
+
+    /// <summary>
+    /// ✅ IMPROVED: Rehire terminated staff
+    /// </summary>
+    public void Rehire(DateTime newHireDate)
+    {
+        if (!IsDeleted && TerminationDate.HasValue)
+        {
+            TerminationDate = null;
+            IsActive = true;
+
+            // Update hire date if earlier
+            if (newHireDate < HireDate)
+                HireDate = newHireDate;
+
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    // ==================== SOFT DELETE ====================
+
+    public void Delete(Guid deletedBy)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+    }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    // ==================== HELPER PROPERTIES ====================
+
+    /// <summary>
+    /// ✅ NEW: Hali hazırda çalışıyor mu?
+    /// </summary>
+    public bool IsCurrentlyEmployed =>
+        IsActive &&
+        !IsDeleted &&
+        (TerminationDate == null || TerminationDate > DateTime.UtcNow);
+
+    /// <summary>
+    /// Complete profile check
+    /// </summary>
+    public bool HasCompleteProfile =>
+        Address != null &&
+        EmergencyContact != null;
 }
