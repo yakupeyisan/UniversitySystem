@@ -1,11 +1,10 @@
 using AutoMapper;
 using Core.Domain.Pagination;
-using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Interfaces;
 using PersonMgmt.Domain.Specifications;
 namespace PersonMgmt.Application.Queries;
 public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<PersonResponse>>>

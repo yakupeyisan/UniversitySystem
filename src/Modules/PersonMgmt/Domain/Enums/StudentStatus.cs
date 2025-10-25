@@ -2,8 +2,9 @@ namespace PersonMgmt.Domain.Enums;
 public enum StudentStatus
 {
     Active = 1,
-    Passive = 2,
-    Suspended = 3,
-    Graduated = 4,
-    Expelled = 5
+    OnLeave = 2,
+    Passive = 3,
+    Suspended = 4,
+    Graduated = 5,
+    Expelled = 6
 }
