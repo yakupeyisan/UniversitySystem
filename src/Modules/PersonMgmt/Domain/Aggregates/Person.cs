@@ -35,6 +35,8 @@ public class Person : AggregateRoot, ISoftDelete
     // ✅ Address koleksiyonu - birden çok adres ve geçmiş
     private readonly List<Address> _addresses = new();
     public IReadOnlyList<Address> Addresses => _addresses.AsReadOnly();
+    private readonly List<EmergencyContact> _emergencyContacts = new();
+    public IReadOnlyList<EmergencyContact> EmergencyContacts => _emergencyContacts.AsReadOnly();
 
     private readonly List<PersonRestriction> _restrictions = new();
     public IReadOnlyCollection<PersonRestriction> Restrictions => _restrictions.AsReadOnly();

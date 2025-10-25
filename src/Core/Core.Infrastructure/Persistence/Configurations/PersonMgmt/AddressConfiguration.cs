@@ -69,9 +69,8 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
             .HasColumnName("UpdatedAt")
             .HasDefaultValueSql("GETUTCDATE()");
 
-        // Foreign Key constraint
-        builder.HasOne()
-            .WithMany()
+        builder.HasOne<Person>()
+            .WithMany(p => p.Addresses)
             .HasForeignKey(a => a.PersonId)
             .OnDelete(DeleteBehavior.Cascade);
 
