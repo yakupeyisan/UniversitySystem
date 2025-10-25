@@ -68,6 +68,7 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                     enrollmentDate: request.Request.EnrollmentDate,
                     advisorId: null);
                 await _personRepository.UpdateAsync(person, cancellationToken);
+                await _personRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(
                     "Student enrolled successfully for person with ID: {PersonId}, Program: {ProgramId}",
                     person.Id,

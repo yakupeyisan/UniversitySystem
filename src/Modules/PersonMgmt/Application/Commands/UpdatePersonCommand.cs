@@ -58,6 +58,7 @@ public class UpdatePersonCommand : IRequest<Result<PersonResponse>>
                     departmentId: request.Request.DepartmentId ?? person.DepartmentId,
                     profilePhotoUrl: request.Request.ProfilePhotoUrl ?? person.ProfilePhotoUrl);
                 await _personRepository.UpdateAsync(person, cancellationToken);
+                await _personRepository.SaveChangesAsync(cancellationToken);
                 var response = _mapper.Map<PersonResponse>(person);
                 _logger.LogInformation("Person updated successfully with ID: {PersonId}", person.Id);
                 return Result<PersonResponse>.Success(response, "Person updated successfully");

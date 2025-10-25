@@ -1,9 +1,9 @@
 using Core.Application.Abstractions;
-using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Interfaces;
+
 namespace PersonMgmt.Application.Commands;
 public class DeletePersonCommand : IRequest<Result<Unit>>
 {
@@ -14,10 +14,10 @@ public class DeletePersonCommand : IRequest<Result<Unit>>
     }
     public class Handler : IRequestHandler<DeletePersonCommand, Result<Unit>>
     {
-        public readonly IRepository<Person> _personRepository;
+        public readonly IPersonRepository _personRepository;
         public readonly ICurrentUserService _currentUserService;
         public readonly ILogger<Handler> _logger;
-        public Handler(IRepository<Person> personRepository, ICurrentUserService currentUserService, ILogger<Handler> logger)
+        public Handler(IPersonRepository personRepository, ICurrentUserService currentUserService, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _currentUserService = currentUserService;
@@ -36,6 +36,7 @@ public class DeletePersonCommand : IRequest<Result<Unit>>
                 }
                 person.Delete(_currentUserService.UserId);
                 await _personRepository.UpdateAsync(person, cancellationToken);
+                await _personRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation("Person deleted successfully with ID: {PersonId}", person.Id);
                 return Result<Unit>.Success(Unit.Value, "Person deleted successfully");
             }

@@ -41,6 +41,7 @@ public class RemoveRestrictionCommand : IRequest<Result<Unit>>
                 }
                 person.RemoveRestriction(request.RestrictionId, _currentUserService.UserId);
                 await _personRepository.UpdateAsync(person, cancellationToken);
+                await _personRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(
                     "Restriction {RestrictionId} removed successfully from person {PersonId}",
                     request.RestrictionId,
