@@ -15,7 +15,7 @@ public interface IPersonRepository : IGenericRepository<Person>
 
     Task<Student?> GetStudentByStudentNumberAsync(string studentNumber, CancellationToken cancellationToken = default);
     Task<ICollection<Student>> GetStudentsByProgramAsync(Guid programId, CancellationToken cancellationToken = default);
-    Task<ICollection<Student>> GetStudentsByGpaRangeAsync(decimal minGpa, decimal maxGpa, CancellationToken cancellationToken = default);
+    Task<ICollection<Student>> GetStudentsByGpaRangeAsync(double minGpa, double maxGpa, CancellationToken cancellationToken = default);
 
     Task<ICollection<Staff>> GetStaffByDepartmentAsync(Guid departmentId, CancellationToken cancellationToken = default);
     Task<ICollection<Staff>> GetStaffByPositionAsync(string position, CancellationToken cancellationToken = default);

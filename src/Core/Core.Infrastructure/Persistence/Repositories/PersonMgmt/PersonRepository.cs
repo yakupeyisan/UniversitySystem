@@ -107,8 +107,8 @@ public class PersonRepository : GenericRepository<Person>, IPersonRepository
     }
 
     public async Task<ICollection<Student>> GetStudentsByGpaRangeAsync(
-        decimal minGpa,
-        decimal maxGpa,
+        double minGpa,
+        double maxGpa,
         CancellationToken cancellationToken = default)
     {
         // ✅ Use specification pattern
