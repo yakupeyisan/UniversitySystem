@@ -3,7 +3,6 @@ using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Domain.Interfaces;
-
 namespace PersonMgmt.Application.Commands;
 public class DeletePersonCommand : IRequest<Result<Unit>>
 {

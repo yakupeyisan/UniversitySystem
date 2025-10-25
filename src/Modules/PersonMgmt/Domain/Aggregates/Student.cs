@@ -8,7 +8,7 @@ public class Student : Entity, ISoftDelete
     public EducationLevel EducationLevel { get; private set; }
     public int CurrentSemester { get; private set; }
     public StudentStatus Status { get; private set; }
-    public double CGPA { get; private set; }      
+    public double CGPA { get; private set; }
     public double SGPA { get; private set; }
     public int TotalCredits { get; private set; }
     public int CompletedCredits { get; private set; }

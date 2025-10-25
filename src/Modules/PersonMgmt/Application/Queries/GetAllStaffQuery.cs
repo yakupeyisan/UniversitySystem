@@ -8,6 +8,7 @@ using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Interfaces;
 using PersonMgmt.Domain.Specifications;
+using System;
 namespace PersonMgmt.Application.Queries;
 public class GetAllStaffQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
