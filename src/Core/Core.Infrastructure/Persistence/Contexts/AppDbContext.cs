@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     }
     public DbSet<Person> Persons { get; set; } = null!;
     public DbSet<Student> Students { get; set; } = null!;
+    public DbSet<Address> Addresses { get; set; } = null!;
     public DbSet<Staff> Staff { get; set; } = null!;
     public DbSet<HealthRecord> HealthRecords { get; set; } = null!;
     public DbSet<PersonRestriction> PersonRestrictions { get; set; } = null!;
@@ -17,6 +18,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new PersonConfiguration());
+        modelBuilder.ApplyConfiguration(new AddressConfiguration());
         modelBuilder.ApplyConfiguration(new StudentConfiguration());
         modelBuilder.ApplyConfiguration(new StaffConfiguration());
         modelBuilder.ApplyConfiguration(new HealthRecordConfiguration());

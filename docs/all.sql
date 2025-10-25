@@ -179,22 +179,25 @@ CREATE TABLE dbo.Persons (
 );
 GO
 
-CREATE TABLE dbo.Addresses (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    PersonId UNIQUEIDENTIFIER NOT NULL,
-    AddressType NVARCHAR(50) NOT NULL, -- Home, Work, Billing, Shipping
-    StreetAddress NVARCHAR(200) NOT NULL,
-    City NVARCHAR(100) NOT NULL,
-    Province NVARCHAR(100) NULL,
-    PostalCode NVARCHAR(20) NULL,
-    Country NVARCHAR(100) NOT NULL,
-    IsDefault BIT NOT NULL DEFAULT 0,
-    IsDeleted BIT NOT NULL DEFAULT 0,
-    CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    CONSTRAINT CK_Addresses_Type CHECK (AddressType IN ('Home', 'Work', 'Billing', 'Shipping')),
-    CONSTRAINT FK_Addresses_Person FOREIGN KEY (PersonId) REFERENCES dbo.Persons(Id)
-);
+CREATE TABLE [PersonMgmt].[Addresses] (
+    [Id] UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    [PersonId] UNIQUEIDENTIFIER NOT NULL,
+    [Street] NVARCHAR(200) NOT NULL,
+    [City] NVARCHAR(100) NOT NULL,
+    [Country] NVARCHAR(100) NOT NULL,
+    [PostalCode] NVARCHAR(20) NULL,
+    [ValidFrom] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [ValidTo] DATETIME2 NULL,
+    [IsCurrent] BIT NOT NULL DEFAULT 1,
+    [IsDeleted] BIT NOT NULL DEFAULT 0,
+    [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    CONSTRAINT [FK_Addresses_Person]
+    FOREIGN KEY ([PersonId]) REFERENCES [PersonMgmt].[Persons]([Id])
+    ON DELETE CASCADE,
+    CONSTRAINT [CK_Addresses_ValidDates]
+    CHECK ([ValidTo] IS NULL OR [ValidFrom] <= [ValidTo])
+    );
 GO
 
 -- Access Control Cards
@@ -759,6 +762,16 @@ CREATE INDEX IX_TicketReservations_EventDate ON dbo.TicketReservations(EventDate
 -- Audit Indexes
 CREATE INDEX IX_AuditLogs_TableName ON dbo.AuditLogs(TableName);
 CREATE INDEX IX_AuditLogs_CreatedAt ON dbo.AuditLogs(CreatedAt);
+
+CREATE INDEX [IX_Addresses_PersonId]
+    ON [PersonMgmt].[Addresses]([PersonId]);
+
+CREATE INDEX [IX_Addresses_PersonId_IsCurrent_IsDeleted]
+    ON [PersonMgmt].[Addresses]([PersonId], [IsCurrent], [IsDeleted])
+    WHERE [IsDeleted] = 0;
+
+CREATE INDEX [IX_Addresses_PersonId_ValidFrom]
+    ON [PersonMgmt].[Addresses]([PersonId], [ValidFrom]);
 
 PRINT '✅ Indexes created successfully.';
 GO
