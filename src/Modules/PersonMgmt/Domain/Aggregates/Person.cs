@@ -174,6 +174,7 @@ public class Person : AggregateRoot, ISoftDelete
     int severity)
     {
         var restriction = PersonRestriction.Create(
+            Id,
             restrictionType,
             restrictionLevel,
             appliedBy,
@@ -246,18 +247,35 @@ public class Person : AggregateRoot, ISoftDelete
             throw new ArgumentException("Email cannot be empty", nameof(email));
         if (!email.Contains("@") || !email.Contains("."))
             throw new ArgumentException("Email format is invalid", nameof(email));
-        var atIndex = email.IndexOf("@");
-        var lastDotIndex = email.LastIndexOf(".");
-        if (atIndex > lastDotIndex)
+        var emailRegex = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
+
+        if (!Regex.IsMatch(email, emailRegex))
             throw new ArgumentException("Email format is invalid", nameof(email));
-        if (lastDotIndex - atIndex < 2)
-            throw new ArgumentException("Email domain is invalid", nameof(email));
-        if (email.Length - lastDotIndex - 1 < 2)
-            throw new ArgumentException("Email domain extension is invalid", nameof(email));
-        if (email.Length > 254)
-            throw new ArgumentException("Email is too long (max 254 characters)", nameof(email));
-        if (email.Contains(" "))
-            throw new ArgumentException("Email cannot contain spaces", nameof(email));
+
+        if (email.Length > 100)
+            throw new ArgumentException("Email cannot exceed 100 characters", nameof(email));
+
+        if (email.StartsWith(".") || email.EndsWith("."))
+            throw new ArgumentException("Email cannot start or end with a dot", nameof(email));
+
+        if (email.Contains(".."))
+            throw new ArgumentException("Email cannot contain consecutive dots", nameof(email));
+
+        var parts = email.Split('@');
+        if (parts.Length != 2)
+            throw new ArgumentException("Email must contain exactly one @ symbol", nameof(email));
+
+        var localPart = parts[0];
+        var domainPart = parts[1];
+
+        if (localPart.Length == 0)
+            throw new ArgumentException("Email local part cannot be empty", nameof(email));
+
+        if (domainPart.Length == 0)
+            throw new ArgumentException("Email domain cannot be empty", nameof(email));
+
+        if (!domainPart.Contains("."))
+            throw new ArgumentException("Email domain must contain a dot", nameof(email));
     }
     private static void ValidatePhoneNumber(string phoneNumber)
     {
@@ -277,22 +295,77 @@ public class Person : AggregateRoot, ISoftDelete
                 throw new ArgumentException("Turkish phone number must have 10 digits after +90", nameof(phoneNumber));
         }
     }
-    private static void ValidateIdentificationNumber(string identificationNumber)
+    private static void ValidateIdentificationNumber(string idNumber)
     {
-        if (string.IsNullOrWhiteSpace(identificationNumber))
-            throw new ArgumentException("National ID cannot be empty", nameof(identificationNumber));
-        if (identificationNumber.Length != 11 || !identificationNumber.All(char.IsDigit))
-            throw new ArgumentException("National ID must be 11 digits", nameof(identificationNumber));
-        if (identificationNumber[0] == '0')
-            throw new ArgumentException("National ID cannot start with 0", nameof(identificationNumber));
-        int sum = 0;
-        for (int i = 0; i < 10; i++)
+        if (string.IsNullOrWhiteSpace(idNumber))
+            throw new ArgumentException("Identification number cannot be empty", nameof(idNumber));
+
+        if (idNumber.Length < 5)
+            throw new ArgumentException("Identification number must be at least 5 characters", nameof(idNumber));
+
+        if (idNumber.Length > 20)
+            throw new ArgumentException("Identification number cannot exceed 20 characters", nameof(idNumber));
+
+        idNumber = idNumber.Trim();
+
+        if (idNumber.Length == 11 && Regex.IsMatch(idNumber, @"^\d{11}$"))
         {
-            sum += int.Parse(identificationNumber[i].ToString());
+            ValidateTurkishIdNumber(idNumber);
         }
-        int tenthDigitCheck = sum % 10;
-        if (int.Parse(identificationNumber[9].ToString()) != tenthDigitCheck)
-            throw new ArgumentException("National ID checksum validation failed", nameof(identificationNumber));
+        else
+        {
+            ValidateForeignIdNumber(idNumber);
+        }
+    }
+    private static void ValidateTurkishIdNumber(string idNumber)
+    {
+        if (idNumber[0] == '0')
+            throw new ArgumentException("Turkish ID number cannot start with 0", nameof(idNumber));
+
+        if (!IsValidTurkishIdCheckDigit(idNumber))
+            throw new ArgumentException("Turkish ID number failed validation (invalid check digit)", nameof(idNumber));
+    }
+    private static bool IsValidTurkishIdCheckDigit(string idNumber)
+    {
+        try
+        {
+            var digits = idNumber.Select(c => int.Parse(c.ToString())).ToArray();
+
+            int oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
+
+            int evenSum = digits[1] + digits[3] + digits[5] + digits[7] + digits[9];
+
+            int checkDigit = ((oddSum * 7) - (evenSum * 8)) % 11;
+
+            if (checkDigit < 0)
+                checkDigit += 11;
+
+            checkDigit = checkDigit % 10;
+
+            return checkDigit == digits[10];
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    private static void ValidateForeignIdNumber(string idNumber)
+    {
+        var foreignIdRegex = @"^[A-Z0-9\-\/\s]{5,20}$";
+
+        if (!Regex.IsMatch(idNumber, foreignIdRegex, RegexOptions.IgnoreCase))
+            throw new ArgumentException(
+                "Foreign ID number must be 5-20 characters and contain only letters, digits, hyphens, or slashes",
+                nameof(idNumber));
+
+        if (idNumber.Contains("  "))
+            throw new ArgumentException("Foreign ID number cannot contain consecutive spaces", nameof(idNumber));
+
+        if (idNumber.Contains("--") || idNumber.Contains("//")) // Consecutive special chars
+            throw new ArgumentException("Foreign ID number cannot contain consecutive special characters", nameof(idNumber));
+
+        if (!Regex.IsMatch(idNumber, @"\d"))
+            throw new ArgumentException("Foreign ID number must contain at least one digit", nameof(idNumber));
     }
     public static void ValidateStudentNumber(string studentNumber)
     {

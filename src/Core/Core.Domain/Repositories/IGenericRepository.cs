@@ -41,4 +41,5 @@ public interface IGenericRepository<TAggregate> where TAggregate : AggregateRoot
     Task DeleteRangeAsync(
     IEnumerable<TAggregate> aggregates,
     CancellationToken cancellationToken = default);
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

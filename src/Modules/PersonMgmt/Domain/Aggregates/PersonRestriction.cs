@@ -1,9 +1,11 @@
-using Core.Domain;
+﻿using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 namespace PersonMgmt.Domain.Aggregates;
+
 public class PersonRestriction : Entity, ISoftDelete
 {
+    public Guid PersonId { get; private set; } 
     public RestrictionType RestrictionType { get; private set; }
     public RestrictionLevel RestrictionLevel { get; private set; }
     public Guid AppliedBy { get; private set; }
@@ -17,22 +19,27 @@ public class PersonRestriction : Entity, ISoftDelete
     public Guid? DeletedBy { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
+
     private PersonRestriction()
     {
     }
+
     public static PersonRestriction Create(
-    RestrictionType restrictionType,
-    RestrictionLevel restrictionLevel,
-    Guid appliedBy,
-    DateTime startDate,
-    DateTime? endDate,
-    string reason,
-    int severity)
+        Guid personId,  
+        RestrictionType restrictionType,
+        RestrictionLevel restrictionLevel,
+        Guid appliedBy,
+        DateTime startDate,
+        DateTime? endDate,
+        string reason,
+        int severity)
     {
         ValidateRestrictionData(reason, severity, startDate, endDate);
+
         return new PersonRestriction
         {
             Id = Guid.NewGuid(),
+            PersonId = personId,  
             RestrictionType = restrictionType,
             RestrictionLevel = restrictionLevel,
             AppliedBy = appliedBy,
@@ -46,6 +53,7 @@ public class PersonRestriction : Entity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
+
     public bool IsCurrentlyActive()
     {
         var now = DateTime.UtcNow;
@@ -59,16 +67,19 @@ public class PersonRestriction : Entity, ISoftDelete
             return false;
         return true;
     }
+
     public void Deactivate()
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Reactivate()
     {
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void ExtendEndDate(DateTime newEndDate)
     {
         if (newEndDate <= EndDate)
@@ -76,6 +87,7 @@ public class PersonRestriction : Entity, ISoftDelete
         EndDate = newEndDate;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
@@ -84,6 +96,7 @@ public class PersonRestriction : Entity, ISoftDelete
         DeletedAt = DateTime.UtcNow;
         DeletedBy = deletedBy;
     }
+
     public void Restore()
     {
         IsDeleted = false;
@@ -91,43 +104,21 @@ public class PersonRestriction : Entity, ISoftDelete
         DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    public int? RemainingDays
-    {
-        get
-        {
-            if (!EndDate.HasValue || IsDeleted)
-                return null;
-            var now = DateTime.UtcNow;
-            if (now > EndDate.Value)
-                return 0;
-            return (int)(EndDate.Value - now).TotalDays;
-        }
-    }
-    public bool IsExpired
-    {
-        get
-        {
-            if (!EndDate.HasValue)
-                return false;
-            return DateTime.UtcNow > EndDate.Value;
-        }
-    }
-    public bool IsPermanent => !EndDate.HasValue;
-    private static void ValidateRestrictionData(
-        string reason,
-        int severity,
-        DateTime startDate,
-        DateTime? endDate)
+
+    private static void ValidateRestrictionData(string reason, int severity, DateTime startDate, DateTime? endDate)
     {
         if (string.IsNullOrWhiteSpace(reason))
-            throw new ArgumentException("Restriction reason cannot be empty", nameof(reason));
-        if (reason.Length < 10)
-            throw new ArgumentException("Restriction reason must be at least 10 characters", nameof(reason));
-        if (severity < 1 || severity > 10)
-            throw new ArgumentException("Severity must be between 1 and 10", nameof(severity));
-        if (startDate > DateTime.UtcNow)
-            throw new ArgumentException("Start date cannot be in the future", nameof(startDate));
-        if (endDate.HasValue && endDate.Value <= startDate)
+            throw new ArgumentException("Reason cannot be empty", nameof(reason));
+
+        if (severity < 0 || severity > 10)
+            throw new ArgumentException("Severity must be between 0 and 10", nameof(severity));
+
+        if (startDate > DateTime.UtcNow.AddYears(100))
+            throw new ArgumentException("Start date cannot be more than 100 years in the future", nameof(startDate));
+
+        if (endDate.HasValue && endDate.Value < startDate)
             throw new ArgumentException("End date must be after start date", nameof(endDate));
     }
 }
+
+

@@ -1,4 +1,5 @@
 using Core.Infrastructure.Persistence.Contexts;
+using Core.Infrastructure.Persistence.Repositories.PersonMgmt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public static class ServiceExtensions
                 options.EnableSensitiveDataLogging(true);
             }
         });
+        services.AddScoped<IPersonRepository, PersonRepository>();
         return services;
     }
     private static bool IsEnvironmentDevelopment()

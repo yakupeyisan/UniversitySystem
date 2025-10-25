@@ -2,7 +2,6 @@ using AutoMapper;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace PersonMgmt.Application.Mappers;
 public class PersonMgmtMappingProfile : Profile
 {

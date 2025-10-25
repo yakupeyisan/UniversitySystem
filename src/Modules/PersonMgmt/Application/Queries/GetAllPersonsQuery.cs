@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Results;

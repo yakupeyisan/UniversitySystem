@@ -3,19 +3,24 @@ using PersonMgmt.Domain.Aggregates;
 namespace PersonMgmt.Domain.Interfaces;
 public interface IPersonRepository : IGenericRepository<Person>
 {
-    Task<Person?> GetByIdentificationNumberAsync(string identificationNumber);
-    Task<Person?> GetByEmailAsync(string email);
-    Task<Person?> GetByPhoneNumberAsync(string phoneNumber);
-    Task<ICollection<Person>> SearchByNameAsync(string firstName, string lastName);
-    Task<Student?> GetStudentByStudentNumberAsync(string studentNumber);
-    Task<ICollection<Student>> GetStudentsByProgramAsync(Guid programId);
-    Task<ICollection<Student>> GetStudentsByGpaRangeAsync(decimal minGpa, decimal maxGpa);
-    Task<ICollection<Staff>> GetStaffByDepartmentAsync(Guid departmentId);
-    Task<ICollection<Staff>> GetStaffByPositionAsync(string position);
-    Task<ICollection<PersonRestriction>> GetActiveRestrictionsAsync(Guid personId);
-    Task<ICollection<HealthRecord>> GetHealthRecordsByDateRangeAsync(Guid personId, DateTime startDate, DateTime endDate);
-    Task<bool> IsIdentificationNumberUniqueAsync(string requestIdentificationNumber, CancellationToken cancellationToken);
-    Task<bool> IsEmailUniqueAsync(string requestEmail, CancellationToken cancellationToken, Guid? excludeId = null);
-    Task<bool> IsEmployeeNumberUniqueAsync(string requestEmployeeNumber, CancellationToken cancellationToken);
-    Task<bool> IsStudentNumberUniqueAsync(string requestStudentNumber, CancellationToken cancellationToken);
+    Task<bool> IsIdentificationNumberUniqueAsync(string identificationNumber, CancellationToken cancellationToken = default);
+    Task<bool> IsEmailUniqueAsync(string email, Guid? excludeId = null, CancellationToken cancellationToken = default);
+    Task<bool> IsEmployeeNumberUniqueAsync(string employeeNumber, CancellationToken cancellationToken = default);
+    Task<bool> IsStudentNumberUniqueAsync(string studentNumber, CancellationToken cancellationToken = default);
+
+    Task<Person?> GetByIdentificationNumberAsync(string identificationNumber, CancellationToken cancellationToken = default);
+    Task<Person?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<Person?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default);
+    Task<ICollection<Person>> SearchByNameAsync(string firstName, string lastName, CancellationToken cancellationToken = default);
+
+    Task<Student?> GetStudentByStudentNumberAsync(string studentNumber, CancellationToken cancellationToken = default);
+    Task<ICollection<Student>> GetStudentsByProgramAsync(Guid programId, CancellationToken cancellationToken = default);
+    Task<ICollection<Student>> GetStudentsByGpaRangeAsync(decimal minGpa, decimal maxGpa, CancellationToken cancellationToken = default);
+
+    Task<ICollection<Staff>> GetStaffByDepartmentAsync(Guid departmentId, CancellationToken cancellationToken = default);
+    Task<ICollection<Staff>> GetStaffByPositionAsync(string position, CancellationToken cancellationToken = default);
+
+    Task<ICollection<PersonRestriction>> GetActiveRestrictionsAsync(Guid personId, CancellationToken cancellationToken = default);
+
+    Task<ICollection<HealthRecord>> GetHealthRecordsByDateRangeAsync(Guid personId, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
 }
