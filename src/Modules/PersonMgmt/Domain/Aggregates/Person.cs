@@ -212,7 +212,7 @@ public class Person : AggregateRoot, ISoftDelete
         if (_healthRecord == null)
         {
             _healthRecord = HealthRecord.Create(
-                bloodType, allergies, chronicDiseases, medications, emergencyHealthInfo, notes
+                Id, bloodType, allergies, chronicDiseases, medications, emergencyHealthInfo, notes
             );
         }
         else

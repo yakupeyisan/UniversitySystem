@@ -2,6 +2,7 @@ using Core.Domain;
 namespace PersonMgmt.Domain.Aggregates;
 public class HealthRecord : Entity
 {
+    public Guid PersonId { get; private set; }
     public string? BloodType { get; private set; }
     public string? Allergies { get; private set; }
     public string? ChronicDiseases { get; private set; }
@@ -16,6 +17,7 @@ public class HealthRecord : Entity
     {
     }
     public static HealthRecord Create(
+        Guid personId,
     string? bloodType = null,
     string? allergies = null,
     string? chronicDiseases = null,
@@ -26,6 +28,7 @@ public class HealthRecord : Entity
         return new HealthRecord
         {
             Id = Guid.NewGuid(),
+            PersonId = personId,
             BloodType = string.IsNullOrEmpty(bloodType) ? null : bloodType.Trim(),
             Allergies = string.IsNullOrEmpty(allergies) ? null : allergies.Trim(),
             ChronicDiseases = string.IsNullOrEmpty(chronicDiseases) ? null : chronicDiseases.Trim(),

@@ -12,6 +12,10 @@ public class HealthRecordConfiguration : IEntityTypeConfiguration<HealthRecord>
             .HasColumnName("Id")
             .HasColumnType("uniqueidentifier")
             .ValueGeneratedNever();
+        builder.Property(h => h.PersonId)
+            .HasColumnName("PersonId")
+            .HasColumnType("uniqueidentifier")
+            .IsRequired();
         builder.Property(h => h.BloodType)
             .HasColumnName("BloodType")
             .HasColumnType("nvarchar(10)")
@@ -62,6 +66,10 @@ public class HealthRecordConfiguration : IEntityTypeConfiguration<HealthRecord>
             .HasColumnType("datetime2")
             .HasDefaultValue(DateTime.UtcNow)
             .ValueGeneratedOnAddOrUpdate();
+        builder.HasOne<Person>()
+            .WithOne(p => p.HealthRecord)
+            .HasForeignKey<HealthRecord>(h => h.PersonId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(h => new { h.LastCheckupDate, h.IsDeleted })
             .HasDatabaseName("IX_HealthRecords_LastCheckupDate_IsDeleted");
         builder.HasIndex(h => new { h.CreatedAt, h.IsDeleted })

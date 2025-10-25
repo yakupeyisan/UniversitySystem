@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new StudentConfiguration());
         modelBuilder.ApplyConfiguration(new StaffConfiguration());
         modelBuilder.ApplyConfiguration(new HealthRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new EmergencyContactConfiguration());
         modelBuilder.ApplyConfiguration(new PersonRestrictionConfiguration());
         var deletableEntities = modelBuilder.Model
     .GetEntityTypes()
