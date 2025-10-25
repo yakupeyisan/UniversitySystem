@@ -15,6 +15,11 @@ public class Person : AggregateRoot, ISoftDelete
     public string Email { get; private set; }
     public string PhoneNumber { get; private set; }
     public string? ProfilePhotoUrl { get; private set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     private Student? _student;
     public Student? Student => _student;
     private Staff? _staff;
@@ -24,11 +29,6 @@ public class Person : AggregateRoot, ISoftDelete
     public Address Address { get; private set; }
     private readonly List<PersonRestriction> _restrictions = new();
     public IReadOnlyCollection<PersonRestriction> Restrictions => _restrictions.AsReadOnly();
-    public bool IsDeleted { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
-    public DateTime? DeletedAt { get; private set; }
-    public Guid? DeletedBy { get; private set; }
     private Person()
     {
     }
@@ -41,7 +41,8 @@ public class Person : AggregateRoot, ISoftDelete
     string email,
     string phoneNumber,
     Guid? departmentId = null,
-    string? profilePhotoUrl = null)
+    string? profilePhotoUrl = null
+    )
     {
         ValidateBasicInfo(firstName, lastName, identificationNumber, email, phoneNumber);
         ValidateBirthDate(birthDate);
@@ -73,13 +74,14 @@ public class Person : AggregateRoot, ISoftDelete
     string studentNumber,
     EducationLevel educationLevel,
     DateTime enrollmentDate,
-    Guid? advisorId = null)
+    Guid? advisorId = null,
+    Guid? programId = null)
     {
         if (_staff != null)
             throw new InvalidOperationException("Person is already registered as staff");
         if (_student != null)
             throw new InvalidOperationException("Person is already enrolled as student");
-        _student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId);
+        _student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId,programId);
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new StudentEnrolledDomainEvent(
             Id,

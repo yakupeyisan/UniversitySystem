@@ -15,6 +15,7 @@ public class Student : Entity, ISoftDelete
     public DateTime EnrollmentDate { get; private set; }
     public DateTime? GraduationDate { get; private set; }
     public Guid? AdvisorId { get; private set; }
+    public Guid? ProgramId { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
@@ -27,7 +28,8 @@ public class Student : Entity, ISoftDelete
     string studentNumber,
     EducationLevel educationLevel,
     DateTime enrollmentDate,
-    Guid? advisorId = null)
+    Guid? advisorId = null,
+    Guid? programId = null)
     {
         if (string.IsNullOrWhiteSpace(studentNumber))
             throw new ArgumentException("Student number cannot be empty", nameof(studentNumber));
@@ -49,7 +51,8 @@ public class Student : Entity, ISoftDelete
             AdvisorId = advisorId,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            ProgramId = programId
         };
     }
     public void UpdateStatus(StudentStatus newStatus)

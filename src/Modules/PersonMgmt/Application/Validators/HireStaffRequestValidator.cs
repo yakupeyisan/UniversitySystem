@@ -14,8 +14,5 @@ public class HireStaffRequestValidator : AbstractValidator<HireStaffRequest>
         RuleFor(x => x.HireDate)
             .NotEmpty().WithMessage("İşe alınma tarihi boş olamaz")
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("İşe alınma tarihi bugünden önce olmalıdır");
-        RuleFor(x => x.Salary)
-            .GreaterThanOrEqualTo(0).WithMessage("Maaş sıfırdan büyük veya eşit olmalıdır")
-            .When(x => x.Salary.HasValue);
     }
 }
