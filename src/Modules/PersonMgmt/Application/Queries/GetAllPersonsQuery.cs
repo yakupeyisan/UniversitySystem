@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Core.Domain.Pagination;
-using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Interfaces;
 using PersonMgmt.Domain.Specifications;
 namespace PersonMgmt.Application.Queries;
 public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
@@ -19,10 +18,10 @@ public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
     }
     public class Handler : IRequestHandler<GetAllPersonsQuery, Result<PagedList<PersonResponse>>>
     {
-        private readonly IRepository<Person> _personRepository;
+        private readonly IPersonRepository _personRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-        public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;

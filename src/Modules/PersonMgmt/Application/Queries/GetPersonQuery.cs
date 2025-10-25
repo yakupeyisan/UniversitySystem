@@ -17,7 +17,7 @@ public class GetPersonQuery : IRequest<Result<PersonResponse>>
 
     public class Handler : IRequestHandler<GetPersonQuery, Result<PersonResponse>>
     {
-        private readonly IPersonRepository _personRepository;  // ✅ FIXED: IRepository<Person> → IPersonRepository
+        private readonly IPersonRepository _personRepository;  // ✅ FIXED: IPersonRepository → IPersonRepository
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
 

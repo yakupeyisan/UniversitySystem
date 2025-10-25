@@ -24,10 +24,10 @@ public class GetPersonsByDepartmentQuery : IRequest<Result<PagedList<PersonRespo
     }
     public class Handler : IRequestHandler<GetPersonsByDepartmentQuery, Result<PagedList<PersonResponse>>>
     {
-        private readonly IRepository<Person> _personRepository;
+        private readonly IPersonRepository _personRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-        public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;

@@ -19,10 +19,10 @@ public class GetAllStaffQuery : IRequest<Result<PagedList<PersonResponse>>>
     }
     public class Handler : IRequestHandler<GetAllStaffQuery, Result<PagedList<PersonResponse>>>
     {
-        private readonly IRepository<Person> _personRepository;
+        private readonly IPersonRepository _personRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-        public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
