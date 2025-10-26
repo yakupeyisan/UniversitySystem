@@ -21,7 +21,12 @@ public enum ExamType
     Makeup = 3,
 
     /// <summary>
-    /// Supplementary exam
+    /// Resit exam (Retake)
     /// </summary>
-    Supplementary = 4
+    Resit = 4,
+
+    /// <summary>
+    /// Supplementary exam (Ek sýnav)
+    /// </summary>
+    Supplementary = 5
 }

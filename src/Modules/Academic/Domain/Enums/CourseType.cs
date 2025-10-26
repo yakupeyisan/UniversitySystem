@@ -6,17 +6,27 @@ namespace Academic.Domain.Enums;
 public enum CourseType
 {
     /// <summary>
-    /// Required course - must be taken
+    /// Compulsory course (Zorunlu Ders)
     /// </summary>
     Compulsory = 1,
 
     /// <summary>
-    /// Elective course - student can choose
+    /// Elective course (Seçmeli Ders)
     /// </summary>
     Elective = 2,
 
     /// <summary>
-    /// Optional course - additional choice
+    /// Free elective (Serbest Seçmeli)
     /// </summary>
-    Optional = 3
+    FreeElective = 3,
+
+    /// <summary>
+    /// Practicum/Lab (Uygulama)
+    /// </summary>
+    Practicum = 4,
+
+    /// <summary>
+    /// Seminar
+    /// </summary>
+    Seminar = 5
 }

@@ -3,7 +3,7 @@ using Core.Domain.ValueObjects;
 namespace Academic.Domain.ValueObjects;
 
 /// <summary>
-/// ValueObject representing a time slot with start and end times
+/// ValueObject representing a time slot (start and end time)
 /// </summary>
 public class TimeSlot : ValueObject
 {
@@ -15,7 +15,7 @@ public class TimeSlot : ValueObject
     {
         StartTime = startTime;
         EndTime = endTime;
-        DurationMinutes = CalculateDuration(startTime, endTime);
+        DurationMinutes = (int)(endTime - startTime).TotalMinutes;
     }
 
     public static TimeSlot Create(TimeOnly startTime, TimeOnly endTime)
@@ -23,18 +23,36 @@ public class TimeSlot : ValueObject
         if (endTime <= startTime)
             throw new ArgumentException("End time must be after start time");
 
+        var duration = (int)(endTime - startTime).TotalMinutes;
+
+        if (duration < 30)
+            throw new ArgumentException("Time slot duration must be at least 30 minutes");
+
+        if (duration > 480) // 8 hours
+            throw new ArgumentException("Time slot duration cannot exceed 8 hours");
+
         return new TimeSlot(startTime, endTime);
     }
 
-    private static int CalculateDuration(TimeOnly startTime, TimeOnly endTime)
+    public static TimeSlot Create(string startTimeString, string endTimeString)
     {
-        var span = endTime.ToTimeSpan() - startTime.ToTimeSpan();
-        return (int)span.TotalMinutes;
+        if (!TimeOnly.TryParse(startTimeString, out var startTime))
+            throw new ArgumentException("Invalid start time format. Use HH:mm");
+
+        if (!TimeOnly.TryParse(endTimeString, out var endTime))
+            throw new ArgumentException("Invalid end time format. Use HH:mm");
+
+        return Create(startTime, endTime);
     }
 
-    public bool ConflictsWith(TimeSlot other)
+    public bool OverlapsWith(TimeSlot other)
     {
-        return !(EndTime <= other.StartTime || StartTime >= other.EndTime);
+        return StartTime < other.EndTime && EndTime > other.StartTime;
+    }
+
+    public bool Contains(TimeOnly time)
+    {
+        return time >= StartTime && time < EndTime;
     }
 
     public override string ToString() => $"{StartTime:HH:mm} - {EndTime:HH:mm}";

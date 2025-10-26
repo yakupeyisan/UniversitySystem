@@ -6,22 +6,22 @@ namespace Academic.Domain.Enums;
 public enum CourseLevel
 {
     /// <summary>
-    /// First year courses (100 level)
+    /// Undergraduate (Lisans)
     /// </summary>
-    FirstYear = 100,
+    Undergraduate = 1,
 
     /// <summary>
-    /// Second year courses (200 level)
+    /// Master's (Yüksek Lisans)
     /// </summary>
-    SecondYear = 200,
+    Masters = 2,
 
     /// <summary>
-    /// Third year courses (300 level)
+    /// PhD (Doktora)
     /// </summary>
-    ThirdYear = 300,
+    PhD = 3,
 
     /// <summary>
-    /// Fourth year / graduate level courses (400 level)
+    /// Vocational (Meslek)
     /// </summary>
-    FourthYear = 400
+    Vocational = 4
 }

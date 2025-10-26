@@ -25,18 +25,32 @@ public class Grade : AuditableEntity, ISoftDelete
     public DateTime RecordedDate { get; private set; }
 
     // Soft delete
-    public bool IsDeleted { get; set; }
-    public DateTime? DeletedAt { get; set; }
-    public Guid? DeletedBy { get; set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
-        throw new NotImplementedException();
+        if (IsDeleted)
+            throw new InvalidOperationException("Grade is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = deletedBy;
     }
 
     public void Restore()
     {
-        throw new NotImplementedException();
+        if (!IsDeleted)
+            throw new InvalidOperationException("Grade is not deleted");
+
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private Grade() { }
@@ -52,6 +66,15 @@ public class Grade : AuditableEntity, ISoftDelete
         float finalWeight = 0.7f,
         int ects = 0)
     {
+        if (studentId == Guid.Empty)
+            throw new ArgumentException("Student ID cannot be empty");
+
+        if (courseId == Guid.Empty)
+            throw new ArgumentException("Course ID cannot be empty");
+
+        if (registrationId == Guid.Empty)
+            throw new ArgumentException("Registration ID cannot be empty");
+
         if (string.IsNullOrWhiteSpace(semester))
             throw new ArgumentException("Semester cannot be empty");
 
@@ -103,7 +126,11 @@ public class Grade : AuditableEntity, ISoftDelete
         return grade;
     }
 
-    public void UpdateScores(float newMidtermScore, float newFinalScore, float midtermWeight = 0.3f, float finalWeight = 0.7f)
+    public void UpdateScores(
+        float newMidtermScore,
+        float newFinalScore,
+        float midtermWeight = 0.3f,
+        float finalWeight = 0.7f)
     {
         if (newMidtermScore < 0 || newMidtermScore > 100)
             throw new ArgumentException("Midterm score must be between 0 and 100");
@@ -133,6 +160,16 @@ public class Grade : AuditableEntity, ISoftDelete
     public bool IsPassingGrade() => LetterGrade.IsPassingGrade();
 
     public float GetECTSPoints() => ECTS * GradePoint;
+
+    public void UpdateGradeFromObjection(float newMidtermScore, float newFinalScore, LetterGrade newLetterGrade)
+    {
+        MidtermScore = newMidtermScore;
+        FinalScore = newFinalScore;
+        NumericScore = (newMidtermScore * 0.3f) + (newFinalScore * 0.7f);
+        LetterGrade = newLetterGrade;
+        GradePoint = newLetterGrade.GetGradePoint();
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     public override string ToString() => $"{Semester} - {LetterGrade} ({NumericScore:F2})";
 }

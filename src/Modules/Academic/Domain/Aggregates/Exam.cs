@@ -23,18 +23,32 @@ public class Exam : AuditableEntity, ISoftDelete
     public string? OnlineLink { get; private set; }
 
     // Soft delete
-    public bool IsDeleted { get; set; }
-    public DateTime? DeletedAt { get; set; }
-    public Guid? DeletedBy { get; set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
-        throw new NotImplementedException();
+        if (IsDeleted)
+            throw new InvalidOperationException("Exam is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = deletedBy;
     }
 
     public void Restore()
     {
-        throw new NotImplementedException();
+        if (!IsDeleted)
+            throw new InvalidOperationException("Exam is not deleted");
+
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private Exam() { }
@@ -49,6 +63,9 @@ public class Exam : AuditableEntity, ISoftDelete
         bool isOnline = false,
         string? onlineLink = null)
     {
+        if (courseId == Guid.Empty)
+            throw new ArgumentException("Course ID cannot be empty");
+
         if (maxCapacity <= 0)
             throw new ArgumentException("Max capacity must be greater than 0");
 
@@ -57,6 +74,9 @@ public class Exam : AuditableEntity, ISoftDelete
 
         if (isOnline && string.IsNullOrWhiteSpace(onlineLink))
             throw new ArgumentException("Online link must be provided for online exams");
+
+        if (!isOnline && examRoomId == null)
+            throw new ArgumentException("Exam room must be specified for on-site exams");
 
         var exam = new Exam
         {
@@ -87,7 +107,10 @@ public class Exam : AuditableEntity, ISoftDelete
     public void RegisterStudent()
     {
         if (CurrentRegisteredCount >= MaxCapacity)
-            throw new InvalidOperationException("Exam capacity is full");
+            throw new InvalidOperationException("Exam is at full capacity");
+
+        if (Status != ExamStatus.Scheduled)
+            throw new InvalidOperationException("Exam is not scheduled");
 
         CurrentRegisteredCount++;
         UpdatedAt = DateTime.UtcNow;
@@ -96,7 +119,7 @@ public class Exam : AuditableEntity, ISoftDelete
     public void UnregisterStudent()
     {
         if (CurrentRegisteredCount <= 0)
-            throw new InvalidOperationException("Cannot unregister - no students registered");
+            throw new InvalidOperationException("No students registered for this exam");
 
         CurrentRegisteredCount--;
         UpdatedAt = DateTime.UtcNow;
@@ -105,7 +128,7 @@ public class Exam : AuditableEntity, ISoftDelete
     public void Start()
     {
         if (Status != ExamStatus.Scheduled)
-            throw new InvalidOperationException("Only scheduled exams can be started");
+            throw new InvalidOperationException("Exam cannot be started from current status");
 
         Status = ExamStatus.InProgress;
         UpdatedAt = DateTime.UtcNow;
@@ -114,18 +137,9 @@ public class Exam : AuditableEntity, ISoftDelete
     public void Complete()
     {
         if (Status != ExamStatus.InProgress)
-            throw new InvalidOperationException("Only in-progress exams can be completed");
+            throw new InvalidOperationException("Exam must be in progress to complete");
 
         Status = ExamStatus.Completed;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void StartGrading()
-    {
-        if (Status != ExamStatus.Completed)
-            throw new InvalidOperationException("Exam must be completed before grading");
-
-        Status = ExamStatus.Grading;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -134,36 +148,52 @@ public class Exam : AuditableEntity, ISoftDelete
         if (Status == ExamStatus.Cancelled)
             throw new InvalidOperationException("Exam is already cancelled");
 
+        if (Status == ExamStatus.Completed)
+            throw new InvalidOperationException("Cannot cancel a completed exam");
+
         Status = ExamStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public bool IsCapacityFull() => CurrentRegisteredCount >= MaxCapacity;
-
-    public bool HasAvailableSlots() => CurrentRegisteredCount < MaxCapacity;
-
-    public bool IsFutureExam() => ExamDate > DateOnly.FromDateTime(DateTime.UtcNow);
-
-    public bool ConflictsWith(Exam other)
+    public void Postpone(DateOnly newDate, TimeSlot newTimeSlot)
     {
-        if (ExamDate != other.ExamDate)
-            return false;
+        if (Status == ExamStatus.Completed)
+            throw new InvalidOperationException("Cannot postpone a completed exam");
 
-        return TimeSlot.ConflictsWith(other.TimeSlot);
-    }
+        if (Status == ExamStatus.Cancelled)
+            throw new InvalidOperationException("Cannot postpone a cancelled exam");
 
-    public void UpdateExamRoom(Guid? newExamRoomId)
-    {
-        ExamRoomId = newExamRoomId;
+        if (newDate <= DateOnly.FromDateTime(DateTime.UtcNow))
+            throw new ArgumentException("New exam date must be in the future");
+
+        ExamDate = newDate;
+        TimeSlot = newTimeSlot;
+        Status = ExamStatus.Postponed;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void UpdateOnlineLink(string? newLink)
-    {
-        if (IsOnline && string.IsNullOrWhiteSpace(newLink))
-            throw new ArgumentException("Online link cannot be empty for online exams");
+    public bool HasAvailableSeats() => CurrentRegisteredCount < MaxCapacity;
 
-        OnlineLink = newLink;
+    public bool IsCapacityFull() => CurrentRegisteredCount >= MaxCapacity;
+
+    public bool CanBeRegistered() => Status == ExamStatus.Scheduled && HasAvailableSeats();
+
+    public void Update(DateOnly newDate, TimeSlot newTimeSlot, Guid? newExamRoomId = null)
+    {
+        if (Status != ExamStatus.Scheduled)
+            throw new InvalidOperationException("Can only update scheduled exams");
+
+        if (newDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            throw new ArgumentException("Exam date cannot be in the past");
+
+        if (!IsOnline && newExamRoomId == null)
+            throw new ArgumentException("Exam room must be specified for on-site exams");
+
+        ExamDate = newDate;
+        TimeSlot = newTimeSlot;
+        if (newExamRoomId.HasValue)
+            ExamRoomId = newExamRoomId;
+
         UpdatedAt = DateTime.UtcNow;
     }
 }

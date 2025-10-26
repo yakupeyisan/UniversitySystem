@@ -1,11 +1,8 @@
-// TODO: Define value object
-
-using System.Text.RegularExpressions;
 using Core.Domain.ValueObjects;
 namespace Academic.Domain.ValueObjects;
+
 /// <summary>
-/// ValueObject representing a unique course code (e.g., "CS101")
-/// Format: 2-4 uppercase letters followed by 3 digits
+/// ValueObject representing a course code (e.g., CS101, MATH201)
 /// </summary>
 public class CourseCode : ValueObject
 {
@@ -21,13 +18,19 @@ public class CourseCode : ValueObject
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Course code cannot be empty");
 
-        value = value.Trim().ToUpper();
+        if (value.Length > 20)
+            throw new ArgumentException("Course code cannot exceed 20 characters");
 
-        if (!Regex.IsMatch(value, @"^[A-Z]{2,4}\d{3}$"))
-            throw new ArgumentException(
-                "Invalid course code format. Expected format: 2-4 uppercase letters followed by 3 digits (e.g., CS101, MATH201)");
+        if (!IsValidFormat(value))
+            throw new ArgumentException("Course code format is invalid. Expected format: [LETTERS][NUMBERS] (e.g., CS101)");
 
-        return new CourseCode(value);
+        return new CourseCode(value.ToUpper());
+    }
+
+    private static bool IsValidFormat(string code)
+    {
+        // Format: 2-4 letters followed by 2-4 numbers
+        return System.Text.RegularExpressions.Regex.IsMatch(code, @"^[A-Z]{2,4}\d{2,4}$");
     }
 
     public override string ToString() => Value;

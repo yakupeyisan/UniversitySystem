@@ -6,7 +6,7 @@ namespace Academic.Domain.Enums;
 public enum ExamStatus
 {
     /// <summary>
-    /// Exam has been scheduled
+    /// Exam is scheduled
     /// </summary>
     Scheduled = 1,
 
@@ -16,17 +16,17 @@ public enum ExamStatus
     InProgress = 2,
 
     /// <summary>
-    /// Exam has been completed
+    /// Exam is completed
     /// </summary>
     Completed = 3,
 
     /// <summary>
-    /// Exam has been cancelled
+    /// Exam is cancelled
     /// </summary>
     Cancelled = 4,
 
     /// <summary>
-    /// Exam results are being graded
+    /// Exam is postponed
     /// </summary>
-    Grading = 5
+    Postponed = 5
 }

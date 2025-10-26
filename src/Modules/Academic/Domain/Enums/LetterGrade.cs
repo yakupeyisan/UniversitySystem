@@ -6,47 +6,47 @@ namespace Academic.Domain.Enums;
 public enum LetterGrade
 {
     /// <summary>
-    /// AA - Excellent (4.0)
+    /// AA - Excellent (90-100)
     /// </summary>
     AA = 1,
 
     /// <summary>
-    /// BA - Very Good (3.5)
+    /// BA - Very Good (85-89)
     /// </summary>
     BA = 2,
 
     /// <summary>
-    /// BB - Good (3.0)
+    /// BB - Good (80-84)
     /// </summary>
     BB = 3,
 
     /// <summary>
-    /// CB - Satisfactory (2.5)
+    /// CB - Satisfactory (75-79)
     /// </summary>
     CB = 4,
 
     /// <summary>
-    /// CC - Fair (2.0)
+    /// CC - Sufficient (70-74)
     /// </summary>
     CC = 5,
 
     /// <summary>
-    /// DC - Passing (1.5)
+    /// DC - Barely Passing (65-69)
     /// </summary>
     DC = 6,
 
     /// <summary>
-    /// DD - Barely Passing (1.0)
+    /// DD - Minimal (60-64)
     /// </summary>
     DD = 7,
 
     /// <summary>
-    /// F - Fail (0.0)
+    /// F - Failing (0-59)
     /// </summary>
     F = 8,
 
     /// <summary>
-    /// FF - Fail (0.0) - Did not attend
+    /// FF - Not Attempted
     /// </summary>
     FF = 9
 }

@@ -1,37 +1,37 @@
 namespace Academic.Domain.Enums;
 
 /// <summary>
-/// Enum representing grade objection/appeal status
+/// Enum representing grade objection status
 /// </summary>
 public enum GradeObjectionStatus
 {
     /// <summary>
-    /// Grade objection has been submitted
+    /// Objection is submitted
     /// </summary>
     Submitted = 1,
 
     /// <summary>
-    /// Grade objection is under review
+    /// Objection is under review
     /// </summary>
     UnderReview = 2,
 
     /// <summary>
-    /// Grade objection has been approved
+    /// Objection is approved and grade updated
     /// </summary>
     Approved = 3,
 
     /// <summary>
-    /// Grade objection has been rejected
+    /// Objection is rejected
     /// </summary>
     Rejected = 4,
 
     /// <summary>
-    /// Grade objection is pending further review/appeal
+    /// Objection is pending (not yet processed)
     /// </summary>
     Pending = 5,
 
     /// <summary>
-    /// Grade objection has been withdrawn
+    /// Objection is escalated to higher level
     /// </summary>
-    Withdrawn = 6
+    Escalated = 6
 }

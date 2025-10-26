@@ -3,13 +3,20 @@ using Core.Domain.Exceptions;
 namespace Academic.Domain.Exceptions;
 
 /// <summary>
-/// Thrown when a prerequisite is not met
+/// Exception thrown when student hasn't met course prerequisites
 /// </summary>
 public class PrerequisiteNotMetException : DomainException
 {
-    public override string ErrorCode => "ACD005";
-    public override int StatusCode => 400;
+    public Guid StudentId { get; }
+    public Guid CourseId { get; }
 
-    public PrerequisiteNotMetException(Guid studentId, Guid prerequisiteCourseId, Guid courseId)
-        : base($"Student {studentId} has not completed the prerequisite course {prerequisiteCourseId} for course {courseId}.") { }
+    public PrerequisiteNotMetException(Guid studentId, Guid courseId)
+        : base($"Student {studentId} has not met the prerequisites for course {courseId}.")
+    {
+        StudentId = studentId;
+        CourseId = courseId;
+    }
+
+    public override string ErrorCode => "errors.prerequisite.not.met";
+    public override int StatusCode => 409;
 }

@@ -6,22 +6,32 @@ namespace Academic.Domain.Enums;
 public enum RegistrationStatus
 {
     /// <summary>
-    /// Student is actively enrolled
+    /// Student is registered
     /// </summary>
-    Active = 1,
+    Registered = 1,
 
     /// <summary>
-    /// Student has dropped the course
+    /// Student dropped the course
     /// </summary>
     Dropped = 2,
 
     /// <summary>
-    /// Student has withdrawn from the course
+    /// Student completed the course
     /// </summary>
-    Withdrawn = 3,
+    Completed = 3,
 
     /// <summary>
-    /// Course has been completed
+    /// Student failed the course
     /// </summary>
-    Completed = 4
+    Failed = 4,
+
+    /// <summary>
+    /// Student is on waiting list
+    /// </summary>
+    WaitingList = 5,
+
+    /// <summary>
+    /// Registration is pending approval
+    /// </summary>
+    Pending = 6
 }

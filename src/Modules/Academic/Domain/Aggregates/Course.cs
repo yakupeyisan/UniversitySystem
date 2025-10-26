@@ -35,14 +35,28 @@ public class Course : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
-        throw new NotImplementedException();
+        if (IsDeleted)
+            throw new InvalidOperationException("Course is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = deletedBy;
     }
 
     public void Restore()
     {
-        throw new NotImplementedException();
+        if (!IsDeleted)
+            throw new InvalidOperationException("Course is not deleted");
+
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private Course() { }
@@ -106,7 +120,9 @@ public class Course : AuditableEntity, ISoftDelete
 
     public void RemoveInstructor(Guid instructorId)
     {
-        _instructorIds.Remove(instructorId);
+        if (!_instructorIds.Remove(instructorId))
+            throw new InvalidOperationException("Instructor not found in course");
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -116,6 +132,14 @@ public class Course : AuditableEntity, ISoftDelete
             throw new InvalidOperationException("Prerequisite already added to this course");
 
         _prerequisiteIds.Add(prerequisiteId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemovePrerequisite(Guid prerequisiteId)
+    {
+        if (!_prerequisiteIds.Remove(prerequisiteId))
+            throw new InvalidOperationException("Prerequisite not found in course");
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -151,13 +175,46 @@ public class Course : AuditableEntity, ISoftDelete
 
     public void Activate()
     {
+        if (Status == CourseStatus.Active)
+            throw new InvalidOperationException("Course is already active");
+
         Status = CourseStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void Deactivate()
     {
+        if (Status == CourseStatus.Inactive)
+            throw new InvalidOperationException("Course is already inactive");
+
         Status = CourseStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Update(
+        string name,
+        string? description,
+        int ects,
+        int credits,
+        int maxCapacity)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Course name cannot be empty");
+
+        if (ects <= 0 || ects > 20)
+            throw new ArgumentException("ECTS must be between 1 and 20");
+
+        if (credits <= 0)
+            throw new ArgumentException("Credits must be greater than 0");
+
+        if (maxCapacity <= 0)
+            throw new ArgumentException("Max capacity must be greater than 0");
+
+        Name = name;
+        Description = description;
+        ECTS = ects;
+        Credits = credits;
+        Capacity = Capacity.WithUpdatedCapacity(maxCapacity);
         UpdatedAt = DateTime.UtcNow;
     }
 }

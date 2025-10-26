@@ -22,18 +22,32 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
     public Guid? GradeId { get; private set; }
 
     // Soft delete
-    public bool IsDeleted { get; set; }
-    public DateTime? DeletedAt { get; set; }
-    public Guid? DeletedBy { get; set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
-        throw new NotImplementedException();
+        if (IsDeleted)
+            throw new InvalidOperationException("Course registration is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = deletedBy;
     }
 
     public void Restore()
     {
-        throw new NotImplementedException();
+        if (!IsDeleted)
+            throw new InvalidOperationException("Course registration is not deleted");
+
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private CourseRegistration() { }
@@ -45,11 +59,14 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         bool isRetake = false,
         Guid? previousGradeId = null)
     {
+        if (studentId == Guid.Empty)
+            throw new ArgumentException("Student ID cannot be empty");
+
+        if (courseId == Guid.Empty)
+            throw new ArgumentException("Course ID cannot be empty");
+
         if (string.IsNullOrWhiteSpace(semester))
             throw new ArgumentException("Semester cannot be empty");
-
-        if (isRetake && previousGradeId == null)
-            throw new ArgumentException("Previous grade ID must be provided for retakes");
 
         var registration = new CourseRegistration
         {
@@ -58,23 +75,21 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
             CourseId = courseId,
             Semester = semester,
             RegistrationDate = DateTime.UtcNow,
-            Status = RegistrationStatus.Active,
+            Status = RegistrationStatus.Registered,
             IsRetake = isRetake,
             PreviousGradeId = previousGradeId,
             CreatedAt = DateTime.UtcNow
         };
 
-        registration.AddDomainEvent(new CourseRegistrationCreated(
+        registration.AddDomainEvent(new StudentEnrolledInCourse(
             registration.Id,
             studentId,
-            courseId,
-            semester,
-            isRetake));
+            courseId));
 
         return registration;
     }
 
-    public void DropCourse(string reason)
+    public void Drop(string reason)
     {
         if (Status == RegistrationStatus.Dropped)
             throw new InvalidOperationException("Course is already dropped");
@@ -87,39 +102,44 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         DropReason = reason;
         UpdatedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new StudentDroppedCourse(Id, StudentId, CourseId, reason));
+        AddDomainEvent(new StudentDroppedCourse(
+            Id,
+            StudentId,
+            CourseId,
+            reason));
     }
 
-    public void WithdrawCourse(string reason)
+    public void Complete()
     {
-        if (Status == RegistrationStatus.Withdrawn)
-            throw new InvalidOperationException("Course is already withdrawn");
-
         if (Status == RegistrationStatus.Completed)
-            throw new InvalidOperationException("Cannot withdraw from a completed course");
+            throw new InvalidOperationException("Course is already completed");
 
-        Status = RegistrationStatus.Withdrawn;
-        DropDate = DateTime.UtcNow;
-        DropReason = reason;
+        if (Status == RegistrationStatus.Dropped)
+            throw new InvalidOperationException("Cannot complete a dropped course");
+
+        Status = RegistrationStatus.Completed;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Fail()
+    {
+        if (Status == RegistrationStatus.Failed)
+            throw new InvalidOperationException("Course is already marked as failed");
+
+        Status = RegistrationStatus.Failed;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void AssignGrade(Guid gradeId)
     {
-        if (Status != RegistrationStatus.Active)
-            throw new InvalidOperationException("Cannot assign grade to non-active registration");
+        if (GradeId.HasValue)
+            throw new InvalidOperationException("Grade is already assigned");
 
         GradeId = gradeId;
-        Status = RegistrationStatus.Completed;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public bool CanDropCourse()
-    {
-        return Status == RegistrationStatus.Active;
-    }
+    public bool CanDrop() => Status == RegistrationStatus.Registered || Status == RegistrationStatus.WaitingList;
 
-    public bool IsCompleted() => Status == RegistrationStatus.Completed;
-
-    public bool IsActive() => Status == RegistrationStatus.Active;
+    public bool IsActive() => Status == RegistrationStatus.Registered && !IsDeleted;
 }
