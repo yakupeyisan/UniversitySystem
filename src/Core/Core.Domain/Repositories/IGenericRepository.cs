@@ -1,25 +1,25 @@
 using Core.Domain.Pagination;
 using Core.Domain.Specifications;
 namespace Core.Domain.Repositories;
-public interface IGenericRepository<TAggregate> where TAggregate : AggregateRoot
+public interface IGenericRepository<TEntity> where TEntity : Entity
 {
-    Task<TAggregate?> GetByIdAsync(
+    Task<TEntity?> GetByIdAsync(
     Guid id,
     CancellationToken cancellationToken = default);
-    Task<TAggregate?> GetAsync(
-    ISpecification<TAggregate> specification,
+    Task<TEntity?> GetAsync(
+    ISpecification<TEntity> specification,
     CancellationToken cancellationToken = default);
-    Task<IEnumerable<TAggregate>> GetAllAsync(
+    Task<IEnumerable<TEntity>> GetAllAsync(
     CancellationToken cancellationToken = default);
-    Task<PagedList<TAggregate>> GetAllAsync(
+    Task<PagedList<TEntity>> GetAllAsync(
     PagedRequest pagedRequest,
     CancellationToken cancellationToken = default);
-    Task<PagedList<TAggregate>> GetAllAsync(
-    ISpecification<TAggregate> specification,
+    Task<PagedList<TEntity>> GetAllAsync(
+    ISpecification<TEntity> specification,
     PagedRequest pagedRequest,
     CancellationToken cancellationToken = default);
-    Task<PagedList<TAggregate>> GetAllAsync(
-    ISpecification<TAggregate> specification,
+    Task<PagedList<TEntity>> GetAllAsync(
+    ISpecification<TEntity> specification,
     CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(
     Guid id,
@@ -27,19 +27,19 @@ public interface IGenericRepository<TAggregate> where TAggregate : AggregateRoot
     Task<int> CountAsync(
     CancellationToken cancellationToken = default);
     Task AddAsync(
-    TAggregate aggregate,
+    TEntity aggregate,
     CancellationToken cancellationToken = default);
     Task AddRangeAsync(
-    IEnumerable<TAggregate> aggregates,
+    IEnumerable<TEntity> aggregates,
     CancellationToken cancellationToken = default);
     Task UpdateAsync(
-    TAggregate aggregate,
+    TEntity aggregate,
     CancellationToken cancellationToken = default);
     Task DeleteAsync(
-    TAggregate aggregate,
+    TEntity aggregate,
     CancellationToken cancellationToken = default);
     Task DeleteRangeAsync(
-    IEnumerable<TAggregate> aggregates,
+    IEnumerable<TEntity> aggregates,
     CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

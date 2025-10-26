@@ -1,5 +1,5 @@
 namespace Core.Domain.Repositories;
-public interface IRepository<TAggregate> : IGenericRepository<TAggregate>
-    where TAggregate : AggregateRoot
+public interface IRepository<TEntity> : IGenericRepository<TEntity>
+    where TEntity : Entity
 {
 }

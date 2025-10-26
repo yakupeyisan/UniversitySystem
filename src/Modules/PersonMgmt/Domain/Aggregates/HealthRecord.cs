@@ -1,6 +1,6 @@
 using Core.Domain;
 namespace PersonMgmt.Domain.Aggregates;
-public class HealthRecord : Entity
+public class HealthRecord : AuditableEntity
 {
     public Guid PersonId { get; private set; }
     public string? BloodType { get; private set; }
@@ -11,8 +11,6 @@ public class HealthRecord : Entity
     public string? Notes { get; private set; }
     public DateTime? LastCheckupDate { get; private set; }
     public bool IsDeleted { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
     private HealthRecord()
     {
     }

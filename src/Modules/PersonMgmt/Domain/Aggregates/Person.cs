@@ -5,7 +5,7 @@ using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
 using System.Text.RegularExpressions;
 namespace PersonMgmt.Domain.Aggregates;
-public class Person : AggregateRoot, ISoftDelete
+public class Person : AuditableEntity, ISoftDelete
 {
     public Guid? DepartmentId { get; private set; }
     public PersonName Name { get; private set; } = null!;
@@ -16,8 +16,6 @@ public class Person : AggregateRoot, ISoftDelete
     public string PhoneNumber { get; private set; } = null!;
     public string? ProfilePhotoUrl { get; private set; }
     public bool IsDeleted { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
     private Student? _student;
@@ -201,7 +199,7 @@ public class Person : AggregateRoot, ISoftDelete
             Name.FirstName,
             Name.LastName,
             Email,
-            UpdatedAt
+            UpdatedAt.Value
         ));
     }
     public void AddRestriction(

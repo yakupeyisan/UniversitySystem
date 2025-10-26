@@ -3,7 +3,7 @@ using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 namespace PersonMgmt.Domain.Aggregates;
-public class Staff : AggregateRoot, ISoftDelete
+public class Staff : AuditableEntity, ISoftDelete
 {
     public string EmployeeNumber { get; private set; }
     public AcademicTitle AcademicTitle { get; private set; }
@@ -13,8 +13,6 @@ public class Staff : AggregateRoot, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
     private Staff()
     {
     }

@@ -1,6 +1,6 @@
 using Core.Domain;
 namespace PersonMgmt.Domain.Aggregates;
-public class Address : Entity
+public class Address : AuditableEntity
 {
     public Guid PersonId { get; set; }
     public string Street { get; set; } = null!;
@@ -11,8 +11,6 @@ public class Address : Entity
     public DateTime? ValidTo { get; set; }
     public bool IsCurrent { get; set; }
     public bool IsDeleted { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
     public string FullAddress =>
         $"{Street}, {City}, {Country}" +
         (string.IsNullOrEmpty(PostalCode) ? "" : $", {PostalCode}");

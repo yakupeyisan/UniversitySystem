@@ -1,6 +1,6 @@
 using Core.Domain;
 namespace PersonMgmt.Domain.Aggregates;
-public class EmergencyContact : Entity
+public class EmergencyContact : AuditableEntity
 {
     public Guid PersonId { get; set; }
     public string FullName { get; set; } = null!;
@@ -11,8 +11,6 @@ public class EmergencyContact : Entity
     public bool IsCurrent { get; set; }
     public int Priority { get; set; } = 1;
     public bool IsDeleted { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
     public string ContactInfo => $"{FullName} ({Relationship}) - {PhoneNumber}";
     public bool IsActive =>
     IsCurrent &&

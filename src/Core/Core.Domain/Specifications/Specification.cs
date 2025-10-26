@@ -1,17 +1,17 @@
 namespace Core.Domain.Specifications;
 using System.Linq.Expressions;
-public abstract class Specification<TAggregate> : ISpecification<TAggregate>
-    where TAggregate : AggregateRoot
+public abstract class Specification<TEntity> : ISpecification<TEntity>
+    where TEntity : Entity
 {
-    public Expression<Func<TAggregate, bool>>? Criteria { get; protected set; }
-    public List<Expression<Func<TAggregate, object>>> Includes { get; } = new();
+    public Expression<Func<TEntity, bool>>? Criteria { get; protected set; }
+    public List<Expression<Func<TEntity, object>>> Includes { get; } = new();
     public List<string> IncludeStrings { get; } = new();
-    public List<(Expression<Func<TAggregate, object>> OrderExpression, bool OrderByDescending)> OrderBys { get; } = new();
+    public List<(Expression<Func<TEntity, object>> OrderExpression, bool OrderByDescending)> OrderBys { get; } = new();
     public int? Take { get; protected set; }
     public int? Skip { get; protected set; }
     public bool IsPagingEnabled { get; protected set; }
     public bool IsSplitQuery { get; protected set; }
-    protected virtual void AddInclude(Expression<Func<TAggregate, object>> includeExpression)
+    protected virtual void AddInclude(Expression<Func<TEntity, object>> includeExpression)
     {
         Includes.Add(includeExpression);
     }
@@ -19,13 +19,13 @@ public abstract class Specification<TAggregate> : ISpecification<TAggregate>
     {
         IncludeStrings.Add(includeString);
     }
-    protected virtual void AddOrderBy<TKey>(Expression<Func<TAggregate, TKey>> orderByExpression)
+    protected virtual void AddOrderBy<TKey>(Expression<Func<TEntity, TKey>> orderByExpression)
     {
         if (orderByExpression == null)
             throw new ArgumentNullException(nameof(orderByExpression));
         OrderBys.Add((CastExpression(orderByExpression), false));
     }
-    protected virtual void AddOrderByDescending<TKey>(Expression<Func<TAggregate, TKey>> orderByDescendingExpression)
+    protected virtual void AddOrderByDescending<TKey>(Expression<Func<TEntity, TKey>> orderByDescendingExpression)
     {
         if (orderByDescendingExpression == null)
             throw new ArgumentNullException(nameof(orderByDescendingExpression));
@@ -51,10 +51,10 @@ public abstract class Specification<TAggregate> : ISpecification<TAggregate>
     {
         IsSplitQuery = true;
     }
-    private static Expression<Func<TAggregate, object>> CastExpression<TKey>(Expression<Func<TAggregate, TKey>> source)
+    private static Expression<Func<TEntity, object>> CastExpression<TKey>(Expression<Func<TEntity, TKey>> source)
     {
         var parameter = source.Parameters[0];
         var body = Expression.Convert(source.Body, typeof(object));
-        return Expression.Lambda<Func<TAggregate, object>>(body, parameter);
+        return Expression.Lambda<Func<TEntity, object>>(body, parameter);
     }
 }

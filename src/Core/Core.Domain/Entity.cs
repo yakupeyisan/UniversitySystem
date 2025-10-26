@@ -1,6 +1,26 @@
+using Core.Domain.Events;
+
 namespace Core.Domain;
 public abstract class Entity : IEquatable<Entity>
 {
+    private readonly List<DomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    protected void AddDomainEvent(DomainEvent domainEvent)
+    {
+        if (domainEvent == null)
+            throw new ArgumentNullException(nameof(domainEvent));
+        _domainEvents.Add(domainEvent);
+    }
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
+    public IReadOnlyCollection<DomainEvent> PopDomainEvents()
+    {
+        var events = _domainEvents.ToList().AsReadOnly();
+        ClearDomainEvents();
+        return events;
+    }
     public Guid Id { get; protected set; }
     public byte[]? RowVersion { get; set; }
     protected Entity()

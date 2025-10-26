@@ -2,7 +2,7 @@ using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 namespace PersonMgmt.Domain.Aggregates;
-public class PersonRestriction : Entity, ISoftDelete
+public class PersonRestriction : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; private set; }
     public RestrictionType RestrictionType { get; private set; }
@@ -16,8 +16,6 @@ public class PersonRestriction : Entity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
     private PersonRestriction()
     {
     }

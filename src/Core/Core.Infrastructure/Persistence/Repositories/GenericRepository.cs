@@ -5,8 +5,8 @@ using Core.Domain.Specifications;
 using Core.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 namespace Core.Infrastructure.Persistence.Repositories;
-public class GenericRepository<TAggregate> : IGenericRepository<TAggregate>
-    where TAggregate : AggregateRoot
+public class GenericRepository<TEntity> : IGenericRepository<TEntity>
+    where TEntity : Entity
 {
     protected readonly AppDbContext _context;
     public GenericRepository(AppDbContext context)
@@ -14,36 +14,36 @@ public class GenericRepository<TAggregate> : IGenericRepository<TAggregate>
         _context = context;
     }
     #region Read Operations
-    public async Task<TAggregate?> GetByIdAsync(
+    public async Task<TEntity?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        return await _context.Set<TAggregate>().FindAsync(new object[] { id }, cancellationToken);
+        return await _context.Set<TEntity>().FindAsync(new object[] { id }, cancellationToken);
     }
-    public async Task<TAggregate?> GetAsync(
-        ISpecification<TAggregate> specification,
+    public async Task<TEntity?> GetAsync(
+        ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
         return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
-    public async Task<IEnumerable<TAggregate>> GetAllAsync(
+    public async Task<IEnumerable<TEntity>> GetAllAsync(
         CancellationToken cancellationToken = default)
     {
-        return await _context.Set<TAggregate>().ToListAsync(cancellationToken);
+        return await _context.Set<TEntity>().ToListAsync(cancellationToken);
     }
-    public async Task<PagedList<TAggregate>> GetAllAsync(
+    public async Task<PagedList<TEntity>> GetAllAsync(
         PagedRequest pagedRequest,
         CancellationToken cancellationToken = default)
     {
-        var totalCount = await _context.Set<TAggregate>().CountAsync(cancellationToken);
-        var items = await _context.Set<TAggregate>()
+        var totalCount = await _context.Set<TEntity>().CountAsync(cancellationToken);
+        var items = await _context.Set<TEntity>()
             .Skip((pagedRequest.PageNumber - 1) * pagedRequest.PageSize)
             .Take(pagedRequest.PageSize)
             .ToListAsync(cancellationToken);
-        return new PagedList<TAggregate>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
+        return new PagedList<TEntity>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
     }
-    public async Task<PagedList<TAggregate>> GetAllAsync(
-        ISpecification<TAggregate> specification,
+    public async Task<PagedList<TEntity>> GetAllAsync(
+        ISpecification<TEntity> specification,
         PagedRequest pagedRequest,
         CancellationToken cancellationToken = default)
     {
@@ -53,60 +53,60 @@ public class GenericRepository<TAggregate> : IGenericRepository<TAggregate>
             .Skip((pagedRequest.PageNumber - 1) * pagedRequest.PageSize)
             .Take(pagedRequest.PageSize)
             .ToListAsync(cancellationToken);
-        return new PagedList<TAggregate>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
+        return new PagedList<TEntity>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
     }
-    public async Task<PagedList<TAggregate>> GetAllAsync(
-        ISpecification<TAggregate> specification,
+    public async Task<PagedList<TEntity>> GetAllAsync(
+        ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
         var query = ApplySpecification(specification);
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query.ToListAsync(cancellationToken);
-        return new PagedList<TAggregate>(items, totalCount, 1, totalCount);
+        return new PagedList<TEntity>(items, totalCount, 1, totalCount);
     }
     public async Task<bool> ExistsAsync(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        return await _context.Set<TAggregate>().AnyAsync(e => e.Id == id, cancellationToken);
+        return await _context.Set<TEntity>().AnyAsync(e => e.Id == id, cancellationToken);
     }
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<TAggregate>().CountAsync(cancellationToken);
+        return await _context.Set<TEntity>().CountAsync(cancellationToken);
     }
     #endregion
     #region Write Operations
     public async Task AddAsync(
-        TAggregate aggregate,
+        TEntity aggregate,
         CancellationToken cancellationToken = default)
     {
-        await _context.Set<TAggregate>().AddAsync(aggregate, cancellationToken);
+        await _context.Set<TEntity>().AddAsync(aggregate, cancellationToken);
     }
     public async Task AddRangeAsync(
-        IEnumerable<TAggregate> aggregates,
+        IEnumerable<TEntity> aggregates,
         CancellationToken cancellationToken = default)
     {
-        await _context.Set<TAggregate>().AddRangeAsync(aggregates, cancellationToken);
+        await _context.Set<TEntity>().AddRangeAsync(aggregates, cancellationToken);
     }
     public async Task UpdateAsync(
-        TAggregate aggregate,
+        TEntity aggregate,
         CancellationToken cancellationToken = default)
     {
-        _context.Set<TAggregate>().Update(aggregate);
+        _context.Set<TEntity>().Update(aggregate);
         await Task.CompletedTask;
     }
     public async Task DeleteAsync(
-        TAggregate aggregate,
+        TEntity aggregate,
         CancellationToken cancellationToken = default)
     {
-        _context.Set<TAggregate>().Remove(aggregate);
+        _context.Set<TEntity>().Remove(aggregate);
         await Task.CompletedTask;
     }
     public async Task DeleteRangeAsync(
-        IEnumerable<TAggregate> aggregates,
+        IEnumerable<TEntity> aggregates,
         CancellationToken cancellationToken = default)
     {
-        _context.Set<TAggregate>().RemoveRange(aggregates);
+        _context.Set<TEntity>().RemoveRange(aggregates);
         await Task.CompletedTask;
     }
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -115,9 +115,9 @@ public class GenericRepository<TAggregate> : IGenericRepository<TAggregate>
     }
     #endregion
     #region Specification Helper
-    protected IQueryable<TAggregate> ApplySpecification(ISpecification<TAggregate> spec)
+    protected IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> spec)
     {
-        var query = _context.Set<TAggregate>().AsQueryable();
+        var query = _context.Set<TEntity>().AsQueryable();
         if (spec.IsSplitQuery)
             query = query.AsSplitQuery();
         if (spec.Criteria != null)
