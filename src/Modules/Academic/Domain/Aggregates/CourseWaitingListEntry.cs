@@ -23,6 +23,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Course? Course { get; private set; }
     public void Delete(Guid deletedBy)
     {
         throw new NotImplementedException();

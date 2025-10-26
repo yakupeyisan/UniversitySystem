@@ -1,4 +1,4 @@
-namespace Academic.Domain.Enums;
+﻿namespace Academic.Domain.Enums;
 
 /// <summary>
 /// Enum representing waiting list entry status
@@ -18,5 +18,10 @@ public enum WaitingListStatus
     /// <summary>
     /// Waiting list entry has been cancelled
     /// </summary>
-    Cancelled = 3
+    Cancelled = 3,
+
+    /// <summary>
+    /// Waiter has been rejected
+    /// </summary>
+    Rejected = 4
 }

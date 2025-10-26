@@ -12,6 +12,6 @@ public class AvailableCoursesSpec : Specification<Course>
     public AvailableCoursesSpec()
     {
         Criteria = c => !c.IsDeleted && c.Status == CourseStatus.Active;
-        AddOrderBy(c => c.CourseCode);
+        AddOrderBy(c => c.Code.Value);
     }
 }

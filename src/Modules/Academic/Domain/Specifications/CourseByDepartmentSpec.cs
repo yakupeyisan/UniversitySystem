@@ -11,6 +11,6 @@ public class CourseByDepartmentSpec : Specification<Course>
     public CourseByDepartmentSpec(Guid departmentId)
     {
         Criteria = c => c.DepartmentId == departmentId && !c.IsDeleted;
-        AddOrderBy(c => c.CourseCode);
+        AddOrderBy(c => c.Code.Value);
     }
 }

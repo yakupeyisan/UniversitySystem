@@ -12,6 +12,6 @@ public class CoursesByLevelSpec : Specification<Course>
     public CoursesByLevelSpec(CourseLevel level)
     {
         Criteria = c => c.Level == level && !c.IsDeleted;
-        AddOrderBy(c => c.CourseCode);
+        AddOrderBy(c => c.Code.Value);
     }
 }

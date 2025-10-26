@@ -74,5 +74,9 @@ public class CourseWaitingListEntryConfiguration : IEntityTypeConfiguration<Cour
 
         // Global soft delete filter
         builder.HasQueryFilter(wl => !wl.IsDeleted);
+        builder.HasOne(wl => wl.Course)
+            .WithMany()
+            .HasForeignKey(wl => wl.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

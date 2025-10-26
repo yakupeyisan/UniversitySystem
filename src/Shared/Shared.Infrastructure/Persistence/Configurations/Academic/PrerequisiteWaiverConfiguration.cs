@@ -80,5 +80,9 @@ public class PrerequisiteWaiverConfiguration : IEntityTypeConfiguration<Prerequi
 
         // Global soft delete filter
         builder.HasQueryFilter(pw => !pw.IsDeleted);
+        builder.HasOne(pw => pw.Prerequisite)
+            .WithMany()
+            .HasForeignKey(pw => pw.PrerequisiteId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

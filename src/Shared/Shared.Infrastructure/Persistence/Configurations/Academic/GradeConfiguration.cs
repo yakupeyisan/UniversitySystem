@@ -96,5 +96,9 @@ public class GradeConfiguration : IEntityTypeConfiguration<Grade>
 
         // Global soft delete filter
         builder.HasQueryFilter(g => !g.IsDeleted);
+        builder.HasOne(g => g.Course)
+            .WithMany()
+            .HasForeignKey(g => g.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -92,5 +92,9 @@ public class ExamConfiguration : IEntityTypeConfiguration<Exam>
 
         // Global soft delete filter
         builder.HasQueryFilter(e => !e.IsDeleted);
+        builder.HasOne(e => e.Course)
+            .WithMany()
+            .HasForeignKey(e => e.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

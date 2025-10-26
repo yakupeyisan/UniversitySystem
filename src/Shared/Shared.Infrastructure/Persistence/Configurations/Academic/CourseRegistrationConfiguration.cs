@@ -81,5 +81,10 @@ public class CourseRegistrationConfiguration : IEntityTypeConfiguration<CourseRe
 
         // Global soft delete filter
         builder.HasQueryFilter(cr => !cr.IsDeleted);
+
+        builder.HasOne(cr => cr.Course)
+            .WithMany()
+            .HasForeignKey(cr => cr.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
