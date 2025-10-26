@@ -1,11 +1,13 @@
+using Academic.Domain.Aggregates;
 using Core.Application.Abstractions;
 using Core.Domain;
 using Core.Domain.Events;
 using Core.Domain.Specifications;
-using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
+using Shared.Infrastructure.Persistence.Configurations.Academic;
+using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using System;
 using System.Linq.Expressions;
 
@@ -31,6 +33,17 @@ public class AppDbContext : DbContext
     public DbSet<PersonRestriction> PersonRestrictions { get; set; } = null!;
     public DbSet<EmergencyContact> EmergencyContacts { get; set; } = null!;
 
+    // Academic Module DbSets
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<CourseRegistration> CourseRegistrations { get; set; }
+    public DbSet<CourseWaitingListEntry> CourseWaitingListEntries { get; set; }
+    public DbSet<Exam> Exams { get; set; }
+    public DbSet<ExamRoom> ExamRooms { get; set; }
+    public DbSet<Grade> Grades { get; set; }
+    public DbSet<GradeObjection> GradeObjections { get; set; }
+    public DbSet<Prerequisite> Prerequisites { get; set; }
+    public DbSet<PrerequisiteWaiver> PrerequisiteWaivers { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -42,6 +55,16 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new HealthRecordConfiguration());
         modelBuilder.ApplyConfiguration(new EmergencyContactConfiguration());
         modelBuilder.ApplyConfiguration(new PersonRestrictionConfiguration());
+
+        modelBuilder.ApplyConfiguration(new CourseConfiguration());
+        modelBuilder.ApplyConfiguration(new CourseRegistrationConfiguration());
+        modelBuilder.ApplyConfiguration(new CourseWaitingListEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new ExamConfiguration());
+        modelBuilder.ApplyConfiguration(new ExamRoomConfiguration());
+        modelBuilder.ApplyConfiguration(new GradeConfiguration());
+        modelBuilder.ApplyConfiguration(new GradeObjectionConfiguration());
+        modelBuilder.ApplyConfiguration(new PrerequisiteConfiguration());
+        modelBuilder.ApplyConfiguration(new PrerequisiteWaiverConfiguration());
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

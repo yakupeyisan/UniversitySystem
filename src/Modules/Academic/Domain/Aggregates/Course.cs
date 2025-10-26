@@ -1,0 +1,163 @@
+using Core.Domain;
+using Academic.Domain.Enums;
+using Academic.Domain.ValueObjects;
+using Academic.Domain.Events;
+using Core.Domain.Specifications;
+
+namespace Academic.Domain.Aggregates;
+
+/// <summary>
+/// Course aggregate root representing an academic course
+/// </summary>
+public class Course : AuditableEntity, ISoftDelete
+{
+    private readonly List<Guid> _instructorIds = new();
+    private readonly List<Guid> _prerequisiteIds = new();
+
+    public CourseCode Code { get; private set; } = null!;
+    public string Name { get; private set; } = null!;
+    public string? Description { get; private set; }
+    public int ECTS { get; private set; }
+    public int Credits { get; private set; }
+    public CourseLevel Level { get; private set; }
+    public CourseType Type { get; private set; }
+    public CourseSemester Semester { get; private set; }
+    public int Year { get; private set; }
+    public Guid DepartmentId { get; private set; }
+    public CourseStatus Status { get; private set; }
+    public CapacityInfo Capacity { get; private set; } = null!;
+
+    // Navigation properties
+    public IReadOnlyList<Guid> InstructorIds => _instructorIds.AsReadOnly();
+    public IReadOnlyList<Guid> PrerequisiteIds => _prerequisiteIds.AsReadOnly();
+
+    // Soft delete
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
+    public void Delete(Guid deletedBy)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Restore()
+    {
+        throw new NotImplementedException();
+    }
+
+    private Course() { }
+
+    public static Course Create(
+        CourseCode code,
+        string name,
+        int ects,
+        int credits,
+        CourseLevel level,
+        CourseType type,
+        CourseSemester semester,
+        int year,
+        Guid departmentId,
+        int maxCapacity,
+        string? description = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Course name cannot be empty");
+
+        if (ects <= 0 || ects > 20)
+            throw new ArgumentException("ECTS must be between 1 and 20");
+
+        if (credits <= 0)
+            throw new ArgumentException("Credits must be greater than 0");
+
+        if (maxCapacity <= 0)
+            throw new ArgumentException("Max capacity must be greater than 0");
+
+        var course = new Course
+        {
+            Id = Guid.NewGuid(),
+            Code = code,
+            Name = name,
+            Description = description,
+            ECTS = ects,
+            Credits = credits,
+            Level = level,
+            Type = type,
+            Semester = semester,
+            Year = year,
+            DepartmentId = departmentId,
+            Status = CourseStatus.Active,
+            Capacity = CapacityInfo.Create(maxCapacity),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        course.AddDomainEvent(new CourseCreated(course.Id, code.Value, name, semester));
+
+        return course;
+    }
+
+    public void AddInstructor(Guid instructorId)
+    {
+        if (_instructorIds.Contains(instructorId))
+            throw new InvalidOperationException("Instructor already assigned to this course");
+
+        _instructorIds.Add(instructorId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveInstructor(Guid instructorId)
+    {
+        _instructorIds.Remove(instructorId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AddPrerequisite(Guid prerequisiteId)
+    {
+        if (_prerequisiteIds.Contains(prerequisiteId))
+            throw new InvalidOperationException("Prerequisite already added to this course");
+
+        _prerequisiteIds.Add(prerequisiteId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool IsCapacityFull() => Capacity.IsFull();
+
+    public bool HasAvailableSeats() => Capacity.HasAvailableSeats();
+
+    public bool HasPrerequisites() => _prerequisiteIds.Any();
+
+    public void IncrementEnrollment()
+    {
+        if (IsCapacityFull())
+            throw new InvalidOperationException("Course capacity is full");
+
+        Capacity = Capacity.WithIncrementedEnrollment();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void DecrementEnrollment()
+    {
+        Capacity = Capacity.WithDecrementedEnrollment();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Cancel(string reason)
+    {
+        if (Status == CourseStatus.Cancelled)
+            throw new InvalidOperationException("Course is already cancelled");
+
+        Status = CourseStatus.Cancelled;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        Status = CourseStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Deactivate()
+    {
+        Status = CourseStatus.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+}

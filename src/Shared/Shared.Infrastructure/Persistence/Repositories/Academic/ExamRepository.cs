@@ -1,0 +1,56 @@
+﻿using Academic.Domain.Aggregates;
+using Academic.Domain.Enums;
+using Academic.Domain.Interfaces;
+using Academic.Domain.Specifications;
+using Core.Domain.Specifications;
+using Shared.Infrastructure.Persistence.Contexts;
+
+namespace Shared.Infrastructure.Persistence.Repositories.Academic;
+
+/// <summary>
+/// Repository for Exam aggregate
+/// </summary>
+public class ExamRepository : GenericRepository<Exam>, IExamRepository
+{
+    public ExamRepository(AppDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<Exam>> GetByCourseAsync(Guid courseId, CancellationToken ct = default)
+    {
+        var spec = new ExamByCourseSpec(courseId);
+        var result = await GetAllAsync(spec, ct);
+        return result.Data;
+    }
+
+    public async Task<IEnumerable<Exam>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, CancellationToken ct = default)
+    {
+        var spec = new ExamsByDateRangeSpec(startDate, endDate);
+        var result = await GetAllAsync(spec, ct);
+        return result.Data;
+    }
+
+    public async Task<IEnumerable<Exam>> GetByStudentAsync(Guid studentId, CancellationToken ct = default)
+    {
+        var spec = new ExamsByStudentSpec(studentId);
+        var result = await GetAllAsync(spec, ct);
+        return result.Data;
+    }
+
+    public async Task<IEnumerable<Exam>> GetConflictingExamsAsync(
+        Guid studentId,
+        DateOnly examDate,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        CancellationToken ct = default)
+    {
+        var spec = new Specification<Exam>();
+        spec.Criteria = e => e.ExamDate == examDate && !e.IsDeleted && e.Status != ExamStatus.Cancelled;
+        var result = await GetAllAsync(spec, ct);
+
+        var conflicting = result.Data
+            .Where(e => e.TimeSlot.ConflictsWith(
+                Academic.Domain.ValueObjects.TimeSlot.Create(startTime, endTime)))
+            .ToList();
+
+        return conflicting;
+    }
+}

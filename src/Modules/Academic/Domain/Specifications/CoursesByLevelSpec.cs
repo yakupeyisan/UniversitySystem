@@ -1,0 +1,17 @@
+using Academic.Domain.Aggregates;
+using Academic.Domain.Enums;
+using Core.Domain.Specifications;
+
+namespace Academic.Domain.Specifications;
+
+/// <summary>
+/// Specification for getting courses by level
+/// </summary>
+public class CoursesByLevelSpec : Specification<Course>
+{
+    public CoursesByLevelSpec(CourseLevel level)
+    {
+        Criteria = c => c.Level == level && !c.IsDeleted;
+        AddOrderBy(c => c.CourseCode);
+    }
+}

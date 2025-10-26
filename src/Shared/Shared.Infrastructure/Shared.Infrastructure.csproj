@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Modules\Academic\Domain\Academic.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\PersonMgmt\Domain\PersonMgmt.Domain.csproj" />
     <ProjectReference Include="..\..\Core\Core.Application\Core.Application.csproj" />
     <ProjectReference Include="..\..\Core\Core.Domain\Core.Domain.csproj" />

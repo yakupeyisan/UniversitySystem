@@ -1,0 +1,137 @@
+using Academic.Domain.Enums;
+using Academic.Domain.Events;
+using Core.Domain;
+using Core.Domain.Specifications;
+
+namespace Academic.Domain.Aggregates;
+
+/// <summary>
+/// Grade aggregate representing a student's grade in a course
+/// </summary>
+public class Grade : AuditableEntity, ISoftDelete
+{
+    public Guid StudentId { get; private set; }
+    public Guid CourseId { get; private set; }
+    public Guid RegistrationId { get; private set; }
+    public string Semester { get; private set; } = null!;
+    public float MidtermScore { get; private set; }
+    public float FinalScore { get; private set; }
+    public float NumericScore { get; private set; }
+    public LetterGrade LetterGrade { get; private set; }
+    public float GradePoint { get; private set; }
+    public int ECTS { get; private set; }
+    public bool IsObjected { get; private set; }
+    public DateTime ObjectionDeadline { get; private set; }
+    public DateTime RecordedDate { get; private set; }
+
+    // Soft delete
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
+    public void Delete(Guid deletedBy)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Restore()
+    {
+        throw new NotImplementedException();
+    }
+
+    private Grade() { }
+
+    public static Grade Create(
+        Guid studentId,
+        Guid courseId,
+        Guid registrationId,
+        string semester,
+        float midtermScore,
+        float finalScore,
+        float midtermWeight = 0.3f,
+        float finalWeight = 0.7f,
+        int ects = 0)
+    {
+        if (string.IsNullOrWhiteSpace(semester))
+            throw new ArgumentException("Semester cannot be empty");
+
+        if (midtermScore < 0 || midtermScore > 100)
+            throw new ArgumentException("Midterm score must be between 0 and 100");
+
+        if (finalScore < 0 || finalScore > 100)
+            throw new ArgumentException("Final score must be between 0 and 100");
+
+        if (midtermWeight < 0 || midtermWeight > 1)
+            throw new ArgumentException("Midterm weight must be between 0 and 1");
+
+        if (finalWeight < 0 || finalWeight > 1)
+            throw new ArgumentException("Final weight must be between 0 and 1");
+
+        if (Math.Abs(midtermWeight + finalWeight - 1.0f) > 0.001)
+            throw new ArgumentException("Sum of weights must equal 1.0");
+
+        var numericScore = (midtermScore * midtermWeight) + (finalScore * finalWeight);
+        var letterGrade = LetterGradeExtensions.FromNumericScore(numericScore);
+        var gradePoint = letterGrade.GetGradePoint();
+
+        var grade = new Grade
+        {
+            Id = Guid.NewGuid(),
+            StudentId = studentId,
+            CourseId = courseId,
+            RegistrationId = registrationId,
+            Semester = semester,
+            MidtermScore = midtermScore,
+            FinalScore = finalScore,
+            NumericScore = numericScore,
+            LetterGrade = letterGrade,
+            GradePoint = gradePoint,
+            ECTS = ects,
+            IsObjected = false,
+            ObjectionDeadline = DateTime.UtcNow.AddDays(14),
+            RecordedDate = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        grade.AddDomainEvent(new GradeRecorded(
+            grade.Id,
+            studentId,
+            courseId,
+            letterGrade,
+            numericScore));
+
+        return grade;
+    }
+
+    public void UpdateScores(float newMidtermScore, float newFinalScore, float midtermWeight = 0.3f, float finalWeight = 0.7f)
+    {
+        if (newMidtermScore < 0 || newMidtermScore > 100)
+            throw new ArgumentException("Midterm score must be between 0 and 100");
+
+        if (newFinalScore < 0 || newFinalScore > 100)
+            throw new ArgumentException("Final score must be between 0 and 100");
+
+        MidtermScore = newMidtermScore;
+        FinalScore = newFinalScore;
+        NumericScore = (newMidtermScore * midtermWeight) + (newFinalScore * finalWeight);
+        LetterGrade = LetterGradeExtensions.FromNumericScore(NumericScore);
+        GradePoint = LetterGrade.GetGradePoint();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool CanObjectGrade() => DateTime.UtcNow <= ObjectionDeadline && !IsObjected;
+
+    public void MarkAsObjected()
+    {
+        if (!CanObjectGrade())
+            throw new InvalidOperationException("Grade objection deadline has passed");
+
+        IsObjected = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool IsPassingGrade() => LetterGrade.IsPassingGrade();
+
+    public float GetECTSPoints() => ECTS * GradePoint;
+
+    public override string ToString() => $"{Semester} - {LetterGrade} ({NumericScore:F2})";
+}
