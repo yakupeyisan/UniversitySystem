@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Core.Infrastructure\Core.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\PersonMgmt\Application\PersonMgmt.Application.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

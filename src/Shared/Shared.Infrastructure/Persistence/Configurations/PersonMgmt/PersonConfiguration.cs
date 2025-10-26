@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonMgmt.Domain.Aggregates;
 
-namespace Core.Infrastructure.Persistence.Configurations.PersonMgmt;
+namespace Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 
 public class PersonConfiguration : IEntityTypeConfiguration<Person>
 {

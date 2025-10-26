@@ -1,10 +1,10 @@
-using Core.Infrastructure.Persistence.Contexts;
-using Core.Infrastructure.Persistence.Repositories.PersonMgmt;
+using Shared.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PersonMgmt.Domain.Interfaces;
-namespace Core.Infrastructure.Extensions;
+namespace Shared.Infrastructure.Extensions;
 public static class ServiceExtensions
 {
     public static IServiceCollection AddInfrastructure(
@@ -23,7 +23,7 @@ public static class ServiceExtensions
                 connectionString,
                 sqlOptions =>
                 {
-                    sqlOptions.MigrationsAssembly("Core.Infrastructure");
+                    sqlOptions.MigrationsAssembly("Shared.Infrastructure");
                     sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
                 });
             if (IsEnvironmentDevelopment())

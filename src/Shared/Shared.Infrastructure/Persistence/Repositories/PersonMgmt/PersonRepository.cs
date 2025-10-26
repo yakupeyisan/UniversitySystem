@@ -1,10 +1,10 @@
 using Core.Domain.Specifications;
-using Core.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Interfaces;
 using PersonMgmt.Domain.Specifications;
-namespace Core.Infrastructure.Persistence.Repositories.PersonMgmt;
+namespace Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
 public class PersonRepository : GenericRepository<Person>, IPersonRepository
 {
     private readonly AppDbContext _context;

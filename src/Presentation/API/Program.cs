@@ -1,7 +1,7 @@
 using API.Middlewares;
 using Core.Application.Extensions;
-using Core.Infrastructure.Extensions;
-using Core.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Extensions;
+using Shared.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Application.Extensions;
 using Serilog;

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
 
-namespace Core.Infrastructure.Persistence.Configurations.PersonMgmt;
+namespace Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 
 public class StaffConfiguration : IEntityTypeConfiguration<Staff>
 {

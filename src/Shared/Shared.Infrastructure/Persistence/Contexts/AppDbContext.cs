@@ -2,14 +2,14 @@ using Core.Application.Abstractions;
 using Core.Domain;
 using Core.Domain.Events;
 using Core.Domain.Specifications;
-using Core.Infrastructure.Persistence.Configurations.PersonMgmt;
+using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
 using System;
 using System.Linq.Expressions;
 
-namespace Core.Infrastructure.Persistence.Contexts;
+namespace Shared.Infrastructure.Persistence.Contexts;
 public class AppDbContext : DbContext
 {
     private readonly ICurrentUserService _currentUserService;

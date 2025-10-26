@@ -2,9 +2,9 @@ using Core.Domain;
 using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Specifications;
-using Core.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
-namespace Core.Infrastructure.Persistence.Repositories;
+namespace Shared.Infrastructure.Persistence.Repositories;
 public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     where TEntity : Entity
 {
