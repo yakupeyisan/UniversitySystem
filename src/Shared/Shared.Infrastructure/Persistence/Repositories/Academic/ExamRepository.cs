@@ -2,6 +2,7 @@
 using Academic.Domain.Enums;
 using Academic.Domain.Interfaces;
 using Academic.Domain.Specifications;
+using Academic.Domain.ValueObjects;
 using Core.Domain.Specifications;
 using Shared.Infrastructure.Persistence.Contexts;
 
@@ -42,14 +43,14 @@ public class ExamRepository : GenericRepository<Exam>, IExamRepository
         TimeOnly endTime,
         CancellationToken ct = default)
     {
-        var spec = new Specification<Exam>();
-        spec.Criteria = e => e.ExamDate == examDate && !e.IsDeleted && e.Status != ExamStatus.Cancelled;
+        var spec = new NotCancelledExamsSpec();
         var result = await GetAllAsync(spec, ct);
 
         var conflicting = result.Data
-            .Where(e => e.TimeSlot.ConflictsWith(
-                Academic.Domain.ValueObjects.TimeSlot.Create(startTime, endTime)))
+            .Where(e => e.ExamDate == examDate &&
+                        e.TimeSlot.ConflictsWith(TimeSlot.Create(startTime, endTime)))
             .ToList();
+
 
         return conflicting;
     }

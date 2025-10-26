@@ -22,8 +22,7 @@ public class CourseRegistrationRepository : GenericRepository<CourseRegistration
 
     public async Task<CourseRegistration?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
     {
-        var spec = new Specification<CourseRegistration>();
-        spec.Criteria = cr => cr.StudentId == studentId && cr.CourseId == courseId && !cr.IsDeleted;
+        var spec = new CourseRegistrationByStudentAndCourseSpec(studentId, courseId);
         return await GetAsync(spec, ct);
     }
 

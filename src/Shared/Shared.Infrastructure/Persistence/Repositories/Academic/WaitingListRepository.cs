@@ -44,8 +44,7 @@ public class WaitingListRepository : GenericRepository<CourseWaitingListEntry>, 
 
     public async Task<IEnumerable<CourseWaitingListEntry>> GetAdmittedEntriesAsync(Guid courseId, CancellationToken ct = default)
     {
-        var spec = new Specification<CourseWaitingListEntry>();
-        spec.Criteria = wl => wl.CourseId == courseId && wl.Status == WaitingListStatus.Admitted && !wl.IsDeleted;
+        var spec = new WaitingListAdmittedEntriesByStatusSpec(courseId);
         var result = await GetAllAsync(spec, ct);
         return result.Data;
     }
