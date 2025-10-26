@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<Staff> Staff { get; set; } = null!;
     public DbSet<HealthRecord> HealthRecords { get; set; } = null!;
     public DbSet<PersonRestriction> PersonRestrictions { get; set; } = null!;
+    public DbSet<EmergencyContact> EmergencyContacts { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
