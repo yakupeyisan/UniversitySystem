@@ -23,17 +23,3 @@ public class CourseNotFoundException : DomainException
     public override string ErrorCode => "errors.course.not.found";
     public override int StatusCode => 404;
 }
-
-/// <summary>
-/// Exception thrown when course data is invalid
-/// </summary>
-public class InvalidCourseDataException : DomainException
-{
-    public InvalidCourseDataException(string message)
-        : base(message)
-    {
-    }
-
-    public override string ErrorCode => "errors.course.invalid.data";
-    public override int StatusCode => 400;
-}
