@@ -1,5 +1,6 @@
 using Core.Application.Abstractions;
 using Core.Domain;
+using Core.Domain.Events;
 using Core.Domain.Specifications;
 using Core.Infrastructure.Persistence.Configurations.PersonMgmt;
 using MediatR;
@@ -32,6 +33,7 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Ignore<DomainEvent>();
         modelBuilder.ApplyConfiguration(new PersonConfiguration());
         modelBuilder.ApplyConfiguration(new AddressConfiguration());
         modelBuilder.ApplyConfiguration(new StudentConfiguration());

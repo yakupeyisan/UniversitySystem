@@ -23,7 +23,7 @@ public static class ServiceExtensions
                 connectionString,
                 sqlOptions =>
                 {
-                    sqlOptions.MigrationsAssembly("Infrastructure");
+                    sqlOptions.MigrationsAssembly("Core.Infrastructure");
                     sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
                 });
             if (IsEnvironmentDevelopment())

@@ -40,9 +40,6 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
                 .IsRequired();
         });
 
-        builder.HasIndex("FirstName", "LastName")
-            .HasDatabaseName("IX_Persons_FirstName_LastName");
-
         builder.Property(p => p.IdentificationNumber)
             .HasColumnName("IdentificationNumber")
             .HasColumnType("nvarchar(11)")
