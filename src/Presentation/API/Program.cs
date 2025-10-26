@@ -1,3 +1,4 @@
+using Academic.Application.Extensions;
 using API.Middlewares;
 using Core.Application.Extensions;
 using Shared.Infrastructure.Extensions;
@@ -36,6 +37,7 @@ try
     });
     builder.Services.AddCoreApplication();
     builder.Services.AddPersonMgmtApplication();
+    builder.Services.AddAcademicApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddSwaggerGen(options =>
     {

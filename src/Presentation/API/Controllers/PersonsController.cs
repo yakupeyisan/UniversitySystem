@@ -4,6 +4,7 @@ using PersonMgmt.Application.Commands;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Application.Queries;
 using Core.Domain.Pagination;
+
 namespace API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -17,7 +18,7 @@ public class PersonsController : ControllerBase
         _mediator = mediator;
         _logger = logger;
     }
-    #region CRUD Operations
+
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -80,8 +81,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return NoContent();
     }
-    #endregion
-    #region Search Operations
     [HttpGet("search/email")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -106,8 +105,7 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-    #endregion
-    #region Student Operations
+
     [HttpGet("students")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStudents(
@@ -132,8 +130,7 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-    #endregion
-    #region Staff Operations
+
     [HttpGet("staff")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStaff(
@@ -158,8 +155,7 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-    #endregion
-    #region Restrictions
+
     [HttpGet("{personId}/restrictions")]
     [ProducesResponseType(typeof(IEnumerable<RestrictionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPersonRestrictions(Guid personId)
@@ -182,8 +178,6 @@ public class PersonsController : ControllerBase
             return BadRequest(result);
         return CreatedAtAction(nameof(GetPersonRestrictions), new { personId }, result);
     }
-    #endregion
-    #region Health Records
     [HttpGet("{personId}/health-record")]
     [ProducesResponseType(typeof(HealthRecordResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -196,5 +190,4 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-    #endregion
 }

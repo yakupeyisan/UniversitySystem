@@ -16,7 +16,7 @@ public static class ServiceExtensions
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddAcademicApplicationServices(
+    public static IServiceCollection AddAcademicApplication(
         this IServiceCollection services)
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining(typeof(ServiceExtensions)));
