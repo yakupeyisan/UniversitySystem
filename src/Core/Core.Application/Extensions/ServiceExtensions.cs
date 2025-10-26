@@ -1,4 +1,6 @@
+using Core.Application.Abstractions;
 using Core.Application.Behaviors;
+using Core.Application.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +10,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddCoreApplication(
     this IServiceCollection services)
     {
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(ServiceExtensions).Assembly);
