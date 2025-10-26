@@ -10,6 +10,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddCoreApplication(
     this IServiceCollection services)
     {
+        services.AddScoped<IDateTime, DateTimeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddMediatR(cfg =>
         {

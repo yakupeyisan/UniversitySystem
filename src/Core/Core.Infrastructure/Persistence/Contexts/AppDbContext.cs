@@ -1,12 +1,26 @@
+using Core.Application.Abstractions;
+using Core.Domain;
 using Core.Domain.Specifications;
 using Core.Infrastructure.Persistence.Configurations.PersonMgmt;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
+using System;
+using System.Linq.Expressions;
+
 namespace Core.Infrastructure.Persistence.Contexts;
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IPublisher _mediator;
+    private readonly IDateTime _dateTime;
+    public AppDbContext(DbContextOptions<AppDbContext> options, 
+        ICurrentUserService currentUserService, 
+        IPublisher mediator, IDateTime dateTime) : base(options)
     {
+        _currentUserService = currentUserService;
+        _mediator = mediator;
+        _dateTime = dateTime;
     }
     public DbSet<Person> Persons { get; set; } = null!;
     public DbSet<Student> Students { get; set; } = null!;
@@ -14,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<Staff> Staff { get; set; } = null!;
     public DbSet<HealthRecord> HealthRecords { get; set; } = null!;
     public DbSet<PersonRestriction> PersonRestrictions { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -24,36 +39,75 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new HealthRecordConfiguration());
         modelBuilder.ApplyConfiguration(new EmergencyContactConfiguration());
         modelBuilder.ApplyConfiguration(new PersonRestrictionConfiguration());
-        var deletableEntities = modelBuilder.Model
-    .GetEntityTypes()
-    .Where(t => typeof(ISoftDelete).IsAssignableFrom(t.ClrType));
-        foreach (var entity in deletableEntities)
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            var parameter = System.Linq.Expressions.Expression.Parameter(entity.ClrType);
-            var property = System.Linq.Expressions.Expression.Property(parameter, "IsDeleted");
-            var filter = System.Linq.Expressions.Expression.Lambda(
-                System.Linq.Expressions.Expression.Equal(
-                    property,
-                    System.Linq.Expressions.Expression.Constant(false)
-                ),
-                parameter
-            );
-            modelBuilder.Entity(entity.ClrType).HasQueryFilter(filter);
+            if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .HasQueryFilter(GetSoftDeleteFilter(entityType.ClrType));
+            }
         }
-        modelBuilder.Entity<Person>(entity =>
-        {
-        });
-        modelBuilder.Entity<Student>(entity =>
-        {
-        });
-        modelBuilder.Entity<Staff>(entity =>
-        {
-        });
-        modelBuilder.Entity<HealthRecord>(entity =>
-        {
-        });
-        modelBuilder.Entity<PersonRestriction>(entity =>
-        {
-        });
     }
+
+    private static LambdaExpression GetSoftDeleteFilter(Type entityType)
+    {
+        var parameter = Expression.Parameter(entityType, "e");
+        var property = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
+        var condition = Expression.Equal(property, Expression.Constant(false));
+        return Expression.Lambda(condition, parameter);
+    }
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedBy = _currentUserService.UserId;
+                    entry.Entity.CreatedAt = _dateTime.UtcNow;
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.UpdatedBy = _currentUserService.UserId;
+                    entry.Entity.UpdatedAt = _dateTime.UtcNow;
+                    break;
+
+                case EntityState.Deleted:
+                    if (entry.Entity is ISoftDelete softDeleteEntity)
+                    {
+                        entry.State = EntityState.Modified;
+                        softDeleteEntity.Delete(_currentUserService.UserId);
+
+                    }
+                    break;
+            }
+        }
+
+        // Domain events will be dispatched here
+        await DispatchDomainEventsAsync(cancellationToken);
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+    private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
+    {
+        var domainEntities = ChangeTracker
+            .Entries<Entity>()
+            .Where(x => x.Entity.DomainEvents.Any())
+            .ToList();
+
+        var domainEvents = domainEntities
+            .SelectMany(x => x.Entity.DomainEvents)
+            .ToList();
+
+        domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
+
+        // Domain event dispatching will be implemented with MediatR
+        foreach (var domainEvent in domainEvents)
+        {
+            await _mediator.Publish(domainEvent, cancellationToken);
+        }
+    }
+
+
 }

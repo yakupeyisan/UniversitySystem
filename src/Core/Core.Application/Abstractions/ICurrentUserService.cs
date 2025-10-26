@@ -15,3 +15,8 @@ public interface ICurrentUserService
     bool HasAnyRole(params string[] roles);
     bool HasAllRoles(params string[] roles);
 }
+public interface IDateTime
+{
+    DateTime Now { get; }
+    DateTime UtcNow { get; }
+}
