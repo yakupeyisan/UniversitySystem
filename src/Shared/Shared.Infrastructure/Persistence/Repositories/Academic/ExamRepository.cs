@@ -48,7 +48,7 @@ public class ExamRepository : GenericRepository<Exam>, IExamRepository
 
         var conflicting = result.Data
             .Where(e => e.ExamDate == examDate &&
-                        e.TimeSlot.ConflictsWith(TimeSlot.Create(startTime, endTime)))
+                        e.TimeSlot.OverlapsWith(TimeSlot.Create(startTime, endTime)))
             .ToList();
 
 
