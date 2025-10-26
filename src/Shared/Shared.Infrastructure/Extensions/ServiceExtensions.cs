@@ -1,9 +1,11 @@
-using Shared.Infrastructure.Persistence.Contexts;
-using Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
+using Academic.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PersonMgmt.Domain.Interfaces;
+using Shared.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Persistence.Repositories.Academic;
+using Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
 namespace Shared.Infrastructure.Extensions;
 public static class ServiceExtensions
 {
@@ -32,6 +34,12 @@ public static class ServiceExtensions
             }
         });
         services.AddScoped<IPersonRepository, PersonRepository>();
+        services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<IWaitingListRepository, WaitingListRepository>();
+        services.AddScoped<IExamRepository, ExamRepository>();
+        services.AddScoped<IGradeRepository, GradeRepository>();
+        services.AddScoped<IGradeObjectionRepository, GradeObjectionRepository>();
+        services.AddScoped<ICourseRegistrationRepository, CourseRegistrationRepository>();
         return services;
     }
     private static bool IsEnvironmentDevelopment()
