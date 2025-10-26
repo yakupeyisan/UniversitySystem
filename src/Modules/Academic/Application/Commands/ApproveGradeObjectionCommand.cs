@@ -1,4 +1,4 @@
-using Academic.Application.DTOs;
+﻿using Academic.Application.DTOs;
 using Academic.Domain.Enums;
 using Academic.Domain.Interfaces;
 using Core.Domain.Results;
@@ -62,9 +62,12 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                 // Approve objection
                 objection.Approve(
                     reviewedBy: request.Request.ReviewedBy,
-                    reviewNotes: request.Request.ReviewNotes,
+                    notes: request.Request.ReviewNotes,  
                     newScore: request.Request.NewScore,
-                    newLetterGrade: request.Request.NewLetterGrade.HasValue ? (LetterGrade)request.Request.NewLetterGrade.Value : null);
+                    newLetterGrade: request.Request.NewLetterGrade.HasValue
+                        ? (LetterGrade)request.Request.NewLetterGrade.Value
+                        : null);
+
 
                 // If score is updated, update grade
                 if (request.Request.NewScore.HasValue)
@@ -75,9 +78,14 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
 
                     if (grade != null)
                     {
-                        grade.UpdateScoresFromObjection(
-                            request.Request.NewScore.Value,
-                            request.Request.NewLetterGrade.HasValue ? (LetterGrade)request.Request.NewLetterGrade.Value : grade.LetterGrade);
+                        var letterGrade = request.Request.NewLetterGrade.HasValue
+                            ? (LetterGrade)request.Request.NewLetterGrade.Value
+                            : grade.LetterGrade;
+
+                        grade.UpdateGradeFromObjection(
+                            newMidtermScore: grade.MidtermScore, 
+                            newFinalScore: request.Request.NewScore.Value, 
+                            newLetterGrade: letterGrade);
 
                         await _gradeRepository.UpdateAsync(grade, cancellationToken);
                     }

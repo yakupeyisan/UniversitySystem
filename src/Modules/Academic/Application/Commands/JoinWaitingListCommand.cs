@@ -22,12 +22,14 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
 
     public class Handler : IRequestHandler<JoinWaitingListCommand, Result<WaitingListResponse>>
     {
+        private readonly IWaitingListRepository _waitingListRepository;
         private readonly ICourseRegistrationRepository _registrationRepository;
         private readonly ICourseRepository _courseRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
 
         public Handler(
+            IWaitingListRepository waitingListRepository,
             ICourseRegistrationRepository registrationRepository,
             ICourseRepository courseRepository,
             IMapper mapper,
@@ -37,6 +39,7 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _waitingListRepository = waitingListRepository;
         }
 
         public async Task<Result<WaitingListResponse>> Handle(
@@ -64,18 +67,40 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                         $"Course with ID {request.Request.CourseId} not found");
                 }
 
+                var existingEntry = await _waitingListRepository.GetByStudentAndCourseAsync(
+                    request.Request.StudentId,
+                    request.Request.CourseId,
+                    cancellationToken);
+
+                if (existingEntry != null)
+                {
+                    _logger.LogWarning(
+                        "Student {StudentId} is already on waiting list for course {CourseId}",
+                        request.Request.StudentId,
+                        request.Request.CourseId);
+                    return Result<WaitingListResponse>.Failure(
+                        "Student is already on the waiting list for this course");
+                }
+                var nextQueuePosition = await _waitingListRepository.GetNextQueuePositionAsync(
+                    request.Request.CourseId,
+                    cancellationToken);
+                _logger.LogInformation(
+                    "Next queue position for course {CourseId} is {Position}",
+                    request.Request.CourseId,
+                    nextQueuePosition);
+
                 // Create waiting list entry
                 var waitingListEntry = CourseWaitingListEntry.Create(
                     studentId: request.Request.StudentId,
                     courseId: request.Request.CourseId,
-                    semester: request.Request.Semester);
-
-                // Save to database
-                // TODO: Implement CourseWaitingListEntry repository
+                    queuePosition: nextQueuePosition);
+                await _waitingListRepository.AddAsync(waitingListEntry, cancellationToken);
+                await _waitingListRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(
-                    "Student {StudentId} added to waiting list for course {CourseId}",
+                    "Student {StudentId} added to waiting list for course {CourseId} at position {Position}",
                     request.Request.StudentId,
-                    request.Request.CourseId);
+                    request.Request.CourseId,
+                    nextQueuePosition);
 
                 var response = _mapper.Map<WaitingListResponse>(waitingListEntry);
                 return Result<WaitingListResponse>.Success(

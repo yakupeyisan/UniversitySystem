@@ -85,7 +85,7 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     semester: (CourseSemester)request.Request.Semester,
                     year: request.Request.Year,
                     departmentId: request.Request.DepartmentId,
-                    capacityInfo: capacityInfo);
+                    maxCapacity: request.Request.MaxCapacity);
 
                 // Save to database
                 await _courseRepository.AddAsync(course, cancellationToken);
@@ -113,31 +113,3 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
         }
     }
 }
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/Exams/PostponeExamCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/Exams/CancelExamCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/Enrollments/DropCourseCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/Enrollments/JoinWaitingListCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/Grades/UpdateGradeCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/GradeObjections/SubmitGradeObjectionCommand.cs
-// ============================================================================
-
-// ============================================================================
-// FILE: src/Modules/Academic/Application/Commands/GradeObjections/ApproveGradeObjectionCommand.cs
-// ============================================================================
