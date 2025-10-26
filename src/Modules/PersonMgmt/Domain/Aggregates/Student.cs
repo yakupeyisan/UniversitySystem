@@ -140,12 +140,13 @@ public class Student : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         DeletedAt = DateTime.UtcNow;
         DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
     public void Restore()
     {
         IsDeleted = false;
-        DeletedAt = null;
         DeletedBy = null;
+        DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
     public bool HasPassingGPA => CGPA >= 2.0;

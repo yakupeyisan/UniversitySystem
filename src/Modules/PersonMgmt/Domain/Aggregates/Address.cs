@@ -1,6 +1,8 @@
 using Core.Domain;
+using Core.Domain.Specifications;
+
 namespace PersonMgmt.Domain.Aggregates;
-public class Address : AuditableEntity
+public class Address : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; set; }
     public string Street { get; set; } = null!;
@@ -10,7 +12,9 @@ public class Address : AuditableEntity
     public DateTime ValidFrom { get; set; }
     public DateTime? ValidTo { get; set; }
     public bool IsCurrent { get; set; }
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     public string FullAddress =>
         $"{Street}, {City}, {Country}" +
         (string.IsNullOrEmpty(PostalCode) ? "" : $", {PostalCode}");
@@ -56,15 +60,22 @@ public class Address : AuditableEntity
         IsCurrent = false;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete()
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
+
     public void Restore()
     {
         IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
+
     }
     public void Update(string street, string city, string country, string? postalCode = null)
     {

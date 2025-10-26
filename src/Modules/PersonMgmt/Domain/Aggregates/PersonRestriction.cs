@@ -84,6 +84,7 @@ public class PersonRestriction : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         DeletedAt = DateTime.UtcNow;
         DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
     public void Restore()
     {

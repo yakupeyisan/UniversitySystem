@@ -1,6 +1,8 @@
 using Core.Domain;
+using Core.Domain.Specifications;
+
 namespace PersonMgmt.Domain.Aggregates;
-public class HealthRecord : AuditableEntity
+public class HealthRecord : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; private set; }
     public string? BloodType { get; private set; }
@@ -11,6 +13,9 @@ public class HealthRecord : AuditableEntity
     public string? Notes { get; private set; }
     public DateTime? LastCheckupDate { get; private set; }
     public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
+
     private HealthRecord()
     {
     }
@@ -73,14 +78,19 @@ public class HealthRecord : AuditableEntity
         Notes = string.IsNullOrEmpty(notes) ? null : notes.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete()
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
     public void Restore()
     {
         IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
     public void ClearAllHealthInfo()

@@ -128,17 +128,18 @@ public class Staff : AuditableEntity, ISoftDelete
     }
     public void Delete(Guid deletedBy)
     {
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
         IsActive = false;
+        IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
         DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
     public void Restore()
     {
         IsDeleted = false;
-        DeletedAt = null;
         DeletedBy = null;
+        DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
     public bool IsCurrentlyEmployed =>

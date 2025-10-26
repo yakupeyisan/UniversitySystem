@@ -94,12 +94,12 @@ public class Person : AuditableEntity, ISoftDelete
         var address = Address.CreateTurkish(Id, street, city, postalCode);
         AddAddress(address);
     }
-    public void DeleteAddress(Guid addressId)
+    public void DeleteAddress(Guid addressId, Guid deletedBy)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
         if (address == null)
             throw new InvalidOperationException("Address not found");
-        address.Delete();
+        address.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
     public void RestoreAddress(Guid addressId)
@@ -257,10 +257,10 @@ public class Person : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         _student?.Delete(deletedBy);
         _staff?.Delete(deletedBy);
-        _healthRecord?.Delete();
+        _healthRecord?.Delete(deletedBy);
         foreach (var address in _addresses)
         {
-            address.Delete();
+            address.Delete(deletedBy);
         }
         foreach (var restriction in _restrictions)
         {

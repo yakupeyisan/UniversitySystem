@@ -1,6 +1,8 @@
 using Core.Domain;
+using Core.Domain.Specifications;
+
 namespace PersonMgmt.Domain.Aggregates;
-public class EmergencyContact : AuditableEntity
+public class EmergencyContact : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; set; }
     public string FullName { get; set; } = null!;
@@ -10,7 +12,10 @@ public class EmergencyContact : AuditableEntity
     public DateTime? ValidTo { get; set; }
     public bool IsCurrent { get; set; }
     public int Priority { get; set; } = 1;
-    public bool IsDeleted { get; set; }
+
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
     public string ContactInfo => $"{FullName} ({Relationship}) - {PhoneNumber}";
     public bool IsActive =>
     IsCurrent &&
@@ -46,14 +51,19 @@ public class EmergencyContact : AuditableEntity
         IsCurrent = false;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete()
+    public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
     public void Restore()
     {
         IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
     public void Update(
