@@ -11,6 +11,7 @@ using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using System;
 using System.Linq.Expressions;
 using Identity.Domain.Aggregates;
+using Shared.Infrastructure.Persistence.Configurations.Identity;
 
 namespace Shared.Infrastructure.Persistence.Contexts;
 public class AppDbContext : DbContext
