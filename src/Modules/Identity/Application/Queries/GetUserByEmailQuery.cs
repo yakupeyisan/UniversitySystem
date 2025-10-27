@@ -1,0 +1,63 @@
+using AutoMapper;
+using Core.Domain.Results;
+using Identity.Application.DTOs;
+using Identity.Domain.Interfaces;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace Identity.Application.Queries;
+
+public class GetUserByEmailQuery : IRequest<Result<UserDto>>
+{
+    public string Email { get; set; }
+
+    public GetUserByEmailQuery(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email cannot be empty", nameof(email));
+
+        Email = email;
+    }
+
+    public class Handler : IRequestHandler<GetUserByEmailQuery, Result<UserDto>>
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<Handler> _logger;
+
+        public Handler(
+            IUserRepository userRepository,
+            IMapper mapper,
+            ILogger<Handler> logger)
+        {
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Result<UserDto>> Handle(
+            GetUserByEmailQuery request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching user by email: {Email}", request.Email);
+
+                var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+
+                if (user == null || user.IsDeleted)
+                {
+                    _logger.LogWarning("User not found with email: {Email}", request.Email);
+                    return Result<UserDto>.Failure("User not found");
+                }
+
+                return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while fetching user by email: {Email}", request.Email);
+                return Result<UserDto>.Failure("An unexpected error occurred while fetching user");
+            }
+        }
+    }
+}
