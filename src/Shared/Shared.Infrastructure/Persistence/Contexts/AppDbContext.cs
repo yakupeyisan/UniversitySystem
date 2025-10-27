@@ -10,6 +10,8 @@ using Shared.Infrastructure.Persistence.Configurations.Academic;
 using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using System;
 using System.Linq.Expressions;
+using Identity.Domain.Aggregates;
+
 namespace Shared.Infrastructure.Persistence.Contexts;
 public class AppDbContext : DbContext
 {
@@ -40,10 +42,18 @@ public class AppDbContext : DbContext
     public DbSet<GradeObjection> GradeObjections { get; set; }
     public DbSet<Prerequisite> Prerequisites { get; set; }
     public DbSet<PrerequisiteWaiver> PrerequisiteWaivers { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Role> Roles { get; set; } = null!;
+    public DbSet<Permission> Permissions { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Ignore<DomainEvent>();
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new RoleConfiguration());
+        modelBuilder.ApplyConfiguration(new PermissionConfiguration());
+        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
         modelBuilder.ApplyConfiguration(new PersonConfiguration());
         modelBuilder.ApplyConfiguration(new AddressConfiguration());
         modelBuilder.ApplyConfiguration(new StudentConfiguration());

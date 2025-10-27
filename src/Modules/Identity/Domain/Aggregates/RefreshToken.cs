@@ -12,7 +12,7 @@ public class RefreshToken : AuditableEntity
     public string RevokeReason { get; private set; }
     public string IpAddress { get; private set; }
     public string UserAgent { get; private set; }
-
+    public User User { get; private set; }
     private RefreshToken() { }
 
     public static RefreshToken Create(
