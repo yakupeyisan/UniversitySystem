@@ -1,21 +1,17 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class UpdateGradeRequestValidator : AbstractValidator<UpdateGradeRequest>
 {
     public UpdateGradeRequestValidator()
     {
         RuleFor(x => x.GradeId)
-            .NotEmpty().WithMessage("Not ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Not ID'si boï¿½ olamaz");
         RuleFor(x => x.MidtermScore)
-            .GreaterThanOrEqualTo(0).WithMessage("Ara sýnav puaný 0'dan küçük olamaz")
-            .LessThanOrEqualTo(100).WithMessage("Ara sýnav puaný 100'den büyük olamaz");
-
+            .GreaterThanOrEqualTo(0).WithMessage("Ara sï¿½nav puanï¿½ 0'dan kï¿½ï¿½ï¿½k olamaz")
+            .LessThanOrEqualTo(100).WithMessage("Ara sï¿½nav puanï¿½ 100'den bï¿½yï¿½k olamaz");
         RuleFor(x => x.FinalScore)
-            .GreaterThanOrEqualTo(0).WithMessage("Final puaný 0'dan küçük olamaz")
-            .LessThanOrEqualTo(100).WithMessage("Final puaný 100'den büyük olamaz");
+            .GreaterThanOrEqualTo(0).WithMessage("Final puanï¿½ 0'dan kï¿½ï¿½ï¿½k olamaz")
+            .LessThanOrEqualTo(100).WithMessage("Final puanï¿½ 100'den bï¿½yï¿½k olamaz");
     }
 }

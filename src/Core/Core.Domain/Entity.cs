@@ -1,5 +1,4 @@
 using Core.Domain.Events;
-
 namespace Core.Domain;
 public abstract class Entity : IEquatable<Entity>
 {

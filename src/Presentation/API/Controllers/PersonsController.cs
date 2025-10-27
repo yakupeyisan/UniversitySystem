@@ -4,7 +4,6 @@ using PersonMgmt.Application.Commands;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Application.Queries;
 using Core.Domain.Pagination;
-
 namespace API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -18,7 +17,6 @@ public class PersonsController : ControllerBase
         _mediator = mediator;
         _logger = logger;
     }
-
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -105,7 +103,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("students")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStudents(
@@ -130,7 +127,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("staff")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStaff(
@@ -155,7 +151,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("{personId}/restrictions")]
     [ProducesResponseType(typeof(IEnumerable<RestrictionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPersonRestrictions(Guid personId)

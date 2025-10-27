@@ -1,35 +1,30 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class UpdateExamRequestValidator : AbstractValidator<UpdateExamRequest>
 {
     public UpdateExamRequestValidator()
     {
         RuleFor(x => x.ExamId)
-            .NotEmpty().WithMessage("Sýnav ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Sï¿½nav ID'si boï¿½ olamaz");
         RuleFor(x => x.ExamDate)
-            .NotEmpty().WithMessage("Sýnav tarihi boþ olamaz")
-            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Sýnav tarihi format hatasý (yyyy-MM-dd)")
+            .NotEmpty().WithMessage("Sï¿½nav tarihi boï¿½ olamaz")
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Sï¿½nav tarihi format hatasï¿½ (yyyy-MM-dd)")
             .Custom((date, context) =>
             {
                 if (DateOnly.TryParse(date, out var parsedDate))
                 {
                     if (parsedDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                        context.AddFailure("Sýnav tarihi geçmiþ tarih olamaz");
+                        context.AddFailure("Sï¿½nav tarihi geï¿½miï¿½ tarih olamaz");
                 }
                 else
-                    context.AddFailure("Sýnav tarihi geçersiz");
+                    context.AddFailure("Sï¿½nav tarihi geï¿½ersiz");
             });
-
         RuleFor(x => x.StartTime)
-            .NotEmpty().WithMessage("Baþlangýç saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Baþlangýç saati format hatasý (HH:mm)");
-
+            .NotEmpty().WithMessage("Baï¿½langï¿½ï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Baï¿½langï¿½ï¿½ saati format hatasï¿½ (HH:mm)");
         RuleFor(x => x.EndTime)
-            .NotEmpty().WithMessage("Bitiþ saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Bitiþ saati format hatasý (HH:mm)");
+            .NotEmpty().WithMessage("Bitiï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Bitiï¿½ saati format hatasï¿½ (HH:mm)");
     }
 }

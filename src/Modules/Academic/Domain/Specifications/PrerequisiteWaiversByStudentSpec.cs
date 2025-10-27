@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Specifications;
-
-/// <summary>
-/// Specification for getting prerequisite waivers by student
-/// </summary>
 public class PrerequisiteWaiversByStudentSpec : Specification<PrerequisiteWaiver>
 {
     public PrerequisiteWaiversByStudentSpec(Guid studentId)

@@ -5,21 +5,14 @@ using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to join course waiting list
-/// </summary>
 public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
 {
     public JoinWaitingListRequest Request { get; set; }
-
     public JoinWaitingListCommand(JoinWaitingListRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public class Handler : IRequestHandler<JoinWaitingListCommand, Result<WaitingListResponse>>
     {
         private readonly IWaitingListRepository _waitingListRepository;
@@ -27,7 +20,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
         private readonly ICourseRepository _courseRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             IWaitingListRepository waitingListRepository,
             ICourseRegistrationRepository registrationRepository,
@@ -41,7 +33,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _waitingListRepository = waitingListRepository;
         }
-
         public async Task<Result<WaitingListResponse>> Handle(
             JoinWaitingListCommand request,
             CancellationToken cancellationToken)
@@ -52,12 +43,9 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     "Student {StudentId} joining waiting list for course {CourseId}",
                     request.Request.StudentId,
                     request.Request.CourseId);
-
-                // Verify course exists
                 var course = await _courseRepository.GetByIdAsync(
                     request.Request.CourseId,
                     cancellationToken);
-
                 if (course == null)
                 {
                     _logger.LogWarning(
@@ -66,12 +54,10 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     return Result<WaitingListResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
-
                 var existingEntry = await _waitingListRepository.GetByStudentAndCourseAsync(
                     request.Request.StudentId,
                     request.Request.CourseId,
                     cancellationToken);
-
                 if (existingEntry != null)
                 {
                     _logger.LogWarning(
@@ -88,8 +74,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     "Next queue position for course {CourseId} is {Position}",
                     request.Request.CourseId,
                     nextQueuePosition);
-
-                // Create waiting list entry
                 var waitingListEntry = CourseWaitingListEntry.Create(
                     studentId: request.Request.StudentId,
                     courseId: request.Request.CourseId,
@@ -101,7 +85,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     request.Request.StudentId,
                     request.Request.CourseId,
                     nextQueuePosition);
-
                 var response = _mapper.Map<WaitingListResponse>(waitingListEntry);
                 return Result<WaitingListResponse>.Success(
                     response,

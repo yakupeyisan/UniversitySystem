@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for CourseWaitingListEntry aggregate
-/// </summary>
 public interface IWaitingListRepository : IRepository<CourseWaitingListEntry>
 {
     Task<IEnumerable<CourseWaitingListEntry>> GetByStudentAsync(Guid studentId, CancellationToken ct = default);

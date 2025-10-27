@@ -1,5 +1,4 @@
 namespace Academic.Application.DTOs;
-
 public class AddPrerequisiteRequest
 {
     public Guid CourseId { get; set; }

@@ -1,23 +1,18 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class SubmitGradeObjectionRequestValidator : AbstractValidator<SubmitGradeObjectionRequest>
 {
     public SubmitGradeObjectionRequestValidator()
     {
         RuleFor(x => x.GradeId)
-            .NotEmpty().WithMessage("Not ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Not ID'si boï¿½ olamaz");
         RuleFor(x => x.StudentId)
-            .NotEmpty().WithMessage("Öðrenci ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("ï¿½ï¿½renci ID'si boï¿½ olamaz");
         RuleFor(x => x.CourseId)
-            .NotEmpty().WithMessage("Kurs ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Kurs ID'si boï¿½ olamaz");
         RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("Ýtirazi neden boþ olamaz")
-            .MaximumLength(500).WithMessage("Ýtirazi neden maksimum 500 karakter olabilir");
+            .NotEmpty().WithMessage("ï¿½tirazi neden boï¿½ olamaz")
+            .MaximumLength(500).WithMessage("ï¿½tirazi neden maksimum 500 karakter olabilir");
     }
 }

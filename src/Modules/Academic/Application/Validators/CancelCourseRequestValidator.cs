@@ -1,17 +1,14 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class CancelCourseRequestValidator : AbstractValidator<CancelCourseRequest>
 {
     public CancelCourseRequestValidator()
     {
         RuleFor(x => x.CourseId)
-            .NotEmpty().WithMessage("Kurs ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Kurs ID'si boï¿½ olamaz");
         RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("Ýptal nedeni boþ olamaz")
-            .MaximumLength(500).WithMessage("Ýptal nedeni maksimum 500 karakter olabilir");
+            .NotEmpty().WithMessage("ï¿½ptal nedeni boï¿½ olamaz")
+            .MaximumLength(500).WithMessage("ï¿½ptal nedeni maksimum 500 karakter olabilir");
     }
 }

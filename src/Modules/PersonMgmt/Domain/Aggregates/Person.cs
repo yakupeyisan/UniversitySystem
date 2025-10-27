@@ -286,9 +286,9 @@ public class Person : AuditableEntity, ISoftDelete
         {
             address.Restore();
         }
-        foreach (var address in _restrictions)
+        foreach (var restriction in _restrictions)
         {
-            address.Restore();
+            restriction.Restore();
         }
     }
     #region Validation

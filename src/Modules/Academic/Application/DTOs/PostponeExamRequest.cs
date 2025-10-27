@@ -1,5 +1,4 @@
 namespace Academic.Application.DTOs;
-
 public class PostponeExamRequest
 {
     public Guid ExamId { get; set; }

@@ -1,20 +1,16 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class DropCourseRequestValidator : AbstractValidator<DropCourseRequest>
 {
     public DropCourseRequestValidator()
     {
         RuleFor(x => x.StudentId)
-            .NotEmpty().WithMessage("Öðrenci ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("ï¿½ï¿½renci ID'si boï¿½ olamaz");
         RuleFor(x => x.CourseId)
-            .NotEmpty().WithMessage("Kurs ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Kurs ID'si boï¿½ olamaz");
         RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("Ders býrakma nedeni boþ olamaz")
-            .MaximumLength(500).WithMessage("Ders býrakma nedeni maksimum 500 karakter olabilir");
+            .NotEmpty().WithMessage("Ders bï¿½rakma nedeni boï¿½ olamaz")
+            .MaximumLength(500).WithMessage("Ders bï¿½rakma nedeni maksimum 500 karakter olabilir");
     }
 }

@@ -1,16 +1,13 @@
-﻿using Academic.Application.DTOs;
+using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using AutoMapper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Academic.Application.Mappers;
-
 public class CourseProfile : Profile
 {
     public CourseProfile()
     {
-        // Course → Response
         CreateMap<Course, CourseResponse>()
             .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level.ToString()))
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
@@ -21,14 +18,11 @@ public class CourseProfile : Profile
             .ForMember(dest => dest.OccupancyPercentage, opt => opt.MapFrom(src => src.Capacity.OccupancyPercentage()))
             .ForMember(dest => dest.InstructorCount, opt => opt.MapFrom(src => src.InstructorIds.Count))
             .ForMember(dest => dest.PrerequisiteCount, opt => opt.MapFrom(src => src.PrerequisiteIds.Count));
-
         CreateMap<Course, CourseListResponse>()
             .ForMember(dest => dest.Semester, opt => opt.MapFrom(src => src.Semester.ToString()))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.MaxCapacity, opt => opt.MapFrom(src => src.Capacity.MaxCapacity))
             .ForMember(dest => dest.CurrentEnrollment, opt => opt.MapFrom(src => src.Capacity.CurrentEnrollment));
-
-        // Request → Domain
         CreateMap<CreateCourseRequest, Course>()
             .ForMember(dest => dest.Level, opt => opt.MapFrom(src => (CourseLevel)src.Level))
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => (CourseType)src.Type))

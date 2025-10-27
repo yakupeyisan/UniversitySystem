@@ -1,50 +1,38 @@
 using FluentValidation;
 using Academic.Application.DTOs;
-
 namespace Academic.Application.Validators;
-
 public class CreateCourseRequestValidator : AbstractValidator<CreateCourseRequest>
 {
     public CreateCourseRequestValidator()
     {
         RuleFor(x => x.CourseCode)
-            .NotEmpty().WithMessage("Kurs kodu boþ olamaz")
-            .Length(4, 20).WithMessage("Kurs kodu 4-20 karakter arasýnda olmalýdýr")
-            .Matches(@"^[A-Z]{2,4}\d{2,4}$").WithMessage("Kurs kodu format hatasý (örn: CS101)");
-
+            .NotEmpty().WithMessage("Kurs kodu boï¿½ olamaz")
+            .Length(4, 20).WithMessage("Kurs kodu 4-20 karakter arasï¿½nda olmalï¿½dï¿½r")
+            .Matches(@"^[A-Z]{2,4}\d{2,4}$").WithMessage("Kurs kodu format hatasï¿½ (ï¿½rn: CS101)");
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Kurs adý boþ olamaz")
-            .Length(3, 200).WithMessage("Kurs adý 3-200 karakter arasýnda olmalýdýr");
-
+            .NotEmpty().WithMessage("Kurs adï¿½ boï¿½ olamaz")
+            .Length(3, 200).WithMessage("Kurs adï¿½ 3-200 karakter arasï¿½nda olmalï¿½dï¿½r");
         RuleFor(x => x.Description)
-            .MaximumLength(1000).WithMessage("Açýklama maksimum 1000 karakter olabilir");
-
+            .MaximumLength(1000).WithMessage("Aï¿½ï¿½klama maksimum 1000 karakter olabilir");
         RuleFor(x => x.ECTS)
-            .GreaterThan(0).WithMessage("ECTS 0'dan büyük olmalýdýr")
+            .GreaterThan(0).WithMessage("ECTS 0'dan bï¿½yï¿½k olmalï¿½dï¿½r")
             .LessThanOrEqualTo(20).WithMessage("ECTS maksimum 20 olabilir");
-
         RuleFor(x => x.Credits)
-            .GreaterThan(0).WithMessage("Kredi 0'dan büyük olmalýdýr")
+            .GreaterThan(0).WithMessage("Kredi 0'dan bï¿½yï¿½k olmalï¿½dï¿½r")
             .LessThanOrEqualTo(10).WithMessage("Kredi maksimum 10 olabilir");
-
         RuleFor(x => x.Level)
-            .InclusiveBetween(1, 4).WithMessage("Seviye 1-4 arasýnda olmalýdýr");
-
+            .InclusiveBetween(1, 4).WithMessage("Seviye 1-4 arasï¿½nda olmalï¿½dï¿½r");
         RuleFor(x => x.Type)
-            .InclusiveBetween(1, 5).WithMessage("Tür 1-5 arasýnda olmalýdýr");
-
+            .InclusiveBetween(1, 5).WithMessage("Tï¿½r 1-5 arasï¿½nda olmalï¿½dï¿½r");
         RuleFor(x => x.Semester)
-            .InclusiveBetween(1, 3).WithMessage("Semester 1-3 arasýnda olmalýdýr");
-
+            .InclusiveBetween(1, 3).WithMessage("Semester 1-3 arasï¿½nda olmalï¿½dï¿½r");
         RuleFor(x => x.Year)
-            .GreaterThan(0).WithMessage("Yýl 0'dan büyük olmalýdýr")
-            .LessThanOrEqualTo(4).WithMessage("Yýl maksimum 4 olabilir");
-
+            .GreaterThan(0).WithMessage("Yï¿½l 0'dan bï¿½yï¿½k olmalï¿½dï¿½r")
+            .LessThanOrEqualTo(4).WithMessage("Yï¿½l maksimum 4 olabilir");
         RuleFor(x => x.DepartmentId)
-            .NotEmpty().WithMessage("Bölüm ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Bï¿½lï¿½m ID'si boï¿½ olamaz");
         RuleFor(x => x.MaxCapacity)
-            .GreaterThan(0).WithMessage("Maksimum kapasite 0'dan büyük olmalýdýr")
+            .GreaterThan(0).WithMessage("Maksimum kapasite 0'dan bï¿½yï¿½k olmalï¿½dï¿½r")
             .LessThanOrEqualTo(500).WithMessage("Maksimum kapasite 500 olamaz");
     }
 }

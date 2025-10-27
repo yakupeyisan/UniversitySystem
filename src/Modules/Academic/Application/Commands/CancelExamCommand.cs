@@ -3,26 +3,18 @@ using Academic.Domain.Interfaces;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to cancel an exam
-/// </summary>
 public class CancelExamCommand : IRequest<Result<Unit>>
 {
     public CancelExamRequest Request { get; set; }
-
     public CancelExamCommand(CancelExamRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public class Handler : IRequestHandler<CancelExamCommand, Result<Unit>>
     {
         private readonly IExamRepository _examRepository;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             IExamRepository examRepository,
             ILogger<Handler> logger)
@@ -30,7 +22,6 @@ public class CancelExamCommand : IRequest<Result<Unit>>
             _examRepository = examRepository ?? throw new ArgumentNullException(nameof(examRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<Unit>> Handle(
             CancelExamCommand request,
             CancellationToken cancellationToken)
@@ -40,11 +31,9 @@ public class CancelExamCommand : IRequest<Result<Unit>>
                 _logger.LogInformation(
                     "Cancelling exam with ID: {ExamId}",
                     request.Request.ExamId);
-
                 var exam = await _examRepository.GetByIdAsync(
                     request.Request.ExamId,
                     cancellationToken);
-
                 if (exam == null)
                 {
                     _logger.LogWarning(
@@ -53,18 +42,12 @@ public class CancelExamCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure(
                         $"Exam with ID {request.Request.ExamId} not found");
                 }
-
-                // Cancel exam
                 exam.Cancel(request.Request.Reason);
-
-                // Save changes
                 await _examRepository.UpdateAsync(exam, cancellationToken);
                 await _examRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation(
                     "Exam {ExamId} cancelled successfully",
                     exam.Id);
-
                 return Result<Unit>.Success(Unit.Value, "Exam cancelled successfully");
             }
             catch (InvalidOperationException ex)

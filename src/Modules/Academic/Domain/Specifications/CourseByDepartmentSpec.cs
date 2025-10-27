@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Specifications;
-
-/// <summary>
-/// Specification for getting courses by department
-/// </summary>
 public class CourseByDepartmentSpec : Specification<Course>
 {
     public CourseByDepartmentSpec(Guid departmentId)

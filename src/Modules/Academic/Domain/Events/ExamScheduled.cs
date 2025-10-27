@@ -1,12 +1,7 @@
 using Academic.Domain.Enums;
 using Academic.Domain.ValueObjects;
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
-/// <summary>
-/// Event raised when an exam is scheduled
-/// </summary>
 public class ExamScheduled : DomainEvent
 {
     public Guid ExamId { get; }
@@ -16,7 +11,6 @@ public class ExamScheduled : DomainEvent
     public TimeSlot TimeSlot { get; }
     public Guid AggregateId => ExamId;
     public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
     public ExamScheduled(Guid examId, Guid courseId, ExamType examType, DateOnly examDate, TimeSlot timeSlot)
     {
         ExamId = examId;

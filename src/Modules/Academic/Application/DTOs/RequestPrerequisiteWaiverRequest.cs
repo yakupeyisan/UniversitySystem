@@ -1,5 +1,4 @@
 namespace Academic.Application.DTOs;
-
 public class RequestPrerequisiteWaiverRequest
 {
     public Guid StudentId { get; set; }

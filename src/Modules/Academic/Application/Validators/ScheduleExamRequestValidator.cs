@@ -1,50 +1,43 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class ScheduleExamRequestValidator : AbstractValidator<ScheduleExamRequest>
 {
     public ScheduleExamRequestValidator()
     {
         RuleFor(x => x.CourseId)
-            .NotEmpty().WithMessage("Kurs ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Kurs ID'si boï¿½ olamaz");
         RuleFor(x => x.ExamType)
-            .InclusiveBetween(1, 5).WithMessage("Sýnav türü 1-5 arasýnda olmalýdýr");
-
+            .InclusiveBetween(1, 5).WithMessage("Sï¿½nav tï¿½rï¿½ 1-5 arasï¿½nda olmalï¿½dï¿½r");
         RuleFor(x => x.ExamDate)
-            .NotEmpty().WithMessage("Sýnav tarihi boþ olamaz")
-            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Sýnav tarihi format hatasý (yyyy-MM-dd)")
+            .NotEmpty().WithMessage("Sï¿½nav tarihi boï¿½ olamaz")
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Sï¿½nav tarihi format hatasï¿½ (yyyy-MM-dd)")
             .Custom((date, context) =>
             {
                 if (DateOnly.TryParse(date, out var parsedDate))
                 {
                     if (parsedDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                        context.AddFailure("Sýnav tarihi geçmiþ tarih olamaz");
+                        context.AddFailure("Sï¿½nav tarihi geï¿½miï¿½ tarih olamaz");
                 }
                 else
-                    context.AddFailure("Sýnav tarihi geçersiz");
+                    context.AddFailure("Sï¿½nav tarihi geï¿½ersiz");
             });
-
         RuleFor(x => x.StartTime)
-            .NotEmpty().WithMessage("Baþlangýç saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Baþlangýç saati format hatasý (HH:mm)")
+            .NotEmpty().WithMessage("Baï¿½langï¿½ï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Baï¿½langï¿½ï¿½ saati format hatasï¿½ (HH:mm)")
             .Custom((time, context) =>
             {
                 if (!TimeOnly.TryParse(time, out _))
-                    context.AddFailure("Baþlangýç saati geçersiz");
+                    context.AddFailure("Baï¿½langï¿½ï¿½ saati geï¿½ersiz");
             });
-
         RuleFor(x => x.EndTime)
-            .NotEmpty().WithMessage("Bitiþ saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Bitiþ saati format hatasý (HH:mm)")
+            .NotEmpty().WithMessage("Bitiï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Bitiï¿½ saati format hatasï¿½ (HH:mm)")
             .Custom((time, context) =>
             {
                 if (!TimeOnly.TryParse(time, out _))
-                    context.AddFailure("Bitiþ saati geçersiz");
+                    context.AddFailure("Bitiï¿½ saati geï¿½ersiz");
             });
-
         RuleFor(x => x)
             .Custom((request, context) =>
             {
@@ -52,25 +45,22 @@ public class ScheduleExamRequestValidator : AbstractValidator<ScheduleExamReques
                     TimeOnly.TryParse(request.EndTime, out var end))
                 {
                     if (end <= start)
-                        context.AddFailure("Bitiþ saati baþlangýç saatinden sonra olmalýdýr");
+                        context.AddFailure("Bitiï¿½ saati baï¿½langï¿½ï¿½ saatinden sonra olmalï¿½dï¿½r");
                 }
             });
-
         RuleFor(x => x.MaxCapacity)
-            .GreaterThan(0).WithMessage("Maksimum kapasite 0'dan büyük olmalýdýr")
+            .GreaterThan(0).WithMessage("Maksimum kapasite 0'dan bï¿½yï¿½k olmalï¿½dï¿½r")
             .LessThanOrEqualTo(500).WithMessage("Maksimum kapasite 500 olamaz");
-
         RuleFor(x => x.IsOnline)
             .Custom((isOnline, context) =>
             {
                 var request = context.InstanceToValidate;
                 if (isOnline && string.IsNullOrWhiteSpace(request.OnlineLink))
-                    context.AddFailure("Online sýnav için link saðlanmalýdýr");
+                    context.AddFailure("Online sï¿½nav iï¿½in link saï¿½lanmalï¿½dï¿½r");
             });
-
         RuleFor(x => x.OnlineLink)
             .Must(url => string.IsNullOrWhiteSpace(url) || Uri.TryCreate(url, UriKind.Absolute, out _))
-            .WithMessage("Online link geçerli bir URL olmalýdýr")
+            .WithMessage("Online link geï¿½erli bir URL olmalï¿½dï¿½r")
             .When(x => !string.IsNullOrWhiteSpace(x.OnlineLink));
     }
 }

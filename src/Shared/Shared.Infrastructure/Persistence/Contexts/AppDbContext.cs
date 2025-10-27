@@ -10,15 +10,14 @@ using Shared.Infrastructure.Persistence.Configurations.Academic;
 using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 using System;
 using System.Linq.Expressions;
-
 namespace Shared.Infrastructure.Persistence.Contexts;
 public class AppDbContext : DbContext
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IPublisher _mediator;
     private readonly IDateTime _dateTime;
-    public AppDbContext(DbContextOptions<AppDbContext> options, 
-        ICurrentUserService currentUserService, 
+    public AppDbContext(DbContextOptions<AppDbContext> options,
+        ICurrentUserService currentUserService,
         IPublisher mediator, IDateTime dateTime) : base(options)
     {
         _currentUserService = currentUserService;
@@ -32,8 +31,6 @@ public class AppDbContext : DbContext
     public DbSet<HealthRecord> HealthRecords { get; set; } = null!;
     public DbSet<PersonRestriction> PersonRestrictions { get; set; } = null!;
     public DbSet<EmergencyContact> EmergencyContacts { get; set; } = null!;
-
-    // Academic Module DbSets
     public DbSet<Course> Courses { get; set; }
     public DbSet<CourseRegistration> CourseRegistrations { get; set; }
     public DbSet<CourseWaitingListEntry> CourseWaitingListEntries { get; set; }
@@ -43,7 +40,6 @@ public class AppDbContext : DbContext
     public DbSet<GradeObjection> GradeObjections { get; set; }
     public DbSet<Prerequisite> Prerequisites { get; set; }
     public DbSet<PrerequisiteWaiver> PrerequisiteWaivers { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -55,7 +51,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new HealthRecordConfiguration());
         modelBuilder.ApplyConfiguration(new EmergencyContactConfiguration());
         modelBuilder.ApplyConfiguration(new PersonRestrictionConfiguration());
-
         modelBuilder.ApplyConfiguration(new CourseConfiguration());
         modelBuilder.ApplyConfiguration(new CourseRegistrationConfiguration());
         modelBuilder.ApplyConfiguration(new CourseWaitingListEntryConfiguration());
@@ -65,7 +60,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new GradeObjectionConfiguration());
         modelBuilder.ApplyConfiguration(new PrerequisiteConfiguration());
         modelBuilder.ApplyConfiguration(new PrerequisiteWaiverConfiguration());
-
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
@@ -75,7 +69,6 @@ public class AppDbContext : DbContext
             }
         }
     }
-
     private static LambdaExpression GetSoftDeleteFilter(Type entityType)
     {
         var parameter = Expression.Parameter(entityType, "e");
@@ -93,26 +86,20 @@ public class AppDbContext : DbContext
                     entry.Entity.CreatedBy = _currentUserService.UserId;
                     entry.Entity.CreatedAt = _dateTime.UtcNow;
                     break;
-
                 case EntityState.Modified:
                     entry.Entity.UpdatedBy = _currentUserService.UserId;
                     entry.Entity.UpdatedAt = _dateTime.UtcNow;
                     break;
-
                 case EntityState.Deleted:
                     if (entry.Entity is ISoftDelete softDeleteEntity)
                     {
                         entry.State = EntityState.Modified;
                         softDeleteEntity.Delete(_currentUserService.UserId);
-
                     }
                     break;
             }
         }
-
-        // Domain events will be dispatched here
         await DispatchDomainEventsAsync(cancellationToken);
-
         return await base.SaveChangesAsync(cancellationToken);
     }
     private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
@@ -121,19 +108,13 @@ public class AppDbContext : DbContext
             .Entries<Entity>()
             .Where(x => x.Entity.DomainEvents.Any())
             .ToList();
-
         var domainEvents = domainEntities
             .SelectMany(x => x.Entity.DomainEvents)
             .ToList();
-
         domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
-
-        // Domain event dispatching will be implemented with MediatR
         foreach (var domainEvent in domainEvents)
         {
             await _mediator.Publish(domainEvent, cancellationToken);
         }
     }
-
-
 }

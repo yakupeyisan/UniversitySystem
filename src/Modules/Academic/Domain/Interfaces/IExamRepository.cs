@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for Exam aggregate
-/// </summary>
 public interface IExamRepository : IRepository<Exam>
 {
     Task<IEnumerable<Exam>> GetByCourseAsync(Guid courseId, CancellationToken ct = default);

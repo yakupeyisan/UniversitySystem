@@ -1,4 +1,3 @@
-
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
@@ -8,30 +7,19 @@ using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to create a new course
-/// </summary>
 public class CreateCourseCommand : IRequest<Result<CourseResponse>>
 {
     public CreateCourseRequest Request { get; set; }
-
     public CreateCourseCommand(CreateCourseRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
-    /// <summary>
-    /// Handler for CreateCourseCommand
-    /// </summary>
     public class Handler : IRequestHandler<CreateCourseCommand, Result<CourseResponse>>
     {
         private readonly ICourseRepository _courseRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             ICourseRepository courseRepository,
             IMapper mapper,
@@ -41,7 +29,6 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<CourseResponse>> Handle(
             CreateCourseCommand request,
             CancellationToken cancellationToken)
@@ -52,12 +39,9 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     "Creating new course: {CourseCode} - {CourseName}",
                     request.Request.CourseCode,
                     request.Request.Name);
-
-                // Check if course code already exists
                 var existingCourse = await _courseRepository.GetByCourseCodeAsync(
                     request.Request.CourseCode,
                     cancellationToken);
-
                 if (existingCourse != null)
                 {
                     _logger.LogWarning(
@@ -66,14 +50,8 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     return Result<CourseResponse>.Failure(
                         $"Course with code {request.Request.CourseCode} already exists");
                 }
-
-                // Create course code value object
                 var courseCode = CourseCode.Create(request.Request.CourseCode);
-
-                // Create capacity info value object
                 var capacityInfo = CapacityInfo.Create(request.Request.MaxCapacity);
-
-                // Create course aggregate
                 var course = Course.Create(
                     code: courseCode,
                     name: request.Request.Name,
@@ -86,15 +64,11 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     year: request.Request.Year,
                     departmentId: request.Request.DepartmentId,
                     maxCapacity: request.Request.MaxCapacity);
-
-                // Save to database
                 await _courseRepository.AddAsync(course, cancellationToken);
                 await _courseRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation(
                     "Course created successfully with ID: {CourseId}",
                     course.Id);
-
                 var response = _mapper.Map<CourseResponse>(course);
                 return Result<CourseResponse>.Success(
                     response,

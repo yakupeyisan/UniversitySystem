@@ -1,35 +1,30 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class PostponeExamRequestValidator : AbstractValidator<PostponeExamRequest>
 {
     public PostponeExamRequestValidator()
     {
         RuleFor(x => x.ExamId)
-            .NotEmpty().WithMessage("Sýnav ID'si boþ olamaz");
-
+            .NotEmpty().WithMessage("Sï¿½nav ID'si boï¿½ olamaz");
         RuleFor(x => x.NewExamDate)
-            .NotEmpty().WithMessage("Yeni sýnav tarihi boþ olamaz")
-            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Yeni sýnav tarihi format hatasý (yyyy-MM-dd)")
+            .NotEmpty().WithMessage("Yeni sï¿½nav tarihi boï¿½ olamaz")
+            .Matches(@"^\d{4}-\d{2}-\d{2}$").WithMessage("Yeni sï¿½nav tarihi format hatasï¿½ (yyyy-MM-dd)")
             .Custom((date, context) =>
             {
                 if (DateOnly.TryParse(date, out var parsedDate))
                 {
                     if (parsedDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                        context.AddFailure("Yeni sýnav tarihi geçmiþ tarih olamaz");
+                        context.AddFailure("Yeni sï¿½nav tarihi geï¿½miï¿½ tarih olamaz");
                 }
                 else
-                    context.AddFailure("Yeni sýnav tarihi geçersiz");
+                    context.AddFailure("Yeni sï¿½nav tarihi geï¿½ersiz");
             });
-
         RuleFor(x => x.NewStartTime)
-            .NotEmpty().WithMessage("Yeni baþlangýç saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Yeni baþlangýç saati format hatasý (HH:mm)");
-
+            .NotEmpty().WithMessage("Yeni baï¿½langï¿½ï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Yeni baï¿½langï¿½ï¿½ saati format hatasï¿½ (HH:mm)");
         RuleFor(x => x.NewEndTime)
-            .NotEmpty().WithMessage("Yeni bitiþ saati boþ olamaz")
-            .Matches(@"^\d{2}:\d{2}$").WithMessage("Yeni bitiþ saati format hatasý (HH:mm)");
+            .NotEmpty().WithMessage("Yeni bitiï¿½ saati boï¿½ olamaz")
+            .Matches(@"^\d{2}:\d{2}$").WithMessage("Yeni bitiï¿½ saati format hatasï¿½ (HH:mm)");
     }
 }

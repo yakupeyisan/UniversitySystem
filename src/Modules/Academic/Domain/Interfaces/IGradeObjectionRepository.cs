@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for GradeObjection aggregate
-/// </summary>
 public interface IGradeObjectionRepository : IRepository<GradeObjection>
 {
     Task<IEnumerable<GradeObjection>> GetByStudentAsync(Guid studentId, CancellationToken ct = default);

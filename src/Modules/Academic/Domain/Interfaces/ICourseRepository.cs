@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for Course aggregate
-/// </summary>
 public interface ICourseRepository : IRepository<Course>
 {
     Task<Course?> GetByCourseCodeAsync(string courseCode, CancellationToken ct = default);

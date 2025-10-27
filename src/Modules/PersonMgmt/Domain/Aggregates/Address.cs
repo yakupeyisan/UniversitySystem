@@ -1,6 +1,5 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
 public class Address : AuditableEntity, ISoftDelete
 {
@@ -68,14 +67,12 @@ public class Address : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         IsDeleted = false;
         DeletedAt = null;
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
-
     }
     public void Update(string street, string city, string country, string? postalCode = null)
     {

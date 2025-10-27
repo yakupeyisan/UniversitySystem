@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for CourseRegistration aggregate
-/// </summary>
 public interface ICourseRegistrationRepository : IRepository<CourseRegistration>
 {
     Task<IEnumerable<CourseRegistration>> GetByStudentAsync(Guid studentId, CancellationToken ct = default);

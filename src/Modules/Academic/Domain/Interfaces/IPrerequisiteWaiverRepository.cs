@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for PrerequisiteWaiver aggregate
-/// </summary>
 public interface IPrerequisiteWaiverRepository : IRepository<PrerequisiteWaiver>
 {
     Task<IEnumerable<PrerequisiteWaiver>> GetByStudentAsync(Guid studentId, CancellationToken ct = default);

@@ -5,28 +5,20 @@ using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to enroll a student in a course
-/// </summary>
 public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
 {
     public EnrollStudentRequest Request { get; set; }
-
     public EnrollStudentCommand(EnrollStudentRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public class Handler : IRequestHandler<EnrollStudentCommand, Result<CourseRegistrationResponse>>
     {
         private readonly ICourseRegistrationRepository _registrationRepository;
         private readonly ICourseRepository _courseRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             ICourseRegistrationRepository registrationRepository,
             ICourseRepository courseRepository,
@@ -38,7 +30,6 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<CourseRegistrationResponse>> Handle(
             EnrollStudentCommand request,
             CancellationToken cancellationToken)
@@ -49,13 +40,10 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     "Enrolling student {StudentId} in course {CourseId}",
                     request.Request.StudentId,
                     request.Request.CourseId);
-
-                // Check if already enrolled
                 var existingRegistration = await _registrationRepository.GetByStudentAndCourseAsync(
                     request.Request.StudentId,
                     request.Request.CourseId,
                     cancellationToken);
-
                 if (existingRegistration != null)
                 {
                     _logger.LogWarning(
@@ -65,12 +53,9 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         "Student is already registered for this course");
                 }
-
-                // Verify course exists
                 var course = await _courseRepository.GetByIdAsync(
                     request.Request.CourseId,
                     cancellationToken);
-
                 if (course == null)
                 {
                     _logger.LogWarning(
@@ -79,24 +64,18 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
-
-                // Create course registration
                 var registration = CourseRegistration.Create(
                     studentId: request.Request.StudentId,
                     courseId: request.Request.CourseId,
                     semester: request.Request.Semester,
                     isRetake: request.Request.IsRetake,
                     previousGradeId: request.Request.PreviousGradeId);
-
-                // Save to database
                 await _registrationRepository.AddAsync(registration, cancellationToken);
                 await _registrationRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation(
                     "Student {StudentId} enrolled in course {CourseId} successfully",
                     request.Request.StudentId,
                     request.Request.CourseId);
-
                 var response = _mapper.Map<CourseRegistrationResponse>(registration);
                 return Result<CourseRegistrationResponse>.Success(
                     response,

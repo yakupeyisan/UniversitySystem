@@ -1,11 +1,6 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Repositories;
-
 namespace Academic.Domain.Interfaces;
-
-/// <summary>
-/// Repository interface for Grade aggregate
-/// </summary>
 public interface IGradeRepository : IRepository<Grade>
 {
     Task<IEnumerable<Grade>> GetByStudentAsync(Guid studentId, CancellationToken ct = default);

@@ -3,17 +3,11 @@ using Academic.Domain.Enums;
 using Academic.Domain.ValueObjects;
 using Academic.Domain.Events;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Aggregates;
-
-/// <summary>
-/// Course aggregate root representing an academic course
-/// </summary>
 public class Course : AuditableEntity, ISoftDelete
 {
     private readonly List<Guid> _instructorIds = new();
     private readonly List<Guid> _prerequisiteIds = new();
-
     public CourseCode Code { get; private set; } = null!;
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
@@ -26,41 +20,31 @@ public class Course : AuditableEntity, ISoftDelete
     public Guid DepartmentId { get; private set; }
     public CourseStatus Status { get; private set; }
     public CapacityInfo Capacity { get; private set; } = null!;
-
-    // Navigation properties
     public IReadOnlyList<Guid> InstructorIds => _instructorIds.AsReadOnly();
     public IReadOnlyList<Guid> PrerequisiteIds => _prerequisiteIds.AsReadOnly();
-
-    // Soft delete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
             throw new InvalidOperationException("Course is already deleted");
-
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
         DeletedBy = deletedBy;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         if (!IsDeleted)
             throw new InvalidOperationException("Course is not deleted");
-
         IsDeleted = false;
         DeletedAt = null;
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     private Course() { }
-
     public static Course Create(
         CourseCode code,
         string name,
@@ -76,16 +60,12 @@ public class Course : AuditableEntity, ISoftDelete
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Course name cannot be empty");
-
         if (ects <= 0 || ects > 20)
             throw new ArgumentException("ECTS must be between 1 and 20");
-
         if (credits <= 0)
             throw new ArgumentException("Credits must be greater than 0");
-
         if (maxCapacity <= 0)
             throw new ArgumentException("Max capacity must be greater than 0");
-
         var course = new Course
         {
             Id = Guid.NewGuid(),
@@ -103,94 +83,71 @@ public class Course : AuditableEntity, ISoftDelete
             Capacity = CapacityInfo.Create(maxCapacity),
             CreatedAt = DateTime.UtcNow
         };
-
         course.AddDomainEvent(new CourseCreated(course.Id, code.Value, name, semester));
-
         return course;
     }
-
     public void AddInstructor(Guid instructorId)
     {
         if (_instructorIds.Contains(instructorId))
             throw new InvalidOperationException("Instructor already assigned to this course");
-
         _instructorIds.Add(instructorId);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void RemoveInstructor(Guid instructorId)
     {
         if (!_instructorIds.Remove(instructorId))
             throw new InvalidOperationException("Instructor not found in course");
-
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void AddPrerequisite(Guid prerequisiteId)
     {
         if (_prerequisiteIds.Contains(prerequisiteId))
             throw new InvalidOperationException("Prerequisite already added to this course");
-
         _prerequisiteIds.Add(prerequisiteId);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void RemovePrerequisite(Guid prerequisiteId)
     {
         if (!_prerequisiteIds.Remove(prerequisiteId))
             throw new InvalidOperationException("Prerequisite not found in course");
-
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool IsCapacityFull() => Capacity.IsFull();
-
     public bool HasAvailableSeats() => Capacity.HasAvailableSeats();
-
     public bool HasPrerequisites() => _prerequisiteIds.Any();
-
     public void IncrementEnrollment()
     {
         if (IsCapacityFull())
             throw new InvalidOperationException("Course capacity is full");
-
         Capacity = Capacity.WithIncrementedEnrollment();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void DecrementEnrollment()
     {
         Capacity = Capacity.WithDecrementedEnrollment();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Cancel(string reason)
     {
         if (Status == CourseStatus.Cancelled)
             throw new InvalidOperationException("Course is already cancelled");
-
         Status = CourseStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Activate()
     {
         if (Status == CourseStatus.Active)
             throw new InvalidOperationException("Course is already active");
-
         Status = CourseStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Deactivate()
     {
         if (Status == CourseStatus.Inactive)
             throw new InvalidOperationException("Course is already inactive");
-
         Status = CourseStatus.Inactive;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Update(
         string name,
         string? description,
@@ -200,16 +157,12 @@ public class Course : AuditableEntity, ISoftDelete
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Course name cannot be empty");
-
         if (ects <= 0 || ects > 20)
             throw new ArgumentException("ECTS must be between 1 and 20");
-
         if (credits <= 0)
             throw new ArgumentException("Credits must be greater than 0");
-
         if (maxCapacity <= 0)
             throw new ArgumentException("Max capacity must be greater than 0");
-
         Name = name;
         Description = description;
         ECTS = ects;

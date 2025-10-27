@@ -1,6 +1,5 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
 public class EmergencyContact : AuditableEntity, ISoftDelete
 {
@@ -12,7 +11,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
     public DateTime? ValidTo { get; set; }
     public bool IsCurrent { get; set; }
     public int Priority { get; set; } = 1;
-
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }

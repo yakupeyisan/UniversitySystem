@@ -5,28 +5,20 @@ using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to record a grade for a student
-/// </summary>
 public class RecordGradeCommand : IRequest<Result<GradeResponse>>
 {
     public RecordGradeRequest Request { get; set; }
-
     public RecordGradeCommand(RecordGradeRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public class Handler : IRequestHandler<RecordGradeCommand, Result<GradeResponse>>
     {
         private readonly IGradeRepository _gradeRepository;
         private readonly ICourseRegistrationRepository _registrationRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             IGradeRepository gradeRepository,
             ICourseRegistrationRepository registrationRepository,
@@ -38,7 +30,6 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<GradeResponse>> Handle(
             RecordGradeCommand request,
             CancellationToken cancellationToken)
@@ -49,12 +40,9 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
                     "Recording grade for student {StudentId} in course {CourseId}",
                     request.Request.StudentId,
                     request.Request.CourseId);
-
-                // Verify registration exists
                 var registration = await _registrationRepository.GetByIdAsync(
                     request.Request.RegistrationId,
                     cancellationToken);
-
                 if (registration == null)
                 {
                     _logger.LogWarning(
@@ -63,8 +51,6 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
                     return Result<GradeResponse>.Failure(
                         $"Registration with ID {request.Request.RegistrationId} not found");
                 }
-
-                // Create grade aggregate
                 var grade = Grade.Create(
                     studentId: request.Request.StudentId,
                     courseId: request.Request.CourseId,
@@ -73,20 +59,13 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
                     midtermScore: request.Request.MidtermScore,
                     finalScore: request.Request.FinalScore,
                     ects: request.Request.ECTS);
-
-                // Save to database
                 await _gradeRepository.AddAsync(grade, cancellationToken);
-
-                // Update registration with grade
                 registration.AssignGrade(grade.Id);
                 await _registrationRepository.UpdateAsync(registration, cancellationToken);
-
                 await _gradeRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation(
                     "Grade recorded successfully with ID: {GradeId}",
                     grade.Id);
-
                 var response = _mapper.Map<GradeResponse>(grade);
                 return Result<GradeResponse>.Success(
                     response,

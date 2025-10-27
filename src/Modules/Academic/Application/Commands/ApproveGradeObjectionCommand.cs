@@ -1,30 +1,22 @@
-﻿using Academic.Application.DTOs;
+using Academic.Application.DTOs;
 using Academic.Domain.Enums;
 using Academic.Domain.Interfaces;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
-/// <summary>
-/// Command to approve a grade objection
-/// </summary>
 public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
 {
     public ApproveGradeObjectionRequest Request { get; set; }
-
     public ApproveGradeObjectionCommand(ApproveGradeObjectionRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public class Handler : IRequestHandler<ApproveGradeObjectionCommand, Result<Unit>>
     {
         private readonly IGradeObjectionRepository _objectionRepository;
         private readonly IGradeRepository _gradeRepository;
         private readonly ILogger<Handler> _logger;
-
         public Handler(
             IGradeObjectionRepository objectionRepository,
             IGradeRepository gradeRepository,
@@ -34,7 +26,6 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<Unit>> Handle(
             ApproveGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -45,11 +36,9 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                     "Approving grade objection {ObjectionId} by reviewer {ReviewedBy}",
                     request.Request.ObjectionId,
                     request.Request.ReviewedBy);
-
                 var objection = await _objectionRepository.GetByIdAsync(
                     request.Request.ObjectionId,
                     cancellationToken);
-
                 if (objection == null)
                 {
                     _logger.LogWarning(
@@ -58,47 +47,35 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure(
                         $"Grade objection with ID {request.Request.ObjectionId} not found");
                 }
-
-                // Approve objection
                 objection.Approve(
                     reviewedBy: request.Request.ReviewedBy,
-                    notes: request.Request.ReviewNotes,  
+                    notes: request.Request.ReviewNotes,
                     newScore: request.Request.NewScore,
                     newLetterGrade: request.Request.NewLetterGrade.HasValue
                         ? (LetterGrade)request.Request.NewLetterGrade.Value
                         : null);
-
-
-                // If score is updated, update grade
                 if (request.Request.NewScore.HasValue)
                 {
                     var grade = await _gradeRepository.GetByIdAsync(
                         objection.GradeId,
                         cancellationToken);
-
                     if (grade != null)
                     {
                         var letterGrade = request.Request.NewLetterGrade.HasValue
                             ? (LetterGrade)request.Request.NewLetterGrade.Value
                             : grade.LetterGrade;
-
                         grade.UpdateGradeFromObjection(
-                            newMidtermScore: grade.MidtermScore, 
-                            newFinalScore: request.Request.NewScore.Value, 
+                            newMidtermScore: grade.MidtermScore,
+                            newFinalScore: request.Request.NewScore.Value,
                             newLetterGrade: letterGrade);
-
                         await _gradeRepository.UpdateAsync(grade, cancellationToken);
                     }
                 }
-
-                // Save changes
                 await _objectionRepository.UpdateAsync(objection, cancellationToken);
                 await _objectionRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation(
                     "Grade objection {ObjectionId} approved successfully",
                     objection.Id);
-
                 return Result<Unit>.Success(Unit.Value, "Grade objection approved successfully");
             }
             catch (InvalidOperationException ex)

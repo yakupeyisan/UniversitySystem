@@ -1,6 +1,5 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
 public class HealthRecord : AuditableEntity, ISoftDelete
 {
@@ -15,7 +14,6 @@ public class HealthRecord : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     private HealthRecord()
     {
     }

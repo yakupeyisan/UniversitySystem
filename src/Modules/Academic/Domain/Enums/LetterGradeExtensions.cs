@@ -1,13 +1,6 @@
 namespace Academic.Domain.Enums;
-
-/// <summary>
-/// Extension methods for LetterGrade enum
-/// </summary>
 public static class LetterGradeExtensions
 {
-    /// <summary>
-    /// Convert numeric score to letter grade
-    /// </summary>
     public static LetterGrade FromNumericScore(float score)
     {
         return score switch
@@ -23,10 +16,6 @@ public static class LetterGradeExtensions
             _ => LetterGrade.FF
         };
     }
-
-    /// <summary>
-    /// Get grade point for letter grade (4.0 scale)
-    /// </summary>
     public static float GetGradePoint(this LetterGrade letterGrade)
     {
         return letterGrade switch
@@ -43,18 +32,10 @@ public static class LetterGradeExtensions
             _ => 0.0f
         };
     }
-
-    /// <summary>
-    /// Check if letter grade is passing
-    /// </summary>
     public static bool IsPassingGrade(this LetterGrade letterGrade)
     {
         return letterGrade is not (LetterGrade.F or LetterGrade.FF);
     }
-
-    /// <summary>
-    /// Get numeric score lower bound for letter grade
-    /// </summary>
     public static float GetLowerBound(this LetterGrade letterGrade)
     {
         return letterGrade switch
