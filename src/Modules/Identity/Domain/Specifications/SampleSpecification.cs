@@ -1,3 +1,4 @@
+using Core.Domain.Pagination;
 using Core.Domain.Specifications;
 using Identity.Domain.Aggregates;
 using Identity.Domain.Enums;
@@ -6,6 +7,13 @@ namespace Identity.Domain.Specifications;
 
 public class UserByIdSpecification : Specification<User>
 {
+    public UserByIdSpecification(
+        Guid id,
+        int pageNumber,
+        int pageSize) : this(id)
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
     public UserByIdSpecification(Guid id)
     {
         Criteria = u => u.Id == id && !u.IsDeleted;
@@ -26,6 +34,13 @@ public class UserByEmailSpecification : Specification<User>
 
 public class ActiveUsersSpecification : Specification<User>
 {
+    public ActiveUsersSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public ActiveUsersSpecification()
     {
         Criteria = u => !u.IsDeleted && u.Status == UserStatus.Active;
@@ -36,6 +51,14 @@ public class ActiveUsersSpecification : Specification<User>
 
 public class UsersByStatusSpecification : Specification<User>
 {
+    public UsersByStatusSpecification(
+        UserStatus status,
+        int pageNumber,
+        int pageSize) : this(status)
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public UsersByStatusSpecification(UserStatus status)
     {
         Criteria = u => !u.IsDeleted && u.Status == status;
@@ -45,6 +68,14 @@ public class UsersByStatusSpecification : Specification<User>
 
 public class UsersByRoleSpecification : Specification<User>
 {
+    public UsersByRoleSpecification(
+        Guid roleId,
+        int pageNumber,
+        int pageSize) : this(roleId)
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public UsersByRoleSpecification(Guid roleId)
     {
         Criteria = u => !u.IsDeleted && u.Roles.Any(r => r.Id == roleId);
@@ -54,6 +85,13 @@ public class UsersByRoleSpecification : Specification<User>
 
 public class LockedUsersSpecification : Specification<User>
 {
+    public LockedUsersSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public LockedUsersSpecification()
     {
         Criteria = u => !u.IsDeleted && u.Status == UserStatus.Locked;
@@ -63,6 +101,13 @@ public class LockedUsersSpecification : Specification<User>
 
 public class UnverifiedEmailUsersSpecification : Specification<User>
 {
+    public UnverifiedEmailUsersSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public UnverifiedEmailUsersSpecification()
     {
         Criteria = u => !u.IsDeleted && !u.IsEmailVerified;
@@ -72,6 +117,14 @@ public class UnverifiedEmailUsersSpecification : Specification<User>
 
 public class UsersBySearchTermSpecification : Specification<User>
 {
+    public UsersBySearchTermSpecification(
+        string searchTerm,
+        int pageNumber,
+        int pageSize) : this(searchTerm)
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public UsersBySearchTermSpecification(string searchTerm)
     {
         var term = searchTerm.ToLower();
@@ -86,6 +139,13 @@ public class UsersBySearchTermSpecification : Specification<User>
 
 public class DeletedUsersSpecification : Specification<User>
 {
+    public DeletedUsersSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
+
     public DeletedUsersSpecification()
     {
         Criteria = u => u.IsDeleted;
@@ -123,6 +183,12 @@ public class RoleByTypeSpecification : Specification<Role>
 
 public class ActiveRolesSpecification : Specification<Role>
 {
+    public ActiveRolesSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
     public ActiveRolesSpecification()
     {
         Criteria = r => r.IsActive;
@@ -132,6 +198,12 @@ public class ActiveRolesSpecification : Specification<Role>
 
 public class SystemRolesSpecification : Specification<Role>
 {
+    public SystemRolesSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
     public SystemRolesSpecification()
     {
         Criteria = r => r.IsSystemRole;
@@ -157,6 +229,13 @@ public class PermissionByNameSpecification : Specification<Permission>
 
 public class PermissionByTypeSpecification : Specification<Permission>
 {
+    public PermissionByTypeSpecification(
+        PermissionType type,
+        int pageNumber,
+        int pageSize) : this(type)
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
     public PermissionByTypeSpecification(PermissionType type)
     {
         Criteria = p => p.PermissionType == type;
@@ -166,6 +245,12 @@ public class PermissionByTypeSpecification : Specification<Permission>
 
 public class ActivePermissionsSpecification : Specification<Permission>
 {
+    public ActivePermissionsSpecification(
+        int pageNumber,
+        int pageSize) : this()
+    {
+        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
+    }
     public ActivePermissionsSpecification()
     {
         Criteria = p => p.IsActive;

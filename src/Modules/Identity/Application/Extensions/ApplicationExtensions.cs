@@ -37,8 +37,8 @@ public static class ServiceExtensions
         // services.AddScoped<IEmailService, EmailService>();
 
         // Configure JWT options
-        var jwtSection = configuration.GetSection("Jwt");
-        services.Configure<JwtOptions>(jwtSection);
+        services.Configure<JwtOptions>(options =>
+            configuration.GetSection("Jwt").Bind(options));
 
         return services;
     }
