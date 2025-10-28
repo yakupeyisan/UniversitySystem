@@ -27,4 +27,5 @@ public interface ITokenService
     /// Gets the expiration time for access tokens in seconds
     /// </summary>
     int AccessTokenExpirationSeconds { get; }
+
 }

@@ -7,21 +7,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Commands;
 
-public class UpdateUserCommand : IRequest<Result<UserDto>>
+public class UnlockUserCommand : IRequest<Result<UserDto>>
 {
     public Guid UserId { get; set; }
-    public UpdateUserRequest Request { get; set; }
 
-    public UpdateUserCommand(Guid userId, UpdateUserRequest request)
+    public UnlockUserCommand(Guid userId)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
         UserId = userId;
-        Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
-    public class Handler : IRequestHandler<UpdateUserCommand, Result<UserDto>>
+    public class Handler : IRequestHandler<UnlockUserCommand, Result<UserDto>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,14 +36,13 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
         }
 
         public async Task<Result<UserDto>> Handle(
-            UpdateUserCommand request,
+            UnlockUserCommand request,
             CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Attempting to update user: {UserId}", request.UserId);
+                _logger.LogInformation("Unlocking user: {UserId}", request.UserId);
 
-                // Get user
                 var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
                 if (user == null)
                 {
@@ -53,27 +50,18 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
                     return Result<UserDto>.Failure("User not found");
                 }
 
-                // Update profile
-                user.UpdateProfile(request.Request.FirstName, request.Request.LastName);
-
+                user.UnlockAccount();
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("User successfully updated: {UserId}", request.UserId);
-
+                _logger.LogInformation("User unlocked successfully");
                 return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure("An unexpected error occurred while updating user");
+                _logger.LogError(ex, "Error unlocking user");
+                return Result<UserDto>.Failure("An unexpected error occurred while unlocking user");
             }
         }
     }
 }
-

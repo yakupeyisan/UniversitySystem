@@ -1,4 +1,5 @@
 ﻿using Identity.Domain.Aggregates;
+using Identity.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -12,145 +13,204 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("Users", "identity");
+        // ============ Table Mapping ============
+        builder.ToTable("Users");
 
+        // ============ Primary Key ============
         builder.HasKey(u => u.Id);
 
-        // Properties
-        builder.Property(u => u.Id)
-            .HasColumnName("Id")
-            .HasColumnType("uniqueidentifier")
-            .ValueGeneratedNever();
+        // ============ Identity Properties ============
 
-        // Email ValueObject
-        builder.OwnsOne(u => u.Email, email =>
-        {
-            email.Property(e => e.Value)
-                .HasColumnName("Email")
-                .HasColumnType("nvarchar(256)")
-                .HasMaxLength(256)
-                .IsRequired();
-        });
-
-        builder.HasIndex(u => u.Email)
-            .IsUnique()
-            .HasDatabaseName("IX_Users_Email_Unique")
-            .HasFilter("[IsDeleted] = 0");
-
-        // PasswordHash ValueObject
+        // Email (ValueObject)
+        builder
+            .Property(u => u.Email)
+            .HasConversion(
+                e => e.Value,
+                v => new Email(v).Value)
+            .HasColumnName("Email")
+            .HasMaxLength(256)
+            .IsRequired()
+            .HasComment("Kullanıcı email adresi");
+        // PasswordHash (ValueObject)
         builder.OwnsOne(u => u.PasswordHash, ph =>
         {
             ph.Property(p => p.HashedPassword)
                 .HasColumnName("PasswordHash")
-                .HasColumnType("nvarchar(max)")
-                .IsRequired();
+                .IsRequired()
+                .HasComment("Hashlenmiş şifre");
 
             ph.Property(p => p.Salt)
                 .HasColumnName("PasswordSalt")
-                .HasColumnType("nvarchar(max)")
-                .IsRequired();
+                .IsRequired()
+                .HasComment("Şifreleme salt");
         });
 
-        // Basic Properties
-        builder.Property(u => u.FirstName)
-            .HasColumnName("FirstName")
-            .HasColumnType("nvarchar(100)")
+        // FirstName
+        builder
+            .Property(u => u.FirstName)
             .HasMaxLength(100)
-            .IsRequired();
+            .IsRequired()
+            .HasComment("Ad");
 
-        builder.Property(u => u.LastName)
-            .HasColumnName("LastName")
-            .HasColumnType("nvarchar(100)")
+        // LastName
+        builder
+            .Property(u => u.LastName)
             .HasMaxLength(100)
-            .IsRequired();
+            .IsRequired()
+            .HasComment("Soyad");
 
-        builder.Property(u => u.Status)
-            .HasColumnName("Status")
-            .HasColumnType("int")
-            .HasConversion<int>()
-            .IsRequired();
+        // ============ Email Verification Properties ============
 
-        builder.HasIndex(u => u.Status)
-            .HasDatabaseName("IX_Users_Status");
-
-        builder.Property(u => u.IsEmailVerified)
-            .HasColumnName("IsEmailVerified")
-            .HasColumnType("bit")
-            .IsRequired();
-
-        builder.Property(u => u.LastLoginAt)
-            .HasColumnName("LastLoginAt")
-            .HasColumnType("datetime2");
-
-        builder.Property(u => u.FailedLoginAttempts)
-            .HasColumnName("FailedLoginAttempts")
-            .HasColumnType("int")
-            .HasDefaultValue(0)
-            .IsRequired();
-
-        builder.Property(u => u.LockedUntil)
-            .HasColumnName("LockedUntil")
-            .HasColumnType("datetime2");
-
-        // Soft Delete
-        builder.Property(u => u.IsDeleted)
-            .HasColumnName("IsDeleted")
-            .HasColumnType("bit")
+        builder
+            .Property(u => u.IsEmailVerified)
             .HasDefaultValue(false)
-            .IsRequired();
+            .IsRequired()
+            .HasComment("Email doğrulanmış mı");
 
-        builder.Property(u => u.DeletedAt)
-            .HasColumnName("DeletedAt")
-            .HasColumnType("datetime2");
+        builder
+            .Property(u => u.EmailVerificationCode)
+            .HasMaxLength(100)
+            .IsRequired(false)
+            .HasComment("Email doğrulama kodu - 24 saat geçerli");
 
-        builder.Property(u => u.DeletedBy)
-            .HasColumnName("DeletedBy")
-            .HasColumnType("uniqueidentifier");
+        builder
+            .Property(u => u.EmailVerificationCodeExpiry)
+            .IsRequired(false)
+            .HasComment("Email doğrulama kodunun süresi dolma zamanı");
 
-        builder.HasIndex(u => u.IsDeleted)
-            .HasDatabaseName("IX_Users_IsDeleted");
+        // ============ Password Reset Properties ============
 
-        // Audit Properties
-        builder.Property(u => u.CreatedAt)
-            .HasColumnName("CreatedAt")
-            .HasColumnType("datetime2")
-            .IsRequired();
+        builder
+            .Property(u => u.PasswordResetCode)
+            .HasMaxLength(100)
+            .IsRequired(false)
+            .HasComment("Şifre sıfırlama kodu - 1 saat geçerli");
 
-        builder.Property(u => u.CreatedBy)
-            .HasColumnName("CreatedBy")
-            .HasColumnType("uniqueidentifier");
+        builder
+            .Property(u => u.PasswordResetCodeExpiry)
+            .IsRequired(false)
+            .HasComment("Şifre sıfırlama kodunun süresi dolma zamanı");
 
-        builder.Property(u => u.UpdatedAt)
-            .HasColumnName("UpdatedAt")
-            .HasColumnType("datetime2");
+        builder
+            .Property(u => u.LastPasswordChangeAt)
+            .IsRequired(false)
+            .HasComment("Son şifre değiştirilme zamanı");
 
-        builder.Property(u => u.UpdatedBy)
-            .HasColumnName("UpdatedBy")
-            .HasColumnType("uniqueidentifier");
+        // ============ Login & Access Properties ============
 
-        // Relationships (Many-to-Many with Join Tables)
-        builder.HasMany(u => u.Roles)
+        builder
+            .Property(u => u.LastLoginAt)
+            .IsRequired(false)
+            .HasComment("Son login zamanı");
+
+        builder
+            .Property(u => u.FailedLoginAttempts)
+            .HasDefaultValue(0)
+            .IsRequired()
+            .HasComment("Başarısız login deneme sayısı");
+
+        builder
+            .Property(u => u.LockedUntil)
+            .IsRequired(false)
+            .HasComment("Hesabın kilitlenme süresi");
+
+        builder
+            .Property(u => u.Status)
+            .HasConversion<int>()
+            .HasComment("Kullanıcı durumu (0=Active, 1=Inactive, 2=Suspended, 3=Locked)");
+
+        // ============ Soft Delete Properties ============
+
+        builder
+            .Property(u => u.IsDeleted)
+            .HasDefaultValue(false)
+            .IsRequired()
+            .HasComment("Soft delete - silinmiş mi");
+
+        builder
+            .Property(u => u.DeletedAt)
+            .IsRequired(false)
+            .HasComment("Silinme zamanı");
+
+        builder
+            .Property(u => u.DeletedBy)
+            .IsRequired(false)
+            .HasComment("Silen kullanıcı ID'si");
+
+        // ============ Audit Properties (AuditableEntity'den) ============
+
+        builder
+            .Property(u => u.CreatedAt)
+            .HasDefaultValueSql("GETUTCDATE()")
+            .IsRequired()
+            .HasComment("Oluşturulma zamanı");
+
+        builder
+            .Property(u => u.UpdatedAt)
+            .HasDefaultValueSql("GETUTCDATE()")
+            .IsRequired()
+            .HasComment("Son güncelleme zamanı");
+
+        // ============ Relationships ============
+
+        // User -> Roles (Many-to-Many)
+        builder
+            .HasMany(u => u.Roles)
             .WithMany()
-            .UsingEntity(
-                "UserRoles",
-                l => l.HasOne(typeof(Role)).WithMany().HasForeignKey("RoleId").IsRequired(),
-                r => r.HasOne(typeof(User)).WithMany().HasForeignKey("UserId").IsRequired(),
-                j => j.ToTable("UserRoles", "identity")
-            );
+            .UsingEntity(j => j.ToTable("UserRoles"));
 
-        builder.HasMany(u => u.Permissions)
+        // User -> Permissions (Many-to-Many, direkt)
+        builder
+            .HasMany(u => u.Permissions)
             .WithMany()
-            .UsingEntity(
-                "UserPermissions",
-                l => l.HasOne(typeof(Permission)).WithMany().HasForeignKey("PermissionId").IsRequired(),
-                r => r.HasOne(typeof(User)).WithMany().HasForeignKey("UserId").IsRequired(),
-                j => j.ToTable("UserPermissions", "identity")
-            );
+            .UsingEntity(j => j.ToTable("UserPermissions"));
 
-        // Refresh Token Relationship
-        builder.HasMany(u => u.RefreshTokens)
-            .WithOne(rt => rt.User)
-            .HasForeignKey(rt => rt.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // User -> RefreshTokens (One-to-Many)
+        builder
+            .HasMany(u => u.RefreshTokens)
+            .WithOne()
+            .HasForeignKey("UserId")
+            .OnDelete(DeleteBehavior.Cascade)
+            .HasConstraintName("FK_RefreshTokens_Users_UserId");
+
+        // ============ Indexes ============
+
+        // Email arama
+        builder
+            .HasIndex(u => u.Email)
+            .HasDatabaseName("IX_Users_Email")
+            .IsUnique();
+
+        // Email verification code arama
+        builder
+            .HasIndex(u => u.EmailVerificationCode)
+            .HasDatabaseName("IX_Users_EmailVerificationCode");
+
+        // Password reset code arama
+        builder
+            .HasIndex(u => u.PasswordResetCode)
+            .HasDatabaseName("IX_Users_PasswordResetCode");
+
+        // Status ve IsDeleted combined index
+        builder
+            .HasIndex(u => new { u.Status, u.IsDeleted })
+            .HasDatabaseName("IX_Users_Status_IsDeleted");
+
+        // IsEmailVerified index
+        builder
+            .HasIndex(u => u.IsEmailVerified)
+            .HasDatabaseName("IX_Users_IsEmailVerified");
+
+        // ============ Query Filters (Global Query Filter) ============
+
+        // Soft delete - IsDeleted = false olan kayıtlar otomatik filtrelenir
+        builder
+            .HasQueryFilter(u => !u.IsDeleted);
+
+        // ============ Properties Mapping ============
+
+        // Shadow property (database tarafında var ama sınıfta yok)
+        // İhtiyaç durumunda eklenebilir:
+        // builder.Property<DateTime>("CreatedAtUtc");
     }
 }

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Domain.Pagination;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
 using Identity.Domain.Interfaces;
@@ -10,13 +11,11 @@ namespace Identity.Application.Queries;
 
 public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
 {
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
+    public PagedRequest PagedRequest { get; set; }
 
-    public ListUsersQuery(int pageNumber = 1, int pageSize = 10)
+    public ListUsersQuery(PagedRequest pagedRequest)
     {
-        PageNumber = pageNumber > 0 ? pageNumber : 1;
-        PageSize = pageSize > 0 ? pageSize : 10;
+        PagedRequest=pagedRequest;
     }
 
     public class Handler : IRequestHandler<ListUsersQuery, Result<PaginatedListDto<UserDto>>>
@@ -43,12 +42,12 @@ public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
             {
                 _logger.LogInformation(
                     "Fetching users - PageNumber: {PageNumber}, PageSize: {PageSize}",
-                    request.PageNumber,
-                    request.PageSize);
+                    request.PagedRequest.PageNumber,
+                    request.PagedRequest.PageSize);
 
-                var spec = new ActiveUsersSpecification(request.PageNumber, request.PageSize);
+                var spec = new ActiveUsersSpecification(request.PagedRequest.PageNumber, request.PagedRequest.PageSize);
 
-                var users = await _userRepository.GetBySpecificationAsync(spec, cancellationToken);
+                var users = await _userRepository.GetAsync(spec, cancellationToken);
                 var totalCount = await _userRepository.GetCountAsync(new ActiveUsersSpecification(), cancellationToken);
 
                 var userDtos = _mapper.Map<List<UserDto>>(users);
@@ -57,8 +56,8 @@ public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
                 {
                     Items = userDtos,
                     TotalCount = totalCount,
-                    PageNumber = request.PageNumber,
-                    PageSize = request.PageSize
+                    PageNumber = request.PagedRequest.PageNumber,
+                    PageSize = request.PagedRequest.PageSize
                 };
 
                 return Result<PaginatedListDto<UserDto>>.Success(result);

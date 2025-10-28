@@ -1,9 +1,10 @@
+using Core.Domain.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PersonMgmt.Application.Commands;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Application.Queries;
-using Core.Domain.Pagination;
+
 namespace API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -186,4 +187,3 @@ public class PersonsController : ControllerBase
         return Ok(result);
     }
 }
-

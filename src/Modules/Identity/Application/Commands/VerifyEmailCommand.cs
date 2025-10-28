@@ -7,21 +7,24 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Commands;
 
-public class UpdateUserCommand : IRequest<Result<UserDto>>
+public class VerifyEmailCommand : IRequest<Result<UserDto>>
 {
     public Guid UserId { get; set; }
-    public UpdateUserRequest Request { get; set; }
+    public string VerificationCode { get; set; } = string.Empty;
 
-    public UpdateUserCommand(Guid userId, UpdateUserRequest request)
+    public VerifyEmailCommand(Guid userId, string verificationCode)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
+        if (string.IsNullOrWhiteSpace(verificationCode))
+            throw new ArgumentException("Verification code cannot be empty", nameof(verificationCode));
+
         UserId = userId;
-        Request = request ?? throw new ArgumentNullException(nameof(request));
+        VerificationCode = verificationCode.Trim();
     }
 
-    public class Handler : IRequestHandler<UpdateUserCommand, Result<UserDto>>
+    public class Handler : IRequestHandler<VerifyEmailCommand, Result<UserDto>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,14 +41,13 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
         }
 
         public async Task<Result<UserDto>> Handle(
-            UpdateUserCommand request,
+            VerifyEmailCommand request,
             CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Attempting to update user: {UserId}", request.UserId);
+                _logger.LogInformation("Verifying email for user: {UserId}", request.UserId);
 
-                // Get user
                 var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
                 if (user == null)
                 {
@@ -53,27 +55,25 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
                     return Result<UserDto>.Failure("User not found");
                 }
 
-                // Update profile
-                user.UpdateProfile(request.Request.FirstName, request.Request.LastName);
+                if (user.IsEmailVerified)
+                {
+                    _logger.LogWarning("Email already verified for user: {UserId}", request.UserId);
+                    return Result<UserDto>.Failure("Email is already verified");
+                }
 
+                // Verification logic would check against stored verification code
+                user.VerifyEmail();
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("User successfully updated: {UserId}", request.UserId);
-
+                _logger.LogInformation("Email verified successfully for user: {UserId}", request.UserId);
                 return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure("An unexpected error occurred while updating user");
+                _logger.LogError(ex, "Error verifying email for user: {UserId}", request.UserId);
+                return Result<UserDto>.Failure("An unexpected error occurred while verifying email");
             }
         }
     }
 }
-

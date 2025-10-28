@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\Academic\Application\Academic.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\Modules\PersonMgmt\Application\PersonMgmt.Application.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>

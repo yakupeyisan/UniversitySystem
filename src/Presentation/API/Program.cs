@@ -5,6 +5,7 @@ using Shared.Infrastructure.Extensions;
 using Shared.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Application.Extensions;
+using Identity.Application.Extensions;
 using Serilog;
 using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,8 @@ try
     builder.Services.AddCoreApplication();
     builder.Services.AddPersonMgmtApplication();
     builder.Services.AddAcademicApplication();
+    builder.Services.AddIdentityApplication();
+    builder.Services.AddIdentityServices(builder.Configuration);
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddSwaggerGen(options =>
     {

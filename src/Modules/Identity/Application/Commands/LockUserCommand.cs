@@ -7,21 +7,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Commands;
 
-public class UpdateUserCommand : IRequest<Result<UserDto>>
+public class LockUserCommand : IRequest<Result<UserDto>>
 {
     public Guid UserId { get; set; }
-    public UpdateUserRequest Request { get; set; }
+    public string Reason { get; set; } = string.Empty;
 
-    public UpdateUserCommand(Guid userId, UpdateUserRequest request)
+    public LockUserCommand(Guid userId, string reason = "")
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
 
         UserId = userId;
-        Request = request ?? throw new ArgumentNullException(nameof(request));
+        Reason = reason?.Trim() ?? string.Empty;
     }
 
-    public class Handler : IRequestHandler<UpdateUserCommand, Result<UserDto>>
+    public class Handler : IRequestHandler<LockUserCommand, Result<UserDto>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,14 +38,13 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
         }
 
         public async Task<Result<UserDto>> Handle(
-            UpdateUserCommand request,
+            LockUserCommand request,
             CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Attempting to update user: {UserId}", request.UserId);
+                _logger.LogInformation("Locking user: {UserId}", request.UserId);
 
-                // Get user
                 var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
                 if (user == null)
                 {
@@ -53,27 +52,18 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
                     return Result<UserDto>.Failure("User not found");
                 }
 
-                // Update profile
-                user.UpdateProfile(request.Request.FirstName, request.Request.LastName);
-
+                user.LockAccount(request.Reason);
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("User successfully updated: {UserId}", request.UserId);
-
+                _logger.LogInformation("User locked successfully");
                 return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating user: {UserId}", request.UserId);
-                return Result<UserDto>.Failure("An unexpected error occurred while updating user");
+                _logger.LogError(ex, "Error locking user");
+                return Result<UserDto>.Failure("An unexpected error occurred while locking user");
             }
         }
     }
 }
-

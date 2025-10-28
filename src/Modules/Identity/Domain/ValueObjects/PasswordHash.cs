@@ -18,7 +18,14 @@ public class PasswordHash : ValueObject
         HashedPassword = hashedPassword;
         Salt = salt;
     }
+    public PasswordHash(string hashedPassword)
+    {
+        if (string.IsNullOrWhiteSpace(hashedPassword))
+            throw new ArgumentException("Hashed password cannot be empty", nameof(hashedPassword));
 
+        HashedPassword = hashedPassword;
+        Salt = string.Empty;
+    }
     public override string ToString() => HashedPassword;
     protected override IEnumerable<object?> GetEqualityComponents()
     {

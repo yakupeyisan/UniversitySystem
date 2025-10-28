@@ -49,4 +49,11 @@ public class Permission : AuditableEntity
         Description = description?.Trim() ?? string.Empty;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void UpdatePermission(string name, string description)
+    {
+        PermissionName = name.Trim();
+        Description = description?.Trim() ?? string.Empty;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

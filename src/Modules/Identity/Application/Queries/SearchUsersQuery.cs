@@ -54,7 +54,7 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
 
                 var spec = new UsersBySearchTermSpecification(request.SearchTerm,request.PageNumber,request.PageSize);
 
-                var users = await _userRepository.GetBySpecificationAsync(spec, cancellationToken);
+                var users = await _userRepository.GetAsync(spec, cancellationToken);
                 var totalCount = await _userRepository.GetCountAsync(
                     new UsersBySearchTermSpecification(request.SearchTerm),
                     cancellationToken);
@@ -79,3 +79,12 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
         }
     }
 }
+
+
+#region Role Queries
+
+#endregion
+
+#region Permission Queries
+
+#endregion
