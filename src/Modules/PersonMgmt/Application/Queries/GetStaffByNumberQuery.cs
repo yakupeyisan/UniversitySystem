@@ -1,8 +1,11 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
+using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Queries;
 
@@ -21,9 +24,12 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+            personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
@@ -39,10 +45,10 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
                 _logger.LogInformation(
                     "Fetching person by employee number: {EmployeeNumber}",
                     request.EmployeeNumber);
-                var persons = await _personRepository.GetStaffByEmployeeNumberAsync(
-                    request.EmployeeNumber,
+                var persons = await _personRepository.GetAllAsync(
+                    new PersonByEmployeeNumberSpecification(request.EmployeeNumber),
                     cancellationToken);
-                if (persons == null || persons.Count == 0)
+                if (persons == null || persons.Count() == 0)
                 {
                     _logger.LogWarning(
                         "Person with employee number {EmployeeNumber} not found",

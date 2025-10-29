@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class PrerequisiteWaiverRepository : GenericRepository<PrerequisiteWaiver>, IPrerequisiteWaiverRepository
+public class PrerequisiteWaiverRepository : GenericRepository<PrerequisiteWaiver>
 {
     public PrerequisiteWaiverRepository(AppDbContext context) : base(context)
     {

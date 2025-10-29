@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -23,11 +26,14 @@ public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
 
     public class Handler : IRequestHandler<GetStudentGradeForCourseQuery, Result<GradeResponse>>
     {
-        private readonly IGradeRepository _gradeRepository;
+        private readonly IRepository<Grade>
+            _gradeRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(IGradeRepository gradeRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Grade>
+            gradeRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -42,8 +48,8 @@ public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
             {
                 _logger.LogInformation("Fetching grade for student {StudentId} in course {CourseId}",
                     request.StudentId, request.CourseId);
-                var grade = await _gradeRepository.GetByStudentAndCourseAsync(
-                    request.StudentId, request.CourseId, cancellationToken);
+                var grade = await _gradeRepository.GetAsync(
+                    new GradeByStudentAndCourseSpec(request.StudentId, request.CourseId), cancellationToken);
                 if (grade == null)
                 {
                     _logger.LogWarning("Grade not found for student {StudentId} in course {CourseId}",

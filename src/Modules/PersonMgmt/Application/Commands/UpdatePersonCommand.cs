@@ -1,8 +1,11 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
+using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -21,9 +24,12 @@ public class UpdatePersonCommand : IRequest<Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+            personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
@@ -47,18 +53,17 @@ public class UpdatePersonCommand : IRequest<Result<PersonResponse>>
                 if (!string.IsNullOrEmpty(request.Request.Email) &&
                     request.Request.Email != person.Email)
                 {
-                    var isEmailUnique = await _personRepository.IsEmailUniqueAsync(
-                        request.Request.Email,
-                        excludeId: request.PersonId,
-                        cancellationToken: cancellationToken);
+                    var isEmailUnique = await _personRepository.IsUniqueAsync(
+                        new PersonByEmailSpecification(request.PersonId, request.Request.Email),
+                        cancellationToken);
                     if (!isEmailUnique) return Result<PersonResponse>.Failure("Email already exists");
                 }
 
                 person.UpdatePersonalInfo(
-                    email: request.Request.Email ?? person.Email,
-                    phoneNumber: request.Request.PhoneNumber ?? person.PhoneNumber,
-                    departmentId: request.Request.DepartmentId ?? person.DepartmentId,
-                    profilePhotoUrl: request.Request.ProfilePhotoUrl ?? person.ProfilePhotoUrl);
+                    request.Request.Email ?? person.Email,
+                    request.Request.PhoneNumber ?? person.PhoneNumber,
+                    request.Request.DepartmentId ?? person.DepartmentId,
+                    request.Request.ProfilePhotoUrl ?? person.ProfilePhotoUrl);
                 await _personRepository.UpdateAsync(person, cancellationToken);
                 await _personRepository.SaveChangesAsync(cancellationToken);
                 var response = _mapper.Map<PersonResponse>(person);

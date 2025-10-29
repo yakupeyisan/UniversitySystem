@@ -1,6 +1,9 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
 using Core.Domain.Pagination;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,12 +25,15 @@ public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListR
 
     public class Handler : IRequestHandler<GetCoursesByDepartmentQuery, Result<PagedList<CourseListResponse>>>
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly IRepository<Course>
+            _courseRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
         public Handler(
-            ICourseRepository courseRepository,
+            IRepository<Course>
+                courseRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -53,8 +59,8 @@ public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListR
                     request.DepartmentId,
                     request.PagedRequest.PageNumber,
                     request.PagedRequest.PageSize);
-                var courses = await _courseRepository.GetByDepartmentAsync(
-                    request.DepartmentId,
+                var courses = await _courseRepository.GetAllAsync(
+                    new CourseByDepartmentSpec(request.DepartmentId),
                     cancellationToken);
                 var responses = _mapper.Map<List<CourseListResponse>>(courses);
                 var totalCount = responses.Count;

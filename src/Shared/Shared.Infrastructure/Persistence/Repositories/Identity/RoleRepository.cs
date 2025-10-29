@@ -6,7 +6,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Identity;
 
-public class RoleRepository : GenericRepository<Role>, IRoleRepository
+public class RoleRepository : GenericRepository<Role>
 {
     private readonly AppDbContext _context;
 

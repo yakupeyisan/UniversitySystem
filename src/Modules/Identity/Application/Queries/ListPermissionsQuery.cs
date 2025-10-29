@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,10 +24,13 @@ public class ListPermissionsQuery : IRequest<Result<PaginatedListDto<PermissionD
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPermissionRepository _permissionRepository;
+
+        private readonly IRepository<Permission>
+            _permissionRepository;
 
         public Handler(
-            IPermissionRepository permissionRepository,
+            IRepository<Permission>
+                permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -48,9 +53,9 @@ public class ListPermissionsQuery : IRequest<Result<PaginatedListDto<PermissionD
 
                 var spec = new ActivePermissionsSpecification(request.PageNumber, request.PageSize);
 
-                var permissions = await _permissionRepository.GetBySpecificationAsync(spec, cancellationToken);
+                var permissions = await _permissionRepository.GetAsync(spec, cancellationToken);
                 var totalCount =
-                    await _permissionRepository.GetCountAsync(new ActivePermissionsSpecification(), cancellationToken);
+                    await _permissionRepository.CountAsync(new ActivePermissionsSpecification(), cancellationToken);
 
                 var permissionDtos = _mapper.Map<List<PermissionDto>>(permissions);
 

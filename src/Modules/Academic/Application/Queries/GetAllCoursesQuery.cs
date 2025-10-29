@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
 using AutoMapper;
 using Core.Domain.Pagination;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -18,11 +20,14 @@ public class GetAllCoursesQuery : IRequest<Result<PagedList<CourseListResponse>>
 
     public class Handler : IRequestHandler<GetAllCoursesQuery, Result<PagedList<CourseListResponse>>>
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly IRepository<Course>
+            _courseRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(ICourseRepository courseRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Course>
+            courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

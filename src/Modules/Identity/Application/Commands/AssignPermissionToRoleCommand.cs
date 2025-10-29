@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -26,12 +28,18 @@ public class AssignPermissionToRoleCommand : IRequest<Result<RoleDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPermissionRepository _permissionRepository;
-        private readonly IRoleRepository _roleRepository;
+
+        private readonly IRepository<Permission>
+            _permissionRepository;
+
+        private readonly IRepository<Role>
+            _roleRepository;
 
         public Handler(
-            IRoleRepository roleRepository,
-            IPermissionRepository permissionRepository,
+            IRepository<Role>
+                roleRepository,
+            IRepository<Permission>
+                permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {

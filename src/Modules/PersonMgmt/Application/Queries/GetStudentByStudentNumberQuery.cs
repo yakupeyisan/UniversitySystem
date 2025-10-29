@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Queries;
 
@@ -41,8 +42,8 @@ public class GetStudentByStudentNumberQuery : IRequest<Result<PersonResponse>>
                 _logger.LogInformation(
                     "Fetching person by student number: {StudentNumber}",
                     request.StudentNumber);
-                var student = await _personRepository.GetStudentByStudentNumberAsync(
-                    request.StudentNumber,
+                var student = await _personRepository.GetAsync(
+                    new PersonByStudentNumberSpecification(request.StudentNumber),
                     cancellationToken);
                 if (student == null)
                     return Result<PersonResponse>.Failure(

@@ -5,7 +5,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Identity;
 
-public class UserRepository : GenericRepository<User>, IUserRepository
+public class UserRepository : GenericRepository<User>
 {
     private readonly AppDbContext _context;
 

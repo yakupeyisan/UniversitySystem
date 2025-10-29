@@ -1,4 +1,6 @@
+using Core.Domain.Repositories;
 using Core.Domain.Results;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -20,20 +22,23 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
     public Guid RoleId { get; set; }
 
     /// <summary>
-    ///     Handler: Rol silme iþlemini gerçekleþtirir
+    ///     Handler: Rol silme iï¿½lemini gerï¿½ekleï¿½tirir
     ///     Sorumluluklar:
     ///     - Repository'den rol getirme
-    ///     - Sistem rolü kontrolü
+    ///     - Sistem rolï¿½ kontrolï¿½
     ///     - Rol silme
     ///     - Logging ve error handling
     /// </summary>
     public class Handler : IRequestHandler<DeleteRoleCommand, Result<bool>>
     {
         private readonly ILogger<Handler> _logger;
-        private readonly IRoleRepository _roleRepository;
+
+        private readonly IRepository<Role>
+            _roleRepository;
 
         public Handler(
-            IRoleRepository roleRepository,
+            IRepository<Role>
+                roleRepository,
             ILogger<Handler> logger)
         {
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
@@ -41,11 +46,11 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
         }
 
         /// <summary>
-        ///     Rol silme iþlemini handle eder
+        ///     Rol silme iï¿½lemini handle eder
         /// </summary>
         /// <param name="request">DeleteRoleCommand request'i</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Baþarýlý/baþarýsýz Result</returns>
+        /// <returns>Baï¿½arï¿½lï¿½/baï¿½arï¿½sï¿½z Result</returns>
         public async Task<Result<bool>> Handle(
             DeleteRoleCommand request,
             CancellationToken cancellationToken)
@@ -63,7 +68,7 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
                     return Result<bool>.Failure("Role not found");
                 }
 
-                // Sistem rolü kontrolü - sistem rolleri silinemez
+                // Sistem rolï¿½ kontrolï¿½ - sistem rolleri silinemez
                 if (role.IsSystemRole)
                 {
                     _logger.LogWarning(
@@ -73,7 +78,7 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
                     return Result<bool>.Failure("System roles cannot be deleted");
                 }
 
-                // Rol ve iliþkili izinleri silme
+                // Rol ve iliï¿½kili izinleri silme
                 await _roleRepository.DeleteAsync(role, cancellationToken);
                 await _roleRepository.SaveChangesAsync(cancellationToken);
 

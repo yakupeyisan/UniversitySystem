@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,11 +13,14 @@ public class GetAvailableCoursesQuery : IRequest<Result<IEnumerable<CourseListRe
 {
     public class Handler : IRequestHandler<GetAvailableCoursesQuery, Result<IEnumerable<CourseListResponse>>>
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly IRepository<Course>
+            _courseRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(ICourseRepository courseRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Course>
+            courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -28,7 +34,7 @@ public class GetAvailableCoursesQuery : IRequest<Result<IEnumerable<CourseListRe
             try
             {
                 _logger.LogInformation("Fetching available courses");
-                var courses = await _courseRepository.GetAvailableCoursesAsync(cancellationToken);
+                var courses = await _courseRepository.GetAllAsync(new AvailableCoursesSpec(), cancellationToken);
                 var responses = _mapper.Map<IEnumerable<CourseListResponse>>(courses);
                 _logger.LogInformation("Retrieved {Count} available courses", courses.Count());
                 return Result<IEnumerable<CourseListResponse>>.Success(responses);

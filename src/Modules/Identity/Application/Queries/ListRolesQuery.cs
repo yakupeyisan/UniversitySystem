@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,10 +24,13 @@ public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IRoleRepository _roleRepository;
+
+        private readonly IRepository<Role>
+            _roleRepository;
 
         public Handler(
-            IRoleRepository roleRepository,
+            IRepository<Role>
+                roleRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -47,8 +52,8 @@ public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
 
                 var spec = new ActiveRolesSpecification(request.PageNumber, request.PageSize);
 
-                var roles = await _roleRepository.GetBySpecificationAsync(spec, cancellationToken);
-                var totalCount = await _roleRepository.GetCountAsync(new ActiveRolesSpecification(), cancellationToken);
+                var roles = await _roleRepository.GetAsync(spec, cancellationToken);
+                var totalCount = await _roleRepository.CountAsync(new ActiveRolesSpecification(), cancellationToken);
 
                 var roleDtos = _mapper.Map<List<RoleDto>>(roles);
 

@@ -2,9 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Persistence.Contexts;
-using Shared.Infrastructure.Persistence.Repositories.Academic;
-using Shared.Infrastructure.Persistence.Repositories.Identity;
-using Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
 
 namespace Shared.Infrastructure.Extensions;
 
@@ -29,16 +26,6 @@ public static class ServiceExtensions
                 });
             if (IsEnvironmentDevelopment()) options.EnableSensitiveDataLogging();
         });
-        services.AddScoped<IPersonRepository, PersonRepository>();
-        services.AddScoped<ICourseRepository, CourseRepository>();
-        services.AddScoped<IWaitingListRepository, WaitingListRepository>();
-        services.AddScoped<IExamRepository, ExamRepository>();
-        services.AddScoped<IGradeRepository, GradeRepository>();
-        services.AddScoped<IGradeObjectionRepository, GradeObjectionRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IPermissionRepository, PermissionRepository>();
-        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         return services;
     }
 

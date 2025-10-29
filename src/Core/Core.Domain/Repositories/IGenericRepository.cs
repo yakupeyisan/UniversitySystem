@@ -33,6 +33,17 @@ public interface IGenericRepository<TEntity> where TEntity : Entity
         Guid id,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsAsync(
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsUniqueAsync(ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
     Task<int> CountAsync(
         CancellationToken cancellationToken = default);
 
@@ -57,6 +68,4 @@ public interface IGenericRepository<TEntity> where TEntity : Entity
         CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task<int> GetCountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default);
-    Task<int> GetCountAsync(CancellationToken cancellationToken = default);
 }

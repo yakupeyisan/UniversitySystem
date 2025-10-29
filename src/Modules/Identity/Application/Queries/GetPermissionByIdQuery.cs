@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -23,10 +25,13 @@ public class GetPermissionByIdQuery : IRequest<Result<PermissionDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPermissionRepository _permissionRepository;
+
+        private readonly IRepository<Permission>
+            _permissionRepository;
 
         public Handler(
-            IPermissionRepository permissionRepository,
+            IRepository<Permission>
+                permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -45,7 +50,7 @@ public class GetPermissionByIdQuery : IRequest<Result<PermissionDto>>
                 _logger.LogInformation("Fetching permission: {PermissionId}", request.PermissionId);
 
                 var spec = new PermissionByIdSpecification(request.PermissionId);
-                var permission = await _permissionRepository.GetBySpecificationAsync(spec, cancellationToken);
+                var permission = await _permissionRepository.GetAsync(spec, cancellationToken);
 
                 if (permission == null)
                 {

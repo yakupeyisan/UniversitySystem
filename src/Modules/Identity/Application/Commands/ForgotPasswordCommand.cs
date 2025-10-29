@@ -1,5 +1,7 @@
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,10 +24,13 @@ public class ForgotPasswordCommand : IRequest<Result<string>>
     {
         private readonly IEmailService _emailService;
         private readonly ILogger<Handler> _logger;
-        private readonly IUserRepository _userRepository;
+
+        private readonly IRepository<User>
+            _userRepository;
 
         public Handler(
-            IUserRepository userRepository,
+            IRepository<User>
+                userRepository,
             IEmailService emailService,
             ILogger<Handler> logger)
         {

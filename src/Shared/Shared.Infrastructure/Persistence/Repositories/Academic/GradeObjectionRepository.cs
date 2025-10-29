@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class GradeObjectionRepository : GenericRepository<GradeObjection>, IGradeObjectionRepository
+public class GradeObjectionRepository : GenericRepository<GradeObjection>
 {
     public GradeObjectionRepository(AppDbContext context) : base(context)
     {

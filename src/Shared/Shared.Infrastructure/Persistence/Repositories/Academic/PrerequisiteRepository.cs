@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class PrerequisiteRepository : GenericRepository<Prerequisite>, IPrerequisiteRepository
+public class PrerequisiteRepository : GenericRepository<Prerequisite>
 {
     public PrerequisiteRepository(AppDbContext context) : base(context)
     {

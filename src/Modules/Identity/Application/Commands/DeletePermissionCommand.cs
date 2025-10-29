@@ -1,4 +1,6 @@
+using Core.Domain.Repositories;
 using Core.Domain.Results;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -19,10 +21,13 @@ public class DeletePermissionCommand : IRequest<Result<bool>>
     public class Handler : IRequestHandler<DeletePermissionCommand, Result<bool>>
     {
         private readonly ILogger<Handler> _logger;
-        private readonly IPermissionRepository _permissionRepository;
+
+        private readonly IRepository<Permission>
+            _permissionRepository;
 
         public Handler(
-            IPermissionRepository permissionRepository,
+            IRepository<Permission>
+                permissionRepository,
             ILogger<Handler> logger)
         {
             _permissionRepository =

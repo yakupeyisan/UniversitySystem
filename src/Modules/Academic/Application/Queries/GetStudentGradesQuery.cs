@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -19,12 +22,15 @@ public class GetStudentGradesQuery : IRequest<Result<StudentGradesResponse>>
 
     public class Handler : IRequestHandler<GetStudentGradesQuery, Result<StudentGradesResponse>>
     {
-        private readonly IGradeRepository _gradeRepository;
+        private readonly IRepository<Grade>
+            _gradeRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
         public Handler(
-            IGradeRepository gradeRepository,
+            IRepository<Grade>
+                gradeRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -40,8 +46,8 @@ public class GetStudentGradesQuery : IRequest<Result<StudentGradesResponse>>
             try
             {
                 _logger.LogInformation("Fetching grades for student {StudentId}", request.StudentId);
-                var grades = await _gradeRepository.GetByStudentAsync(
-                    request.StudentId,
+                var grades = await _gradeRepository.GetAllAsync(
+                    new GradesByStudentSpec(request.StudentId),
                     cancellationToken);
                 var gradeResponses = _mapper.Map<List<GradeResponse>>(grades);
                 var totalEcts = grades.Sum(g => g.ECTS);

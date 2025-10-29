@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class WaitingListRepository : GenericRepository<CourseWaitingListEntry>, IWaitingListRepository
+public class WaitingListRepository : GenericRepository<CourseWaitingListEntry>
 {
     public WaitingListRepository(AppDbContext context) : base(context)
     {

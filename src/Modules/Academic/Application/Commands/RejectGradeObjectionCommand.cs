@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -24,10 +26,13 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IGradeObjectionRepository _objectionRepository;
+
+        private readonly IRepository<GradeObjection>
+            _objectionRepository;
 
         public Handler(
-            IGradeObjectionRepository objectionRepository,
+            IRepository<GradeObjection>
+                objectionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -69,8 +74,8 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                 }
 
                 objection.Reject(
-                    reviewedBy: request.Request.ReviewedBy,
-                    notes: request.Request.RejectionReason);
+                    request.Request.ReviewedBy,
+                    request.Request.RejectionReason);
                 await _objectionRepository.UpdateAsync(objection, cancellationToken);
                 await _objectionRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(

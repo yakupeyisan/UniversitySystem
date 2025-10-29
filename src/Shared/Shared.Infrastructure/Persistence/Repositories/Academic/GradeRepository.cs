@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class GradeRepository : GenericRepository<Grade>, IGradeRepository
+public class GradeRepository : GenericRepository<Grade>
 {
     public GradeRepository(AppDbContext context) : base(context)
     {

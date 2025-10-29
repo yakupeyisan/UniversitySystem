@@ -1,9 +1,12 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
+using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -22,9 +25,12 @@ public class HireStaffCommand : IRequest<Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+            personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
@@ -48,9 +54,9 @@ public class HireStaffCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure("Person not found");
                 }
 
-                var isEmployeeNumberUnique = await _personRepository.IsEmployeeNumberUniqueAsync(
-                    request.Request.EmployeeNumber,
-                    cancellationToken: cancellationToken);
+                var isEmployeeNumberUnique = await _personRepository.IsUniqueAsync(
+                    new PersonByEmployeeNumberSpecification(request.Request.EmployeeNumber),
+                    cancellationToken);
                 if (!isEmployeeNumberUnique)
                 {
                     _logger.LogWarning("Employee number already exists: {EmployeeNumber}",
@@ -74,9 +80,9 @@ public class HireStaffCommand : IRequest<Result<Unit>>
 
                 var academicTitle = Enum.Parse<AcademicTitle>(request.Request.Position);
                 person.HireAsStaff(
-                    employeeNumber: request.Request.EmployeeNumber,
-                    academicTitle: academicTitle,
-                    hireDate: request.Request.HireDate
+                    request.Request.EmployeeNumber,
+                    academicTitle,
+                    request.Request.HireDate
                 );
                 await _personRepository.UpdateAsync(person, cancellationToken);
                 await _personRepository.SaveChangesAsync(cancellationToken);

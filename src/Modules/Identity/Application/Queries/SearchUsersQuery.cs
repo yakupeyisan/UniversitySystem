@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -27,10 +29,13 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IUserRepository _userRepository;
+
+        private readonly IRepository<User>
+            _userRepository;
 
         public Handler(
-            IUserRepository userRepository,
+            IRepository<User>
+                userRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -54,7 +59,7 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
                 var spec = new UsersBySearchTermSpecification(request.SearchTerm, request.PageNumber, request.PageSize);
 
                 var users = await _userRepository.GetAsync(spec, cancellationToken);
-                var totalCount = await _userRepository.GetCountAsync(
+                var totalCount = await _userRepository.CountAsync(
                     new UsersBySearchTermSpecification(request.SearchTerm),
                     cancellationToken);
 

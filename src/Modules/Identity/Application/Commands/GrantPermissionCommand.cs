@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -24,12 +26,18 @@ public class GrantPermissionCommand : IRequest<Result<UserDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPermissionRepository _permissionRepository;
-        private readonly IUserRepository _userRepository;
+
+        private readonly IRepository<Permission>
+            _permissionRepository;
+
+        private readonly IRepository<User>
+            _userRepository;
 
         public Handler(
-            IUserRepository userRepository,
-            IPermissionRepository permissionRepository,
+            IRepository<User>
+                userRepository,
+            IRepository<Permission>
+                permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {

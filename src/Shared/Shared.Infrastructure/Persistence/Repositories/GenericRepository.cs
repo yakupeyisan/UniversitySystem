@@ -112,6 +112,26 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return await _context.Set<TEntity>().AnyAsync(e => e.Id == id, cancellationToken);
     }
 
+    public async Task<bool> ExistsAsync(ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return await query.AnyAsync(cancellationToken);
+    }
+
+    public async Task<bool> IsUniqueAsync(ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return !await query.AnyAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(spec);
+        return await query.CountAsync(cancellationToken);
+    }
+
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Set<TEntity>().CountAsync(cancellationToken);
@@ -162,21 +182,6 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<int> GetCountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default)
-    {
-        var query = _context.Set<TEntity>().AsQueryable();
-
-        if (spec.Criteria != null) query = query.Where(spec.Criteria);
-
-        return await query.CountAsync(cancellationToken);
-    }
-
-    public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
-    {
-        var query = _context.Set<TEntity>().AsQueryable();
-        return await query.CountAsync(cancellationToken);
     }
 
     #endregion

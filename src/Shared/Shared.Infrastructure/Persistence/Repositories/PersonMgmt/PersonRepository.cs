@@ -6,7 +6,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.PersonMgmt;
 
-public class PersonRepository : GenericRepository<Person>, IPersonRepository
+public class PersonRepository : GenericRepository<Person>
 {
     private readonly AppDbContext _context;
 

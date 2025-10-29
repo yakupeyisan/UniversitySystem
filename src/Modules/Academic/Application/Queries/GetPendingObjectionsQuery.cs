@@ -1,6 +1,9 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
 using Core.Domain.Pagination;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -20,10 +23,13 @@ public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResp
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IGradeObjectionRepository _objectionRepository;
+
+        private readonly IRepository<GradeObjection>
+            _objectionRepository;
 
         public Handler(
-            IGradeObjectionRepository objectionRepository,
+            IRepository<GradeObjection>
+                objectionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -39,7 +45,8 @@ public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResp
             try
             {
                 _logger.LogInformation("Fetching pending grade objections");
-                var objections = await _objectionRepository.GetPendingObjectionsAsync(cancellationToken);
+                var objections =
+                    await _objectionRepository.GetAllAsync(new PendingGradeObjectionsSpec(), cancellationToken);
                 var responses = _mapper.Map<List<GradeObjectionResponse>>(objections);
                 _logger.LogInformation(
                     "Retrieved {Count} pending grade objections",

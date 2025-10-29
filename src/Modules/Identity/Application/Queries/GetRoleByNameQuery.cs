@@ -1,6 +1,8 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
+using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -23,10 +25,13 @@ public class GetRoleByNameQuery : IRequest<Result<RoleDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IRoleRepository _roleRepository;
+
+        private readonly IRepository<Role>
+            _roleRepository;
 
         public Handler(
-            IRoleRepository roleRepository,
+            IRepository<Role>
+                roleRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -44,7 +49,7 @@ public class GetRoleByNameQuery : IRequest<Result<RoleDto>>
                 _logger.LogInformation("Fetching role by name: {RoleName}", request.RoleName);
 
                 var spec = new RoleByNameSpecification(request.RoleName);
-                var role = await _roleRepository.GetBySpecificationAsync(spec, cancellationToken);
+                var role = await _roleRepository.GetAsync(spec, cancellationToken);
 
                 if (role == null)
                 {

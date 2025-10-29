@@ -1,8 +1,10 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
 using Identity.Domain.Aggregates;
+using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -22,15 +24,22 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
+
+        private readonly IRepository<RefreshToken>
+            _refreshTokenRepository;
+
         private readonly ITokenService _tokenService;
-        private readonly IUserRepository _userRepository;
+
+        private readonly IRepository<User>
+            _userRepository;
 
         public Handler(
-            IUserRepository userRepository,
+            IRepository<User>
+                userRepository,
             IPasswordHasher passwordHasher,
             ITokenService tokenService,
-            IRefreshTokenRepository refreshTokenRepository,
+            IRepository<RefreshToken>
+                refreshTokenRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -54,7 +63,8 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
                     request.Request.Email);
 
                 // Find user by email
-                var user = await _userRepository.GetByEmailAsync(request.Request.Email, cancellationToken);
+                var user = await _userRepository.GetAsync(new UserByEmailSpecification(request.Request.Email),
+                    cancellationToken);
                 if (user == null)
                 {
                     _logger.LogWarning("Login failed - user not found for email: {Email}", request.Request.Email);

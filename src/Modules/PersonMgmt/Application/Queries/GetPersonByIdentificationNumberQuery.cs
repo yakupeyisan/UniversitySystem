@@ -1,8 +1,11 @@
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
+using PersonMgmt.Domain.Aggregates;
+using PersonMgmt.Domain.Specifications;
 
 namespace PersonMgmt.Application.Queries;
 
@@ -21,9 +24,12 @@ public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonRespon
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+            personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
@@ -39,8 +45,8 @@ public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonRespon
                 _logger.LogInformation(
                     "Fetching person by identification number: {IdentificationNumber}",
                     request.IdentificationNumber);
-                var person = await _personRepository.GetByIdentificationNumberAsync(
-                    request.IdentificationNumber,
+                var person = await _personRepository.GetAsync(
+                    new PersonByIdentificationNumberSpecification(request.IdentificationNumber),
                     cancellationToken);
                 if (person == null)
                 {

@@ -1,5 +1,7 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -19,12 +21,15 @@ public class GetCourseQuery : IRequest<Result<CourseResponse>>
 
     public class Handler : IRequestHandler<GetCourseQuery, Result<CourseResponse>>
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly IRepository<Course>
+            _courseRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
         public Handler(
-            ICourseRepository courseRepository,
+            IRepository<Course>
+                courseRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {

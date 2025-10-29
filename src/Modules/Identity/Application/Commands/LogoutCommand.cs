@@ -1,4 +1,6 @@
+using Core.Domain.Repositories;
 using Core.Domain.Results;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -19,10 +21,13 @@ public class LogoutCommand : IRequest<Result<bool>>
     public class Handler : IRequestHandler<LogoutCommand, Result<bool>>
     {
         private readonly ILogger<Handler> _logger;
-        private readonly IUserRepository _userRepository;
+
+        private readonly IRepository<User>
+            _userRepository;
 
         public Handler(
-            IUserRepository userRepository,
+            IRepository<User>
+                userRepository,
             ILogger<Handler> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));

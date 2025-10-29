@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -19,11 +22,14 @@ public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
 
     public class Handler : IRequestHandler<GetCourseByCourseCodeQuery, Result<CourseResponse>>
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly IRepository<Course>
+            _courseRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(ICourseRepository courseRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Course>
+            courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -37,7 +43,8 @@ public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
             try
             {
                 _logger.LogInformation("Fetching course with code: {CourseCode}", request.CourseCode);
-                var course = await _courseRepository.GetByCourseCodeAsync(request.CourseCode, cancellationToken);
+                var course =
+                    await _courseRepository.GetAsync(new CourseByCodeSpec(request.CourseCode), cancellationToken);
                 if (course == null)
                 {
                     _logger.LogWarning("Course not found with code: {CourseCode}", request.CourseCode);

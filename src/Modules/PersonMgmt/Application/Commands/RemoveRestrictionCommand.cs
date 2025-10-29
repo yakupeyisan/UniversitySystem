@@ -1,7 +1,9 @@
 using Core.Application.Abstractions;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PersonMgmt.Domain.Aggregates;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -20,9 +22,12 @@ public class RemoveRestrictionCommand : IRequest<Result<Unit>>
     {
         private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<Handler> _logger;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, ICurrentUserService currentUserService,
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+                personRepository, ICurrentUserService currentUserService,
             ILogger<Handler> logger)
         {
             _personRepository = personRepository;

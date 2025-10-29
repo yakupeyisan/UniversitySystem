@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,9 +25,12 @@ public class GetStudentWaitingListPositionsQuery : IRequest<Result<IEnumerable<C
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IWaitingListRepository _waitingListRepository;
 
-        public Handler(IWaitingListRepository waitingListRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<CourseWaitingListEntry>
+            _waitingListRepository;
+
+        public Handler(IRepository<CourseWaitingListEntry>
+            waitingListRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _waitingListRepository =
                 waitingListRepository ?? throw new ArgumentNullException(nameof(waitingListRepository));
@@ -40,8 +46,8 @@ public class GetStudentWaitingListPositionsQuery : IRequest<Result<IEnumerable<C
             {
                 _logger.LogInformation("Fetching waiting list positions for student: {StudentId}",
                     request.StudentId);
-                var entries = await _waitingListRepository.GetByStudentAsync(
-                    request.StudentId, cancellationToken);
+                var entries = await _waitingListRepository.GetAllAsync(
+                    new WaitingListByStudentSpec(request.StudentId), cancellationToken);
                 var responses = _mapper.Map<IEnumerable<CourseWaitingListEntryResponse>>(entries);
                 _logger.LogInformation("Retrieved {Count} waiting list positions for student",
                     entries.Count());

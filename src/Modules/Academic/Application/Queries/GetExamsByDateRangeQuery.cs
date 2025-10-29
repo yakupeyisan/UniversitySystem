@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -21,11 +24,14 @@ public class GetExamsByDateRangeQuery : IRequest<Result<IEnumerable<ExamResponse
 
     public class Handler : IRequestHandler<GetExamsByDateRangeQuery, Result<IEnumerable<ExamResponse>>>
     {
-        private readonly IExamRepository _examRepository;
+        private readonly IRepository<Exam>
+            _examRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(IExamRepository examRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Exam>
+            examRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _examRepository = examRepository ?? throw new ArgumentNullException(nameof(examRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -40,8 +46,9 @@ public class GetExamsByDateRangeQuery : IRequest<Result<IEnumerable<ExamResponse
             {
                 _logger.LogInformation("Fetching exams between {StartDate} and {EndDate}",
                     request.StartDate, request.EndDate);
-                var exams = await _examRepository.GetByDateRangeAsync(
-                    request.StartDate, request.EndDate, cancellationToken);
+                var exams = await _examRepository.GetAllAsync(
+                    new ExamsByDateRangeSpec(request.StartDate, request.EndDate),
+                    cancellationToken);
                 var responses = _mapper.Map<IEnumerable<ExamResponse>>(exams);
                 _logger.LogInformation("Retrieved {Count} exams for date range", exams.Count());
                 return Result<IEnumerable<ExamResponse>>.Success(responses);

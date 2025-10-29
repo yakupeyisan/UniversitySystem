@@ -4,7 +4,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class ExamRoomRepository : GenericRepository<ExamRoom>, IExamRoomRepository
+public class ExamRoomRepository : GenericRepository<ExamRoom>
 {
     public ExamRoomRepository(AppDbContext context) : base(context)
     {

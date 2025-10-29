@@ -6,7 +6,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Identity;
 
-public class PermissionRepository : GenericRepository<Permission>, IPermissionRepository
+public class PermissionRepository : GenericRepository<Permission>
 {
     private readonly AppDbContext _context;
 

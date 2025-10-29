@@ -1,6 +1,8 @@
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PersonMgmt.Domain.Aggregates;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -20,9 +22,12 @@ public class TerminateStaffCommand : IRequest<Result<Unit>>
     public class Handler : IRequestHandler<TerminateStaffCommand, Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
-        private readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, ILogger<Handler> logger)
+        private readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+            personRepository, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _logger = logger;

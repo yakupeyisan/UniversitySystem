@@ -1,7 +1,9 @@
 using Core.Application.Abstractions;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using PersonMgmt.Domain.Aggregates;
 
 namespace PersonMgmt.Application.Commands;
 
@@ -18,9 +20,12 @@ public class DeletePersonCommand : IRequest<Result<Unit>>
     {
         public readonly ICurrentUserService _currentUserService;
         public readonly ILogger<Handler> _logger;
-        public readonly IPersonRepository _personRepository;
 
-        public Handler(IPersonRepository personRepository, ICurrentUserService currentUserService,
+        public readonly IRepository<Person>
+            _personRepository;
+
+        public Handler(IRepository<Person>
+                personRepository, ICurrentUserService currentUserService,
             ILogger<Handler> logger)
         {
             _personRepository = personRepository;

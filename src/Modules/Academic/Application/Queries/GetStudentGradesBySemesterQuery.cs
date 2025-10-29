@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -23,11 +26,14 @@ public class GetStudentGradesBySemesterQuery : IRequest<Result<IEnumerable<Grade
 
     public class Handler : IRequestHandler<GetStudentGradesBySemesterQuery, Result<IEnumerable<GradeResponse>>>
     {
-        private readonly IGradeRepository _gradeRepository;
+        private readonly IRepository<Grade>
+            _gradeRepository;
+
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
-        public Handler(IGradeRepository gradeRepository, IMapper mapper, ILogger<Handler> logger)
+        public Handler(IRepository<Grade>
+            gradeRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -42,8 +48,8 @@ public class GetStudentGradesBySemesterQuery : IRequest<Result<IEnumerable<Grade
             {
                 _logger.LogInformation("Fetching grades for student {StudentId} in semester {Semester}",
                     request.StudentId, request.Semester);
-                var grades = await _gradeRepository.GetByStudentAndSemesterAsync(
-                    request.StudentId, request.Semester, cancellationToken);
+                var grades = await _gradeRepository.GetAllAsync(
+                    new GradesByStudentBySemesterSpec(request.StudentId, request.Semester), cancellationToken);
                 var responses = _mapper.Map<IEnumerable<GradeResponse>>(grades);
                 _logger.LogInformation("Retrieved {Count} grades for student in semester",
                     grades.Count());

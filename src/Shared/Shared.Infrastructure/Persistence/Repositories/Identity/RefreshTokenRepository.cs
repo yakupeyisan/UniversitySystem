@@ -5,7 +5,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Identity;
 
-public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshTokenRepository
+public class RefreshTokenRepository : GenericRepository<RefreshToken>
 {
     private readonly AppDbContext _context;
 

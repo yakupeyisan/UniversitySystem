@@ -5,7 +5,7 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Academic;
 
-public class CourseRepository : GenericRepository<Course>, ICourseRepository
+public class CourseRepository : GenericRepository<Course>
 {
     public CourseRepository(AppDbContext context) : base(context)
     {

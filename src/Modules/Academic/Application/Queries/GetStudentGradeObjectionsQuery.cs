@@ -1,5 +1,8 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -21,9 +24,12 @@ public class GetStudentGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeO
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-        private readonly IGradeObjectionRepository _objectionRepository;
 
-        public Handler(IGradeObjectionRepository objectionRepository, IMapper mapper, ILogger<Handler> logger)
+        private readonly IRepository<GradeObjection>
+            _objectionRepository;
+
+        public Handler(IRepository<GradeObjection>
+            objectionRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _objectionRepository = objectionRepository ?? throw new ArgumentNullException(nameof(objectionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -38,8 +44,8 @@ public class GetStudentGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeO
             {
                 _logger.LogInformation("Fetching grade objections for student: {StudentId}",
                     request.StudentId);
-                var objections = await _objectionRepository.GetByStudentAsync(
-                    request.StudentId, cancellationToken);
+                var objections = await _objectionRepository.GetAllAsync(
+                    new GradeObjectionsByStudentSpec(request.StudentId), cancellationToken);
                 var responses = _mapper.Map<IEnumerable<GradeObjectionResponse>>(objections);
                 _logger.LogInformation("Retrieved {Count} grade objections for student",
                     objections.Count());

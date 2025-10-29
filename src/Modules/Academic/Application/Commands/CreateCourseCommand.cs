@@ -1,6 +1,7 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
+using Academic.Domain.Specifications;
 using Academic.Domain.ValueObjects;
 using AutoMapper;
 using Core.Domain.Repositories;
@@ -45,8 +46,8 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     "Creating new course: {CourseCode} - {CourseName}",
                     request.Request.CourseCode,
                     request.Request.Name);
-                var existingCourse = await _courseRepository.GetByCourseCodeAsync(
-                    request.Request.CourseCode,
+                var existingCourse = await _courseRepository.GetAsync(
+                    new CourseByCodeSpec(request.Request.CourseCode),
                     cancellationToken);
                 if (existingCourse != null)
                 {
