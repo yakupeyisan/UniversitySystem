@@ -1,7 +1,9 @@
+using Core.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Persistence.Contexts;
+using Shared.Infrastructure.Persistence.Repositories;
 
 namespace Shared.Infrastructure.Extensions;
 
@@ -26,6 +28,7 @@ public static class ServiceExtensions
                 });
             if (IsEnvironmentDevelopment()) options.EnableSensitiveDataLogging();
         });
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         return services;
     }
 

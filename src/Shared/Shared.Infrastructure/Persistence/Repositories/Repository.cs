@@ -1,3 +1,4 @@
+using AutoMapper;
 using Core.Domain;
 using Core.Domain.Pagination;
 using Core.Domain.Repositories;
@@ -7,14 +8,16 @@ using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories;
 
-public class GenericRepository<TEntity> : IGenericRepository<TEntity>
+public class Repository<TEntity> : IRepository<TEntity>
     where TEntity : Entity
 {
     protected readonly AppDbContext _context;
+    protected readonly IMapper _mapper;
 
-    public GenericRepository(AppDbContext context)
+    public Repository(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     #region Specification Helper
@@ -58,6 +61,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return await _context.Set<TEntity>().FindAsync(new object[] { id }, cancellationToken);
     }
 
+    public async Task<TMap?> GetByIdAsync<TMap>(Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await GetByIdAsync(id, cancellationToken);
+        return _mapper.Map<TMap>(result);
+    }
+
     public async Task<TEntity?> GetAsync(
         ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
@@ -65,10 +74,24 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<TMap?> GetAsync<TMap>(ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await GetAsync(specification, cancellationToken);
+        return _mapper.Map<TMap>(result);
+    }
+
     public async Task<IEnumerable<TEntity>> GetAllAsync(
         CancellationToken cancellationToken = default)
     {
         return await _context.Set<TEntity>().ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<TMap>> GetAllAsync<TMap>(CancellationToken cancellationToken = default)
+    {
+        var results = await GetAllAsync(cancellationToken);
+        var mapperResults = results.Select(x => _mapper.Map<TMap>(x));
+        return mapperResults;
     }
 
     public async Task<PagedList<TEntity>> GetAllAsync(
@@ -81,6 +104,18 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
             .Take(pagedRequest.PageSize)
             .ToListAsync(cancellationToken);
         return new PagedList<TEntity>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
+    }
+
+    public async Task<PagedList<TMap>> GetAllAsync<TMap>(PagedRequest pagedRequest,
+        CancellationToken cancellationToken = default)
+    {
+        var totalCount = await _context.Set<TEntity>().CountAsync(cancellationToken);
+        var items = await _context.Set<TEntity>()
+            .Skip((pagedRequest.PageNumber - 1) * pagedRequest.PageSize)
+            .Take(pagedRequest.PageSize)
+            .ToListAsync(cancellationToken);
+        var mappedItems = items.Select(x => _mapper.Map<TMap>(x));
+        return new PagedList<TMap>(mappedItems, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
     }
 
     public async Task<PagedList<TEntity>> GetAllAsync(
@@ -97,12 +132,34 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return new PagedList<TEntity>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
     }
 
+    public async Task<PagedList<TMap>> GetAllAsync<TMap>(ISpecification<TEntity> specification,
+        PagedRequest pagedRequest,
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pagedRequest.PageNumber - 1) * pagedRequest.PageSize)
+            .Take(pagedRequest.PageSize)
+            .ToListAsync(cancellationToken);
+        var mappedItems = items.Select(x => _mapper.Map<TMap>(x));
+        return new PagedList<TMap>(mappedItems, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
+    }
+
     public async Task<IEnumerable<TEntity>> GetAllAsync(
         ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
         var query = ApplySpecification(specification);
         return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<TMap>> GetAllAsync<TMap>(ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        var results = await GetAllAsync(specification, cancellationToken);
+        var mapperResults = results.Select(x => _mapper.Map<TMap>(x));
+        return mapperResults;
     }
 
     public async Task<bool> ExistsAsync(
