@@ -1,24 +1,30 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Aggregates;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
 {
-    public UpdateGradeRequest Request { get; set; }
     public UpdateGradeCommand(UpdateGradeRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public UpdateGradeRequest Request { get; set; }
+
     public class Handler : IRequestHandler<UpdateGradeCommand, Result<GradeResponse>>
     {
-        private readonly IGradeRepository _gradeRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+
         public Handler(
-            IGradeRepository gradeRepository,
+            IRepository<Grade> gradeRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -26,6 +32,7 @@ public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<GradeResponse>> Handle(
             UpdateGradeCommand request,
             CancellationToken cancellationToken)
@@ -46,6 +53,7 @@ public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
                     return Result<GradeResponse>.Failure(
                         $"Grade with ID {request.Request.GradeId} not found");
                 }
+
                 grade.UpdateScores(request.Request.MidtermScore, request.Request.FinalScore);
                 await _gradeRepository.UpdateAsync(grade, cancellationToken);
                 await _gradeRepository.SaveChangesAsync(cancellationToken);

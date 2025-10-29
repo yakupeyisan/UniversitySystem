@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Identity.Application.Commands;
 
 public class RemovePermissionFromRoleCommand : IRequest<Result<RoleDto>>
 {
-    public Guid RoleId { get; set; }
-    public Guid PermissionId { get; set; }
-
     public RemovePermissionFromRoleCommand(Guid roleId, Guid permissionId)
     {
         if (roleId == Guid.Empty)
@@ -23,11 +19,14 @@ public class RemovePermissionFromRoleCommand : IRequest<Result<RoleDto>>
         PermissionId = permissionId;
     }
 
+    public Guid RoleId { get; set; }
+    public Guid PermissionId { get; set; }
+
     public class Handler : IRequestHandler<RemovePermissionFromRoleCommand, Result<RoleDto>>
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
 
         public Handler(
             IRoleRepository roleRepository,
@@ -45,7 +44,8 @@ public class RemovePermissionFromRoleCommand : IRequest<Result<RoleDto>>
         {
             try
             {
-                _logger.LogInformation("Removing permission {PermissionId} from role {RoleId}", request.PermissionId, request.RoleId);
+                _logger.LogInformation("Removing permission {PermissionId} from role {RoleId}", request.PermissionId,
+                    request.RoleId);
 
                 var role = await _roleRepository.GetByIdAsync(request.RoleId, cancellationToken);
                 if (role == null)

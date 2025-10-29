@@ -13,6 +13,7 @@ public class PermissionByTypeSpecification : Specification<Permission>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
+
     public PermissionByTypeSpecification(PermissionType type)
     {
         Criteria = p => p.PermissionType == type;

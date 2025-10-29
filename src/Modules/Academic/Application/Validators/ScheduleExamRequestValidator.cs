@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
 using FluentValidation;
+
 namespace Academic.Application.Validators;
+
 public class ScheduleExamRequestValidator : AbstractValidator<ScheduleExamRequest>
 {
     public ScheduleExamRequestValidator()
@@ -20,7 +22,9 @@ public class ScheduleExamRequestValidator : AbstractValidator<ScheduleExamReques
                         context.AddFailure("S�nav tarihi ge�mi� tarih olamaz");
                 }
                 else
+                {
                     context.AddFailure("S�nav tarihi ge�ersiz");
+                }
             });
         RuleFor(x => x.StartTime)
             .NotEmpty().WithMessage("Ba�lang�� saati bo� olamaz")
@@ -43,10 +47,8 @@ public class ScheduleExamRequestValidator : AbstractValidator<ScheduleExamReques
             {
                 if (TimeOnly.TryParse(request.StartTime, out var start) &&
                     TimeOnly.TryParse(request.EndTime, out var end))
-                {
                     if (end <= start)
                         context.AddFailure("Biti� saati ba�lang�� saatinden sonra olmal�d�r");
-                }
             });
         RuleFor(x => x.MaxCapacity)
             .GreaterThan(0).WithMessage("Maksimum kapasite 0'dan b�y�k olmal�d�r")

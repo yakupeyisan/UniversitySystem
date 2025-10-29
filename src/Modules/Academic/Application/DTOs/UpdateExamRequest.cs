@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class UpdateExamRequest
 {
     public Guid ExamId { get; set; }

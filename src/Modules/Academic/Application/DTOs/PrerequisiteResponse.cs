@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class PrerequisiteResponse
 {
     public Guid Id { get; set; }

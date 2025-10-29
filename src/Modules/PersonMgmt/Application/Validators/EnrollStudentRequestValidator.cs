@@ -1,6 +1,8 @@
 using FluentValidation;
 using PersonMgmt.Application.DTOs;
+
 namespace PersonMgmt.Application.Validators;
+
 public class EnrollStudentRequestValidator : AbstractValidator<EnrollStudentRequest>
 {
     public EnrollStudentRequestValidator()
@@ -14,6 +16,7 @@ public class EnrollStudentRequestValidator : AbstractValidator<EnrollStudentRequ
             .NotEmpty().WithMessage("Kayıt tarihi boş olamaz")
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Kayıt tarihi bugünden önce olmalıdır");
         RuleFor(x => x.EducationLevel)
-            .InclusiveBetween((byte)0, (byte)2).WithMessage("Eğitim düzeyi 0 (Lisans), 1 (Yüksek Lisans) veya 2 (Doktora) olmalıdır");
+            .InclusiveBetween((byte)0, (byte)2)
+            .WithMessage("Eğitim düzeyi 0 (Lisans), 1 (Yüksek Lisans) veya 2 (Doktora) olmalıdır");
     }
 }

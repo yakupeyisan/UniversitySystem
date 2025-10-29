@@ -1,6 +1,8 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Specifications;
+
 public class CourseRegistrationByStudentSpec : Specification<CourseRegistration>
 {
     public CourseRegistrationByStudentSpec(Guid studentId)

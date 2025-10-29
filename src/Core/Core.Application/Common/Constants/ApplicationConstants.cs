@@ -1,4 +1,5 @@
 namespace Core.Application.Common.Constants;
+
 public static class ApplicationConstants
 {
     public const int MaxPageSize = 100;

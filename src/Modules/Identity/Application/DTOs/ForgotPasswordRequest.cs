@@ -2,9 +2,9 @@ namespace Identity.Application.DTOs;
 
 public class ForgotPasswordRequest
 {
-    public string Email { get; set; } = string.Empty;
-
-    public ForgotPasswordRequest() { }
+    public ForgotPasswordRequest()
+    {
+    }
 
     public ForgotPasswordRequest(string email)
     {
@@ -13,4 +13,6 @@ public class ForgotPasswordRequest
 
         Email = email.Trim().ToLower();
     }
+
+    public string Email { get; set; } = string.Empty;
 }

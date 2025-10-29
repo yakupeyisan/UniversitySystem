@@ -2,9 +2,15 @@ using Academic.Domain.Enums;
 using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Aggregates;
+
 public class Grade : AuditableEntity, ISoftDelete
 {
+    private Grade()
+    {
+    }
+
     public Guid StudentId { get; private set; }
     public Guid CourseId { get; private set; }
     public Guid RegistrationId { get; private set; }
@@ -18,10 +24,11 @@ public class Grade : AuditableEntity, ISoftDelete
     public bool IsObjected { get; private set; }
     public DateTime ObjectionDeadline { get; private set; }
     public DateTime RecordedDate { get; private set; }
+    public Course? Course { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -32,6 +39,7 @@ public class Grade : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
+
     public void Restore()
     {
         if (!IsDeleted)
@@ -41,7 +49,7 @@ public class Grade : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    private Grade() { }
+
     public static Grade Create(
         Guid studentId,
         Guid courseId,
@@ -71,7 +79,7 @@ public class Grade : AuditableEntity, ISoftDelete
             throw new ArgumentException("Final weight must be between 0 and 1");
         if (Math.Abs(midtermWeight + finalWeight - 1.0f) > 0.001)
             throw new ArgumentException("Sum of weights must equal 1.0");
-        var numericScore = (midtermScore * midtermWeight) + (finalScore * finalWeight);
+        var numericScore = midtermScore * midtermWeight + finalScore * finalWeight;
         var letterGrade = LetterGradeExtensions.FromNumericScore(numericScore);
         var gradePoint = letterGrade.GetGradePoint();
         var grade = new Grade
@@ -100,6 +108,7 @@ public class Grade : AuditableEntity, ISoftDelete
             numericScore));
         return grade;
     }
+
     public void UpdateScores(
         float newMidtermScore,
         float newFinalScore,
@@ -112,12 +121,17 @@ public class Grade : AuditableEntity, ISoftDelete
             throw new ArgumentException("Final score must be between 0 and 100");
         MidtermScore = newMidtermScore;
         FinalScore = newFinalScore;
-        NumericScore = (newMidtermScore * midtermWeight) + (newFinalScore * finalWeight);
+        NumericScore = newMidtermScore * midtermWeight + newFinalScore * finalWeight;
         LetterGrade = LetterGradeExtensions.FromNumericScore(NumericScore);
         GradePoint = LetterGrade.GetGradePoint();
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool CanObjectGrade() => DateTime.UtcNow <= ObjectionDeadline && !IsObjected;
+
+    public bool CanObjectGrade()
+    {
+        return DateTime.UtcNow <= ObjectionDeadline && !IsObjected;
+    }
+
     public void MarkAsObjected()
     {
         if (!CanObjectGrade())
@@ -125,16 +139,29 @@ public class Grade : AuditableEntity, ISoftDelete
         IsObjected = true;
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool IsPassingGrade() => LetterGrade.IsPassingGrade();
-    public float GetECTSPoints() => ECTS * GradePoint;
+
+    public bool IsPassingGrade()
+    {
+        return LetterGrade.IsPassingGrade();
+    }
+
+    public float GetECTSPoints()
+    {
+        return ECTS * GradePoint;
+    }
+
     public void UpdateGradeFromObjection(float newMidtermScore, float newFinalScore, LetterGrade newLetterGrade)
     {
         MidtermScore = newMidtermScore;
         FinalScore = newFinalScore;
-        NumericScore = (newMidtermScore * 0.3f) + (newFinalScore * 0.7f);
+        NumericScore = newMidtermScore * 0.3f + newFinalScore * 0.7f;
         LetterGrade = newLetterGrade;
         GradePoint = newLetterGrade.GetGradePoint();
         UpdatedAt = DateTime.UtcNow;
     }
-    public override string ToString() => $"{Semester} - {LetterGrade} ({NumericScore:F2})";
+
+    public override string ToString()
+    {
+        return $"{Semester} - {LetterGrade} ({NumericScore:F2})";
+    }
 }

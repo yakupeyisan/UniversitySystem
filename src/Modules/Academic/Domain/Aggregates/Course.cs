@@ -1,13 +1,20 @@
-using Core.Domain;
 using Academic.Domain.Enums;
-using Academic.Domain.ValueObjects;
 using Academic.Domain.Events;
+using Academic.Domain.ValueObjects;
+using Core.Domain;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Aggregates;
+
 public class Course : AuditableEntity, ISoftDelete
 {
     private readonly List<Guid> _instructorIds = new();
     private readonly List<Guid> _prerequisiteIds = new();
+
+    private Course()
+    {
+    }
+
     public CourseCode Code { get; private set; } = null!;
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
@@ -25,6 +32,7 @@ public class Course : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -35,6 +43,7 @@ public class Course : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
+
     public void Restore()
     {
         if (!IsDeleted)
@@ -44,7 +53,7 @@ public class Course : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    private Course() { }
+
     public static Course Create(
         CourseCode code,
         string name,
@@ -86,6 +95,7 @@ public class Course : AuditableEntity, ISoftDelete
         course.AddDomainEvent(new CourseCreated(course.Id, code.Value, name, semester));
         return course;
     }
+
     public void AddInstructor(Guid instructorId)
     {
         if (_instructorIds.Contains(instructorId))
@@ -93,12 +103,14 @@ public class Course : AuditableEntity, ISoftDelete
         _instructorIds.Add(instructorId);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void RemoveInstructor(Guid instructorId)
     {
         if (!_instructorIds.Remove(instructorId))
             throw new InvalidOperationException("Instructor not found in course");
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AddPrerequisite(Guid prerequisiteId)
     {
         if (_prerequisiteIds.Contains(prerequisiteId))
@@ -106,15 +118,29 @@ public class Course : AuditableEntity, ISoftDelete
         _prerequisiteIds.Add(prerequisiteId);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void RemovePrerequisite(Guid prerequisiteId)
     {
         if (!_prerequisiteIds.Remove(prerequisiteId))
             throw new InvalidOperationException("Prerequisite not found in course");
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool IsCapacityFull() => Capacity.IsFull();
-    public bool HasAvailableSeats() => Capacity.HasAvailableSeats();
-    public bool HasPrerequisites() => _prerequisiteIds.Any();
+
+    public bool IsCapacityFull()
+    {
+        return Capacity.IsFull();
+    }
+
+    public bool HasAvailableSeats()
+    {
+        return Capacity.HasAvailableSeats();
+    }
+
+    public bool HasPrerequisites()
+    {
+        return _prerequisiteIds.Any();
+    }
+
     public void IncrementEnrollment()
     {
         if (IsCapacityFull())
@@ -122,11 +148,13 @@ public class Course : AuditableEntity, ISoftDelete
         Capacity = Capacity.WithIncrementedEnrollment();
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void DecrementEnrollment()
     {
         Capacity = Capacity.WithDecrementedEnrollment();
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Cancel(string reason)
     {
         if (Status == CourseStatus.Cancelled)
@@ -134,6 +162,7 @@ public class Course : AuditableEntity, ISoftDelete
         Status = CourseStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Activate()
     {
         if (Status == CourseStatus.Active)
@@ -141,6 +170,7 @@ public class Course : AuditableEntity, ISoftDelete
         Status = CourseStatus.Active;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Deactivate()
     {
         if (Status == CourseStatus.Inactive)
@@ -148,6 +178,7 @@ public class Course : AuditableEntity, ISoftDelete
         Status = CourseStatus.Inactive;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Update(
         string name,
         string? description,

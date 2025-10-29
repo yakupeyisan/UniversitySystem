@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 /// <summary>
-/// User management endpoints - CRUD, Search, Role/Permission assignment
+///     User management endpoints - CRUD, Search, Role/Permission assignment
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -18,8 +18,8 @@ namespace API.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<UsersController> _logger;
+    private readonly IMediator _mediator;
 
     public UsersController(IMediator mediator, ILogger<UsersController> logger)
     {
@@ -28,7 +28,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get user by ID
+    ///     Get user by ID
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>User details with roles and permissions</returns>
@@ -61,7 +61,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get all active users
+    ///     Get all active users
     /// </summary>
     /// <param name="pageNumber">Page number (default: 1)</param>
     /// <param name="pageSize">Page size (default: 10)</param>
@@ -91,7 +91,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Search users by name or email
+    ///     Search users by name or email
     /// </summary>
     /// <param name="searchTerm">Search term (name or email)</param>
     /// <param name="pageNumber">Page number (default: 1)</param>
@@ -127,7 +127,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get user by email
+    ///     Get user by email
     /// </summary>
     /// <param name="email">User email</param>
     /// <returns>User details</returns>
@@ -164,7 +164,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Update user profile
+    ///     Update user profile
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Updated user details</param>
@@ -203,7 +203,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Delete user
+    ///     Delete user
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>Success message</returns>
@@ -237,7 +237,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get user's roles
+    ///     Get user's roles
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>List of user's roles</returns>
@@ -262,12 +262,13 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user roles: {UserId}", userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving user roles" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving user roles" });
         }
     }
 
     /// <summary>
-    /// Get user's permissions
+    ///     Get user's permissions
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>List of user's permissions</returns>
@@ -292,12 +293,13 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user permissions: {UserId}", userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving user permissions" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving user permissions" });
         }
     }
 
     /// <summary>
-    /// Assign role to user
+    ///     Assign role to user
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Role assignment request</param>
@@ -336,7 +338,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Remove role from user
+    ///     Remove role from user
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Role revocation request</param>
@@ -375,7 +377,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Grant permission to user
+    ///     Grant permission to user
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Permission grant request</param>
@@ -414,7 +416,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Revoke permission from user
+    ///     Revoke permission from user
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Permission revocation request</param>
@@ -453,7 +455,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Lock user account
+    ///     Lock user account
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>Success message</returns>
@@ -483,7 +485,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Unlock user account
+    ///     Unlock user account
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>Success message</returns>
@@ -508,7 +510,8 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlocking user: {UserId}", userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error unlocking user account" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error unlocking user account" });
         }
     }
 }

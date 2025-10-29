@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
 using FluentValidation;
+
 namespace Academic.Application.Validators;
+
 public class UpdateExamRequestValidator : AbstractValidator<UpdateExamRequest>
 {
     public UpdateExamRequestValidator()
@@ -18,7 +20,9 @@ public class UpdateExamRequestValidator : AbstractValidator<UpdateExamRequest>
                         context.AddFailure("S�nav tarihi ge�mi� tarih olamaz");
                 }
                 else
+                {
                     context.AddFailure("S�nav tarihi ge�ersiz");
+                }
             });
         RuleFor(x => x.StartTime)
             .NotEmpty().WithMessage("Ba�lang�� saati bo� olamaz")

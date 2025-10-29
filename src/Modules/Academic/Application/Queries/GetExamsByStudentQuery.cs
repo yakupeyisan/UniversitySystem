@@ -1,37 +1,45 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Queries.Courses;
+
 public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
 {
-    public Guid StudentId { get; set; }
     public GetExamsByStudentQuery(Guid studentId)
     {
         if (studentId == Guid.Empty)
             throw new ArgumentException("Student ID cannot be empty", nameof(studentId));
         StudentId = studentId;
     }
+
+    public Guid StudentId { get; set; }
+
     public class Handler : IRequestHandler<GetExamsByStudentQuery, Result<List<ExamResponse>>>
     {
-        private readonly IExamRepository _examRepository;
-        private readonly ICourseRegistrationRepository _registrationRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRepository<CourseRegistration> _registrationRepository;
+
         public Handler(
-            IExamRepository examRepository,
-            ICourseRegistrationRepository registrationRepository,
+            IRepository<Exam> examRepository,
+            IRepository<CourseRegistration> registrationRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
             _examRepository = examRepository ?? throw new ArgumentNullException(nameof(examRepository));
-            _registrationRepository = registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
+            _registrationRepository =
+                registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<List<ExamResponse>>> Handle(
             GetExamsByStudentQuery request,
             CancellationToken cancellationToken)
@@ -39,8 +47,8 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
             try
             {
                 _logger.LogInformation("Fetching exams for student {StudentId}", request.StudentId);
-                var registrations = await _registrationRepository.GetByStudentAsync(
-                    request.StudentId,
+                var registrations = await _registrationRepository.GetAllAsync(
+                    new CourseRegistrationByStudentSpec(request.StudentId),
                     cancellationToken);
                 var courseIds = registrations.Select(r => r.CourseId).ToList();
                 if (courseIds.Count == 0)
@@ -50,12 +58,15 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
                         new List<ExamResponse>(),
                         "Student has no registered courses");
                 }
+
                 var exams = new List<Exam>();
                 foreach (var courseId in courseIds)
                 {
-                    var courseExams = await _examRepository.GetByCourseAsync(courseId, cancellationToken);
+                    var courseExams =
+                        await _examRepository.GetAllAsync(new ExamByCourseSpec(courseId), cancellationToken);
                     exams.AddRange(courseExams);
                 }
+
                 var responses = _mapper.Map<List<ExamResponse>>(exams);
                 _logger.LogInformation(
                     "Retrieved {Count} exams for student {StudentId}",

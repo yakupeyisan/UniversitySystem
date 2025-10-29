@@ -92,13 +92,13 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
 
         // Seed system roles
         builder.HasData(
-            Role.Create("Admin", RoleType.Admin, "System administrator with full access", isSystemRole: true),
-            Role.Create("Staff", RoleType.Staff, "Regular staff member with limited access", isSystemRole: true),
-            Role.Create("Student", RoleType.Student, "Student user with restricted permissions", isSystemRole: true),
-            Role.Create("Faculty", RoleType.Faculty, "Faculty member with course and grading access", isSystemRole: true),
-            Role.Create("Guest", RoleType.Guest, "Guest user with minimal access", isSystemRole: true),
-            Role.Create("Moderator", RoleType.Moderator, "Moderator with content management permissions", isSystemRole: true),
-            Role.Create("Viewer", RoleType.Viewer, "Viewer role with read-only access", isSystemRole: true)
+            Role.Create("Admin", RoleType.Admin, "System administrator with full access", true),
+            Role.Create("Staff", RoleType.Staff, "Regular staff member with limited access", true),
+            Role.Create("Student", RoleType.Student, "Student user with restricted permissions", true),
+            Role.Create("Faculty", RoleType.Faculty, "Faculty member with course and grading access", true),
+            Role.Create("Guest", RoleType.Guest, "Guest user with minimal access", true),
+            Role.Create("Moderator", RoleType.Moderator, "Moderator with content management permissions", true),
+            Role.Create("Viewer", RoleType.Viewer, "Viewer role with read-only access", true)
         );
     }
 }

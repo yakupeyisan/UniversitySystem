@@ -1,7 +1,9 @@
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
+
 namespace PersonMgmt.Domain.Specifications;
+
 public class StudentsByEducationLevelSpecification : Specification<Person>
 {
     public StudentsByEducationLevelSpecification(EducationLevel educationLevel)

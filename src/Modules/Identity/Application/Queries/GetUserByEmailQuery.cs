@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,8 +8,6 @@ namespace Identity.Application.Queries;
 
 public class GetUserByEmailQuery : IRequest<Result<UserDto>>
 {
-    public string Email { get; set; }
-
     public GetUserByEmailQuery(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -19,11 +16,13 @@ public class GetUserByEmailQuery : IRequest<Result<UserDto>>
         Email = email;
     }
 
+    public string Email { get; set; }
+
     public class Handler : IRequestHandler<GetUserByEmailQuery, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

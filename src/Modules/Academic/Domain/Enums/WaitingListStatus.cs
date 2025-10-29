@@ -1,4 +1,5 @@
 namespace Academic.Domain.Enums;
+
 public enum WaitingListStatus
 {
     Waiting = 1,

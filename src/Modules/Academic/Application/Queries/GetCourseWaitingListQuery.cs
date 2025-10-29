@@ -1,30 +1,37 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
 using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Queries.Courses;
+
 public class GetCourseWaitingListQuery : IRequest<Result<IEnumerable<CourseWaitingListEntryResponse>>>
 {
-    public Guid CourseId { get; set; }
     public GetCourseWaitingListQuery(Guid courseId)
     {
         if (courseId == Guid.Empty)
             throw new ArgumentException("Course ID cannot be empty", nameof(courseId));
         CourseId = courseId;
     }
-    public class Handler : IRequestHandler<GetCourseWaitingListQuery, Result<IEnumerable<CourseWaitingListEntryResponse>>>
+
+    public Guid CourseId { get; set; }
+
+    public class Handler : IRequestHandler<GetCourseWaitingListQuery,
+        Result<IEnumerable<CourseWaitingListEntryResponse>>>
     {
-        private readonly IWaitingListRepository _waitingListRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IWaitingListRepository _waitingListRepository;
+
         public Handler(IWaitingListRepository waitingListRepository, IMapper mapper, ILogger<Handler> logger)
         {
-            _waitingListRepository = waitingListRepository ?? throw new ArgumentNullException(nameof(waitingListRepository));
+            _waitingListRepository =
+                waitingListRepository ?? throw new ArgumentNullException(nameof(waitingListRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<IEnumerable<CourseWaitingListEntryResponse>>> Handle(
             GetCourseWaitingListQuery request,
             CancellationToken cancellationToken)

@@ -1,6 +1,8 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Specifications;
+
 public class ExamsByDateRangeSpec : Specification<Exam>
 {
     public ExamsByDateRangeSpec(DateOnly startDate, DateOnly endDate)

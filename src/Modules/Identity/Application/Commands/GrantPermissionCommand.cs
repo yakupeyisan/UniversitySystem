@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Identity.Application.Commands;
 
 public class GrantPermissionCommand : IRequest<Result<UserDto>>
 {
-    public Guid UserId { get; set; }
-    public GrantPermissionRequest Request { get; set; }
-
     public GrantPermissionCommand(Guid userId, GrantPermissionRequest request)
     {
         if (userId == Guid.Empty)
@@ -21,12 +17,15 @@ public class GrantPermissionCommand : IRequest<Result<UserDto>>
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
+    public Guid UserId { get; set; }
+    public GrantPermissionRequest Request { get; set; }
+
     public class Handler : IRequestHandler<GrantPermissionCommand, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPermissionRepository _permissionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPermissionRepository _permissionRepository;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -35,7 +34,8 @@ public class GrantPermissionCommand : IRequest<Result<UserDto>>
             ILogger<Handler> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _permissionRepository = permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
+            _permissionRepository =
+                permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -60,7 +60,8 @@ public class GrantPermissionCommand : IRequest<Result<UserDto>>
                 }
 
                 // Get permission
-                var permission = await _permissionRepository.GetByIdAsync(request.Request.PermissionId, cancellationToken);
+                var permission =
+                    await _permissionRepository.GetByIdAsync(request.Request.PermissionId, cancellationToken);
                 if (permission == null)
                 {
                     _logger.LogWarning("Permission not found: {PermissionId}", request.Request.PermissionId);

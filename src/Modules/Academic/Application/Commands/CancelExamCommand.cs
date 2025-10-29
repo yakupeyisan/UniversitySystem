@@ -1,27 +1,34 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Aggregates;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class CancelExamCommand : IRequest<Result<Unit>>
 {
-    public CancelExamRequest Request { get; set; }
     public CancelExamCommand(CancelExamRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public CancelExamRequest Request { get; set; }
+
     public class Handler : IRequestHandler<CancelExamCommand, Result<Unit>>
     {
-        private readonly IExamRepository _examRepository;
+        private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
+
         public Handler(
-            IExamRepository examRepository,
+            IRepository<Exam> examRepository,
             ILogger<Handler> logger)
         {
             _examRepository = examRepository ?? throw new ArgumentNullException(nameof(examRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<Unit>> Handle(
             CancelExamCommand request,
             CancellationToken cancellationToken)
@@ -42,6 +49,7 @@ public class CancelExamCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure(
                         $"Exam with ID {request.Request.ExamId} not found");
                 }
+
                 exam.Cancel(request.Request.Reason);
                 await _examRepository.UpdateAsync(exam, cancellationToken);
                 await _examRepository.SaveChangesAsync(cancellationToken);

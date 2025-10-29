@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class JoinWaitingListRequest
 {
     public Guid StudentId { get; set; }

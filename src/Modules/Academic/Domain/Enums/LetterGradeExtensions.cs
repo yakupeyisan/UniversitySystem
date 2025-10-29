@@ -1,4 +1,5 @@
 namespace Academic.Domain.Enums;
+
 public static class LetterGradeExtensions
 {
     public static LetterGrade FromNumericScore(float score)
@@ -16,6 +17,7 @@ public static class LetterGradeExtensions
             _ => LetterGrade.FF
         };
     }
+
     public static float GetGradePoint(this LetterGrade letterGrade)
     {
         return letterGrade switch
@@ -32,10 +34,12 @@ public static class LetterGradeExtensions
             _ => 0.0f
         };
     }
+
     public static bool IsPassingGrade(this LetterGrade letterGrade)
     {
         return letterGrade is not (LetterGrade.F or LetterGrade.FF);
     }
+
     public static float GetLowerBound(this LetterGrade letterGrade)
     {
         return letterGrade switch

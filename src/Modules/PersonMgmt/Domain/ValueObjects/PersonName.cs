@@ -1,10 +1,9 @@
 using Core.Domain.ValueObjects;
+
 namespace PersonMgmt.Domain.ValueObjects;
+
 public class PersonName : ValueObject
 {
-    public string FirstName { get; }
-    public string LastName { get; }
-    public string FullName => $"{FirstName} {LastName}";
     private PersonName(string firstName, string lastName)
     {
         if (string.IsNullOrWhiteSpace(firstName))
@@ -18,14 +17,24 @@ public class PersonName : ValueObject
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
     }
+
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string FullName => $"{FirstName} {LastName}";
+
     public static PersonName Create(string firstName, string lastName)
     {
         return new PersonName(firstName, lastName);
     }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return FirstName;
         yield return LastName;
     }
-    public override string ToString() => FullName;
+
+    public override string ToString()
+    {
+        return FullName;
+    }
 }

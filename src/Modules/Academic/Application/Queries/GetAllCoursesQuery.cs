@@ -1,29 +1,34 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
 using AutoMapper;
 using Core.Domain.Pagination;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Queries.Courses;
+
 public class GetAllCoursesQuery : IRequest<Result<PagedList<CourseListResponse>>>
 {
-    public PagedRequest PagedRequest { get; set; }
     public GetAllCoursesQuery(PagedRequest pagedRequest)
     {
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
     }
+
+    public PagedRequest PagedRequest { get; set; }
+
     public class Handler : IRequestHandler<GetAllCoursesQuery, Result<PagedList<CourseListResponse>>>
     {
         private readonly ICourseRepository _courseRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+
         public Handler(ICourseRepository courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<PagedList<CourseListResponse>>> Handle(
             GetAllCoursesQuery request,
             CancellationToken cancellationToken)

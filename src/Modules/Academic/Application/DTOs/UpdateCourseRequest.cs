@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class UpdateCourseRequest
 {
     public string Name { get; set; } = string.Empty;

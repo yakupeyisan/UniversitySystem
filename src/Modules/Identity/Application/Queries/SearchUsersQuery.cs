@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,10 +9,6 @@ namespace Identity.Application.Queries;
 
 public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
 {
-    public string SearchTerm { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-
     public SearchUsersQuery(string searchTerm, int pageNumber = 1, int pageSize = 10)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
@@ -24,11 +19,15 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
         PageSize = pageSize > 0 ? pageSize : 10;
     }
 
+    public string SearchTerm { get; set; }
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+
     public class Handler : IRequestHandler<SearchUsersQuery, Result<PaginatedListDto<UserDto>>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -52,7 +51,7 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
                     request.PageNumber,
                     request.PageSize);
 
-                var spec = new UsersBySearchTermSpecification(request.SearchTerm,request.PageNumber,request.PageSize);
+                var spec = new UsersBySearchTermSpecification(request.SearchTerm, request.PageNumber, request.PageSize);
 
                 var users = await _userRepository.GetAsync(spec, cancellationToken);
                 var totalCount = await _userRepository.GetCountAsync(
@@ -79,12 +78,3 @@ public class SearchUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
         }
     }
 }
-
-
-#region Role Queries
-
-#endregion
-
-#region Permission Queries
-
-#endregion

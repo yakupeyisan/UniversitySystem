@@ -1,11 +1,9 @@
 using Core.Domain.Events;
+
 namespace PersonMgmt.Domain.Events;
+
 public class PersonDeletedDomainEvent : DomainEvent
 {
-    public Guid PersonId { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public DateTime DeletedAt { get; set; }
     public PersonDeletedDomainEvent(
         Guid personId,
         string firstName,
@@ -17,4 +15,9 @@ public class PersonDeletedDomainEvent : DomainEvent
         LastName = lastName;
         DeletedAt = deletedAt;
     }
+
+    public Guid PersonId { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public DateTime DeletedAt { get; set; }
 }

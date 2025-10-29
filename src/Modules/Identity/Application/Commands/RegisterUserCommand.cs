@@ -3,7 +3,6 @@ using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
 using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
 using Identity.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -12,19 +11,19 @@ namespace Identity.Application.Commands;
 
 public class RegisterUserCommand : IRequest<Result<UserDto>>
 {
-    public RegisterUserRequest Request { get; set; }
-
     public RegisterUserCommand(RegisterUserRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
+    public RegisterUserRequest Request { get; set; }
+
     public class Handler : IRequestHandler<RegisterUserCommand, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordHasher _passwordHasher;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -59,7 +58,8 @@ public class RegisterUserCommand : IRequest<Result<UserDto>>
                 if (!_passwordHasher.ValidatePasswordStrength(request.Request.Password))
                 {
                     _logger.LogWarning("Password does not meet strength requirements");
-                    return Result<UserDto>.Failure($"Password does not meet requirements: {_passwordHasher.GetPasswordRequirements()}");
+                    return Result<UserDto>.Failure(
+                        $"Password does not meet requirements: {_passwordHasher.GetPasswordRequirements()}");
                 }
 
                 // Create email value object

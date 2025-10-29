@@ -4,9 +4,6 @@ namespace Identity.Domain.ValueObjects;
 
 public class PasswordHash : ValueObject
 {
-    public string HashedPassword { get; }
-    public string Salt { get; }
-
     public PasswordHash(string hashedPassword, string salt)
     {
         if (string.IsNullOrWhiteSpace(hashedPassword))
@@ -18,6 +15,7 @@ public class PasswordHash : ValueObject
         HashedPassword = hashedPassword;
         Salt = salt;
     }
+
     public PasswordHash(string hashedPassword)
     {
         if (string.IsNullOrWhiteSpace(hashedPassword))
@@ -26,7 +24,15 @@ public class PasswordHash : ValueObject
         HashedPassword = hashedPassword;
         Salt = string.Empty;
     }
-    public override string ToString() => HashedPassword;
+
+    public string HashedPassword { get; }
+    public string Salt { get; }
+
+    public override string ToString()
+    {
+        return HashedPassword;
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return HashedPassword;

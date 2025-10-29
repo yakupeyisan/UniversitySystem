@@ -1,10 +1,15 @@
 using Academic.Domain.Enums;
-using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Aggregates;
+
 public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
 {
+    private CourseWaitingListEntry()
+    {
+    }
+
     public Guid StudentId { get; private set; }
     public Guid CourseId { get; private set; }
     public int QueuePosition { get; private set; }
@@ -13,10 +18,11 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
     public DateTime? AdmittedDate { get; private set; }
     public DateTime? CancelledDate { get; private set; }
     public string? CancelReason { get; private set; }
+    public Course? Course { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -27,6 +33,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
+
     public void Restore()
     {
         if (!IsDeleted)
@@ -36,7 +43,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    private CourseWaitingListEntry() { }
+
     public static CourseWaitingListEntry Create(
         Guid studentId,
         Guid courseId,
@@ -60,6 +67,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         };
         return entry;
     }
+
     public void Admit()
     {
         if (Status != WaitingListStatus.Waiting)
@@ -68,6 +76,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         AdmittedDate = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Cancel(string reason)
     {
         if (Status == WaitingListStatus.Cancelled)
@@ -79,6 +88,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         CancelReason = reason;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Expire()
     {
         if (Status == WaitingListStatus.Expired)
@@ -88,6 +98,7 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         Status = WaitingListStatus.Expired;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateQueuePosition(int newPosition)
     {
         if (newPosition <= 0)
@@ -95,7 +106,19 @@ public class CourseWaitingListEntry : AuditableEntity, ISoftDelete
         QueuePosition = newPosition;
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool IsWaiting() => Status == WaitingListStatus.Waiting;
-    public bool CanBeAdmitted() => Status == WaitingListStatus.Waiting;
-    public bool IsActive() => Status == WaitingListStatus.Waiting && !IsDeleted;
+
+    public bool IsWaiting()
+    {
+        return Status == WaitingListStatus.Waiting;
+    }
+
+    public bool CanBeAdmitted()
+    {
+        return Status == WaitingListStatus.Waiting;
+    }
+
+    public bool IsActive()
+    {
+        return Status == WaitingListStatus.Waiting && !IsDeleted;
+    }
 }

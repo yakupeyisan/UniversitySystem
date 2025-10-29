@@ -1,15 +1,17 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Aggregates;
+using Academic.Domain.Specifications;
 using AutoMapper;
 using Core.Domain.Pagination;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Queries.Courses;
+
 public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
 {
-    public Guid StudentId { get; set; }
-    public PagedRequest? PagedRequest { get; set; }
     public GetStudentCoursesQuery(Guid studentId, PagedRequest? pagedRequest = null)
     {
         if (studentId == Guid.Empty)
@@ -17,20 +19,27 @@ public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
         StudentId = studentId;
         PagedRequest = pagedRequest;
     }
+
+    public Guid StudentId { get; set; }
+    public PagedRequest? PagedRequest { get; set; }
+
     public class Handler : IRequestHandler<GetStudentCoursesQuery, Result<StudentCoursesResponse>>
     {
-        private readonly ICourseRegistrationRepository _registrationRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRepository<CourseRegistration> _registrationRepository;
+
         public Handler(
-            ICourseRegistrationRepository registrationRepository,
+            IRepository<CourseRegistration> registrationRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
-            _registrationRepository = registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
+            _registrationRepository =
+                registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<StudentCoursesResponse>> Handle(
             GetStudentCoursesQuery request,
             CancellationToken cancellationToken)
@@ -38,8 +47,8 @@ public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
             try
             {
                 _logger.LogInformation("Fetching courses for student {StudentId}", request.StudentId);
-                var registrations = await _registrationRepository.GetByStudentAsync(
-                    request.StudentId,
+                var registrations = await _registrationRepository.GetAllAsync(
+                    new CourseRegistrationByStudentSpec(request.StudentId),
                     cancellationToken);
                 var courseResponses = _mapper.Map<List<CourseRegistrationResponse>>(registrations);
                 var totalEcts = registrations.Sum(r => r.Course?.Credits ?? 0);

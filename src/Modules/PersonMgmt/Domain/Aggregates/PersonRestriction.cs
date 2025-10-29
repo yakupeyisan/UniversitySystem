@@ -1,9 +1,15 @@
 using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
+
 namespace PersonMgmt.Domain.Aggregates;
+
 public class PersonRestriction : AuditableEntity, ISoftDelete
 {
+    private PersonRestriction()
+    {
+    }
+
     public Guid PersonId { get; private set; }
     public RestrictionType RestrictionType { get; private set; }
     public RestrictionLevel RestrictionLevel { get; private set; }
@@ -16,9 +22,25 @@ public class PersonRestriction : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    private PersonRestriction()
+
+    public void Delete(Guid deletedBy)
     {
+        IsDeleted = true;
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public static PersonRestriction Create(
         Guid personId,
         RestrictionType restrictionType,
@@ -47,6 +69,7 @@ public class PersonRestriction : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
+
     public bool IsCurrentlyActive()
     {
         var now = DateTime.UtcNow;
@@ -60,16 +83,19 @@ public class PersonRestriction : AuditableEntity, ISoftDelete
             return false;
         return true;
     }
+
     public void Deactivate()
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Reactivate()
     {
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void ExtendEndDate(DateTime newEndDate)
     {
         if (newEndDate <= EndDate)
@@ -77,22 +103,7 @@ public class PersonRestriction : AuditableEntity, ISoftDelete
         EndDate = newEndDate;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        UpdatedBy = deletedBy;
-    }
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedBy = null;
-        DeletedAt = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
+
     private static void ValidateRestrictionData(string reason, int severity, DateTime startDate, DateTime? endDate)
     {
         if (string.IsNullOrWhiteSpace(reason))

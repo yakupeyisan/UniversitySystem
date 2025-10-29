@@ -4,6 +4,10 @@ namespace Identity.Domain.Aggregates;
 
 public class RefreshToken : AuditableEntity
 {
+    private RefreshToken()
+    {
+    }
+
     public Guid UserId { get; private set; }
     public string Token { get; private set; }
     public DateTime ExpiryDate { get; private set; }
@@ -13,7 +17,10 @@ public class RefreshToken : AuditableEntity
     public string IpAddress { get; private set; }
     public string UserAgent { get; private set; }
     public User User { get; private set; }
-    private RefreshToken() { }
+
+    public bool IsExpired => DateTime.UtcNow > ExpiryDate;
+
+    public bool IsValid => !IsRevoked && !IsExpired;
 
     public static RefreshToken Create(
         Guid userId,
@@ -44,10 +51,6 @@ public class RefreshToken : AuditableEntity
             UpdatedAt = DateTime.UtcNow
         };
     }
-
-    public bool IsExpired => DateTime.UtcNow > ExpiryDate;
-
-    public bool IsValid => !IsRevoked && !IsExpired;
 
     public void Revoke(string reason = "")
     {

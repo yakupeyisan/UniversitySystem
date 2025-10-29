@@ -11,6 +11,7 @@ public class SystemRolesSpecification : Specification<Role>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
+
     public SystemRolesSpecification()
     {
         Criteria = r => r.IsSystemRole;

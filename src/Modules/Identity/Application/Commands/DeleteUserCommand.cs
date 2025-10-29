@@ -1,5 +1,4 @@
 using Core.Domain.Results;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -7,8 +6,6 @@ namespace Identity.Application.Commands;
 
 public class DeleteUserCommand : IRequest<Result<bool>>
 {
-    public Guid UserId { get; set; }
-
     public DeleteUserCommand(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -17,10 +14,12 @@ public class DeleteUserCommand : IRequest<Result<bool>>
         UserId = userId;
     }
 
+    public Guid UserId { get; set; }
+
     public class Handler : IRequestHandler<DeleteUserCommand, Result<bool>>
     {
-        private readonly IUserRepository _userRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

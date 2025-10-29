@@ -2,28 +2,34 @@ using Core.Application.Abstractions;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PersonMgmt.Domain.Interfaces;
+
 namespace PersonMgmt.Application.Commands;
+
 public class RemoveRestrictionCommand : IRequest<Result<Unit>>
 {
-    public Guid PersonId { get; set; }
-    public Guid RestrictionId { get; set; }
     public RemoveRestrictionCommand(Guid personId, Guid restrictionId)
     {
         PersonId = personId;
         RestrictionId = restrictionId;
     }
+
+    public Guid PersonId { get; set; }
+    public Guid RestrictionId { get; set; }
+
     public class Handler : IRequestHandler<RemoveRestrictionCommand, Result<Unit>>
     {
-        private readonly IPersonRepository _personRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<Handler> _logger;
-        public Handler(IPersonRepository personRepository, ICurrentUserService currentUserService, ILogger<Handler> logger)
+        private readonly IPersonRepository _personRepository;
+
+        public Handler(IPersonRepository personRepository, ICurrentUserService currentUserService,
+            ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _currentUserService = currentUserService;
             _logger = logger;
         }
+
         public async Task<Result<Unit>> Handle(RemoveRestrictionCommand request, CancellationToken cancellationToken)
         {
             try
@@ -39,6 +45,7 @@ public class RemoveRestrictionCommand : IRequest<Result<Unit>>
                     _logger.LogWarning("Person not found with ID: {PersonId}", request.PersonId);
                     return Result<Unit>.Failure("Person not found");
                 }
+
                 person.RemoveRestriction(request.RestrictionId, _currentUserService.UserId);
                 await _personRepository.UpdateAsync(person, cancellationToken);
                 await _personRepository.SaveChangesAsync(cancellationToken);

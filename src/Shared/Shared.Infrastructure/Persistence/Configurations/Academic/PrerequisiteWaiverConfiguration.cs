@@ -1,7 +1,9 @@
 using Academic.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
+
 public class PrerequisiteWaiverConfiguration : IEntityTypeConfiguration<PrerequisiteWaiver>
 {
     public void Configure(EntityTypeBuilder<PrerequisiteWaiver> builder)

@@ -1,12 +1,9 @@
 using Core.Domain.Events;
+
 namespace PersonMgmt.Domain.Events;
+
 public class StaffTerminatedDomainEvent : DomainEvent
 {
-    public Guid PersonId { get; set; }
-    public string EmployeeNumber { get; set; }
-    public DateTime TerminationDate { get; set; }
-    public int YearsOfService { get; set; }
-    public DateTime OccurredAt { get; set; }
     public StaffTerminatedDomainEvent(
         Guid personId,
         string employeeNumber,
@@ -20,4 +17,10 @@ public class StaffTerminatedDomainEvent : DomainEvent
         YearsOfService = yearsOfService;
         OccurredAt = occurredAt;
     }
+
+    public Guid PersonId { get; set; }
+    public string EmployeeNumber { get; set; }
+    public DateTime TerminationDate { get; set; }
+    public int YearsOfService { get; set; }
+    public DateTime OccurredAt { get; set; }
 }

@@ -1,6 +1,5 @@
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,8 +8,6 @@ namespace Identity.Application.Commands;
 
 public class ForgotPasswordCommand : IRequest<Result<string>>
 {
-    public string Email { get; set; } = string.Empty;
-
     public ForgotPasswordCommand(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -19,11 +16,13 @@ public class ForgotPasswordCommand : IRequest<Result<string>>
         Email = email.Trim().ToLower();
     }
 
+    public string Email { get; set; } = string.Empty;
+
     public class Handler : IRequestHandler<ForgotPasswordCommand, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
         private readonly IEmailService _emailService;
         private readonly ILogger<Handler> _logger;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

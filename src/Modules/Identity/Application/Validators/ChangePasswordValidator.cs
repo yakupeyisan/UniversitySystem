@@ -22,6 +22,7 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
             .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter")
             .Matches(@"[0-9]").WithMessage("Password must contain at least one digit")
             .Matches(@"[!@#$%^&*]").WithMessage("Password must contain at least one special character (!@#$%^&*)")
-            .NotEqual(x => x.Request.CurrentPassword).WithMessage("New password must be different from current password");
+            .NotEqual(x => x.Request.CurrentPassword)
+            .WithMessage("New password must be different from current password");
     }
 }

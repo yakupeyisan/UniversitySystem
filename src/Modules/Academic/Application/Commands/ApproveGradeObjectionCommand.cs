@@ -1,31 +1,38 @@
 using Academic.Application.DTOs;
+using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
-using Academic.Domain.Interfaces;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
 {
-    public ApproveGradeObjectionRequest Request { get; set; }
     public ApproveGradeObjectionCommand(ApproveGradeObjectionRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public ApproveGradeObjectionRequest Request { get; set; }
+
     public class Handler : IRequestHandler<ApproveGradeObjectionCommand, Result<Unit>>
     {
-        private readonly IGradeObjectionRepository _objectionRepository;
-        private readonly IGradeRepository _gradeRepository;
+        private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IRepository<GradeObjection> _objectionRepository;
+
         public Handler(
-            IGradeObjectionRepository objectionRepository,
-            IGradeRepository gradeRepository,
+            IRepository<GradeObjection> objectionRepository,
+            IRepository<Grade> gradeRepository,
             ILogger<Handler> logger)
         {
             _objectionRepository = objectionRepository ?? throw new ArgumentNullException(nameof(objectionRepository));
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<Unit>> Handle(
             ApproveGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -47,11 +54,12 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure(
                         $"Grade objection with ID {request.Request.ObjectionId} not found");
                 }
+
                 objection.Approve(
-                    reviewedBy: request.Request.ReviewedBy,
-                    notes: request.Request.ReviewNotes,
-                    newScore: request.Request.NewScore,
-                    newLetterGrade: request.Request.NewLetterGrade.HasValue
+                    request.Request.ReviewedBy,
+                    request.Request.ReviewNotes,
+                    request.Request.NewScore,
+                    request.Request.NewLetterGrade.HasValue
                         ? (LetterGrade)request.Request.NewLetterGrade.Value
                         : null);
                 if (request.Request.NewScore.HasValue)
@@ -65,12 +73,13 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                             ? (LetterGrade)request.Request.NewLetterGrade.Value
                             : grade.LetterGrade;
                         grade.UpdateGradeFromObjection(
-                            newMidtermScore: grade.MidtermScore,
-                            newFinalScore: request.Request.NewScore.Value,
-                            newLetterGrade: letterGrade);
+                            grade.MidtermScore,
+                            request.Request.NewScore.Value,
+                            letterGrade);
                         await _gradeRepository.UpdateAsync(grade, cancellationToken);
                     }
                 }
+
                 await _objectionRepository.UpdateAsync(objection, cancellationToken);
                 await _objectionRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(

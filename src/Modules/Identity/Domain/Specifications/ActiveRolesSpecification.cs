@@ -11,6 +11,7 @@ public class ActiveRolesSpecification : Specification<Role>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
+
     public ActiveRolesSpecification()
     {
         Criteria = r => r.IsActive;

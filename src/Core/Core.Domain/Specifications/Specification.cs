@@ -1,5 +1,7 @@
-namespace Core.Domain.Specifications;
 using System.Linq.Expressions;
+
+namespace Core.Domain.Specifications;
+
 public abstract class Specification<TEntity> : ISpecification<TEntity>
     where TEntity : Entity
 {
@@ -11,26 +13,31 @@ public abstract class Specification<TEntity> : ISpecification<TEntity>
     public int? Skip { get; protected set; }
     public bool IsPagingEnabled { get; protected set; }
     public bool IsSplitQuery { get; protected set; }
+
     protected virtual void AddInclude(Expression<Func<TEntity, object>> includeExpression)
     {
         Includes.Add(includeExpression);
     }
+
     protected virtual void AddInclude(string includeString)
     {
         IncludeStrings.Add(includeString);
     }
+
     protected virtual void AddOrderBy<TKey>(Expression<Func<TEntity, TKey>> orderByExpression)
     {
         if (orderByExpression == null)
             throw new ArgumentNullException(nameof(orderByExpression));
         OrderBys.Add((CastExpression(orderByExpression), false));
     }
+
     protected virtual void AddOrderByDescending<TKey>(Expression<Func<TEntity, TKey>> orderByDescendingExpression)
     {
         if (orderByDescendingExpression == null)
             throw new ArgumentNullException(nameof(orderByDescendingExpression));
         OrderBys.Add((CastExpression(orderByDescendingExpression), true));
     }
+
     protected virtual void ApplyPaging(int skip, int take)
     {
         if (skip < 0)
@@ -41,16 +48,19 @@ public abstract class Specification<TEntity> : ISpecification<TEntity>
         Take = take;
         IsPagingEnabled = true;
     }
+
     public virtual void RemovePaging()
     {
         Skip = null;
         Take = null;
         IsPagingEnabled = false;
     }
+
     public virtual void UseSplitQuery()
     {
         IsSplitQuery = true;
     }
+
     private static Expression<Func<TEntity, object>> CastExpression<TKey>(Expression<Func<TEntity, TKey>> source)
     {
         var parameter = source.Parameters[0];

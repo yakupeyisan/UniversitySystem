@@ -1,13 +1,19 @@
 using Core.Domain;
+
 namespace Academic.Domain.Aggregates;
+
 public class ExamRoom : AuditableEntity
 {
+    private ExamRoom()
+    {
+    }
+
     public string RoomNumber { get; private set; } = null!;
     public string Building { get; private set; } = null!;
     public int Floor { get; private set; }
     public int Capacity { get; private set; }
     public bool IsActive { get; private set; }
-    private ExamRoom() { }
+
     public static ExamRoom Create(
         string roomNumber,
         string building,
@@ -34,16 +40,19 @@ public class ExamRoom : AuditableEntity
         };
         return room;
     }
+
     public void Activate()
     {
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Deactivate()
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateCapacity(int newCapacity)
     {
         if (newCapacity <= 0)
@@ -51,6 +60,14 @@ public class ExamRoom : AuditableEntity
         Capacity = newCapacity;
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool CanAccommodate(int studentCount) => studentCount <= Capacity;
-    public override string ToString() => $"{Building} - Room {RoomNumber} (Floor {Floor}, Capacity: {Capacity})";
+
+    public bool CanAccommodate(int studentCount)
+    {
+        return studentCount <= Capacity;
+    }
+
+    public override string ToString()
+    {
+        return $"{Building} - Room {RoomNumber} (Floor {Floor}, Capacity: {Capacity})";
+    }
 }

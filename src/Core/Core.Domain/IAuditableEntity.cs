@@ -1,4 +1,5 @@
 namespace Core.Domain;
+
 public interface IAuditableEntity
 {
     DateTime CreatedAt { get; set; }

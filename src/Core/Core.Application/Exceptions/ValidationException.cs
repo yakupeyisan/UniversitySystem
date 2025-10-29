@@ -1,13 +1,11 @@
 using FluentValidation.Results;
+
 namespace Core.Application.Exceptions;
+
 public class ValidationException : ApplicationException
 {
-    public override string ErrorCode => "VALIDATION_ERROR";
-    public override int StatusCode => 400;
-    public IReadOnlyDictionary<string, string[]> Errors { get; }
-    public override object? Details => new { Errors };
     public ValidationException(IEnumerable<ValidationFailure> failures)
-    : base(BuildMessage(failures))
+        : base(BuildMessage(failures))
     {
         var groupedFailures = failures
             .GroupBy(f => f.PropertyName)
@@ -16,6 +14,12 @@ public class ValidationException : ApplicationException
                 g => g.Select(f => f.ErrorMessage).ToArray());
         Errors = groupedFailures.AsReadOnly();
     }
+
+    public override string ErrorCode => "VALIDATION_ERROR";
+    public override int StatusCode => 400;
+    public IReadOnlyDictionary<string, string[]> Errors { get; }
+    public override object? Details => new { Errors };
+
     private static string BuildMessage(IEnumerable<ValidationFailure> failures)
     {
         var failureList = failures.ToList();

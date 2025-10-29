@@ -1,14 +1,14 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Enums;
 using AutoMapper;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionResponse>>
 {
-    public Guid ObjectionId { get; set; }
-    public RejectGradeObjectionRequest Request { get; set; }
     public RejectGradeObjectionCommand(Guid objectionId, RejectGradeObjectionRequest request)
     {
         if (objectionId == Guid.Empty)
@@ -16,11 +16,16 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
         ObjectionId = objectionId;
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public Guid ObjectionId { get; set; }
+    public RejectGradeObjectionRequest Request { get; set; }
+
     public class Handler : IRequestHandler<RejectGradeObjectionCommand, Result<GradeObjectionResponse>>
     {
-        private readonly IGradeObjectionRepository _objectionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IGradeObjectionRepository _objectionRepository;
+
         public Handler(
             IGradeObjectionRepository objectionRepository,
             IMapper mapper,
@@ -30,6 +35,7 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<GradeObjectionResponse>> Handle(
             RejectGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -50,8 +56,9 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                     return Result<GradeObjectionResponse>.Failure(
                         $"Grade objection with ID {request.ObjectionId} not found");
                 }
-                if (objection.Status != Domain.Enums.GradeObjectionStatus.UnderReview &&
-                    objection.Status != Domain.Enums.GradeObjectionStatus.Escalated)
+
+                if (objection.Status != GradeObjectionStatus.UnderReview &&
+                    objection.Status != GradeObjectionStatus.Escalated)
                 {
                     _logger.LogWarning(
                         "Grade objection {ObjectionId} cannot be rejected. Current status: {Status}",
@@ -60,6 +67,7 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                     return Result<GradeObjectionResponse>.Failure(
                         $"Grade objection cannot be rejected. Current status: {objection.Status}");
                 }
+
                 objection.Reject(
                     reviewedBy: request.Request.ReviewedBy,
                     notes: request.Request.RejectionReason);

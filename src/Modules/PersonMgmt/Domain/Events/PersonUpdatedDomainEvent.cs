@@ -1,12 +1,9 @@
 using Core.Domain.Events;
+
 namespace PersonMgmt.Domain.Events;
+
 public class PersonUpdatedDomainEvent : DomainEvent
 {
-    public Guid PersonId { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public DateTime UpdatedAt { get; set; }
     public PersonUpdatedDomainEvent(
         Guid personId,
         string firstName,
@@ -20,4 +17,10 @@ public class PersonUpdatedDomainEvent : DomainEvent
         Email = email;
         UpdatedAt = updatedAt;
     }
+
+    public Guid PersonId { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

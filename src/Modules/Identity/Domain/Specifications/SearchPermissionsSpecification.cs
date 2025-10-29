@@ -4,7 +4,7 @@ using Identity.Domain.Aggregates;
 namespace Identity.Domain.Specifications;
 
 /// <summary>
-/// Specification for searching permissions by name or description
+///     Specification for searching permissions by name or description
 /// </summary>
 public class SearchPermissionsSpecification : Specification<Permission>
 {

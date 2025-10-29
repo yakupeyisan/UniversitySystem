@@ -2,9 +2,15 @@ using Academic.Domain.Enums;
 using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Aggregates;
+
 public class CourseRegistration : AuditableEntity, ISoftDelete
 {
+    private CourseRegistration()
+    {
+    }
+
     public Guid StudentId { get; private set; }
     public Guid CourseId { get; private set; }
     public string Semester { get; private set; } = null!;
@@ -15,10 +21,11 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
     public bool IsRetake { get; private set; }
     public Guid? PreviousGradeId { get; private set; }
     public Guid? GradeId { get; private set; }
+    public Course? Course { get; private set; }
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    public Course? Course { get; private set; }
+
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -29,6 +36,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
+
     public void Restore()
     {
         if (!IsDeleted)
@@ -38,7 +46,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    private CourseRegistration() { }
+
     public static CourseRegistration Create(
         Guid studentId,
         Guid courseId,
@@ -70,6 +78,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
             courseId));
         return registration;
     }
+
     public void Drop(string reason)
     {
         if (Status == RegistrationStatus.Dropped)
@@ -86,6 +95,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
             CourseId,
             reason));
     }
+
     public void Complete()
     {
         if (Status == RegistrationStatus.Completed)
@@ -95,6 +105,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         Status = RegistrationStatus.Completed;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Fail()
     {
         if (Status == RegistrationStatus.Failed)
@@ -102,6 +113,7 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         Status = RegistrationStatus.Failed;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AssignGrade(Guid gradeId)
     {
         if (GradeId.HasValue)
@@ -109,6 +121,14 @@ public class CourseRegistration : AuditableEntity, ISoftDelete
         GradeId = gradeId;
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool CanDrop() => Status == RegistrationStatus.Registered || Status == RegistrationStatus.WaitingList;
-    public bool IsActive() => Status == RegistrationStatus.Registered && !IsDeleted;
+
+    public bool CanDrop()
+    {
+        return Status == RegistrationStatus.Registered || Status == RegistrationStatus.WaitingList;
+    }
+
+    public bool IsActive()
+    {
+        return Status == RegistrationStatus.Registered && !IsDeleted;
+    }
 }

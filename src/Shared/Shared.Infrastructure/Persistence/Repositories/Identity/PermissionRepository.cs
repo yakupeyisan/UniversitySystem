@@ -1,6 +1,5 @@
 ﻿using Core.Domain.Specifications;
 using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Shared.Infrastructure.Persistence.Contexts;
@@ -35,10 +34,10 @@ public class PermissionRepository : GenericRepository<Permission>, IPermissionRe
         return result.ToList();
     }
 
-    public async Task<List<Permission>> GetBySpecificationAsync(ISpecification<Permission> spec, CancellationToken cancellationToken = default)
+    public async Task<List<Permission>> GetBySpecificationAsync(ISpecification<Permission> spec,
+        CancellationToken cancellationToken = default)
     {
         var result = await GetAllAsync(spec, cancellationToken);
         return result.ToList();
     }
-
 }

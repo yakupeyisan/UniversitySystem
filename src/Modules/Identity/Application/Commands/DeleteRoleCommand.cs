@@ -1,5 +1,4 @@
 using Core.Domain.Results;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -7,11 +6,6 @@ namespace Identity.Application.Commands;
 
 public class DeleteRoleCommand : IRequest<Result<bool>>
 {
-    /// <summary>
-    /// Silinecek rol ID'si
-    /// </summary>
-    public Guid RoleId { get; set; }
-
     public DeleteRoleCommand(Guid roleId)
     {
         if (roleId == Guid.Empty)
@@ -21,17 +15,22 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
     }
 
     /// <summary>
-    /// Handler: Rol silme iþlemini gerçekleþtirir
-    /// Sorumluluklar:
-    /// - Repository'den rol getirme
-    /// - Sistem rolü kontrolü
-    /// - Rol silme
-    /// - Logging ve error handling
+    ///     Silinecek rol ID'si
+    /// </summary>
+    public Guid RoleId { get; set; }
+
+    /// <summary>
+    ///     Handler: Rol silme iþlemini gerçekleþtirir
+    ///     Sorumluluklar:
+    ///     - Repository'den rol getirme
+    ///     - Sistem rolü kontrolü
+    ///     - Rol silme
+    ///     - Logging ve error handling
     /// </summary>
     public class Handler : IRequestHandler<DeleteRoleCommand, Result<bool>>
     {
-        private readonly IRoleRepository _roleRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IRoleRepository _roleRepository;
 
         public Handler(
             IRoleRepository roleRepository,
@@ -42,7 +41,7 @@ public class DeleteRoleCommand : IRequest<Result<bool>>
         }
 
         /// <summary>
-        /// Rol silme iþlemini handle eder
+        ///     Rol silme iþlemini handle eder
         /// </summary>
         /// <param name="request">DeleteRoleCommand request'i</param>
         /// <param name="cancellationToken">Cancellation token</param>

@@ -1,6 +1,9 @@
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Reflection;
+
 namespace Core.Domain.Filtering;
+
 public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : class
 {
     public Expression<Func<T, bool>> Build(FilterExpression filter)
@@ -14,6 +17,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         var predicate = BuildFilterExpression(property, filter);
         return Expression.Lambda<Func<T, bool>>(predicate, parameter);
     }
+
     private Expression BuildFilterExpression(Expression property, FilterExpression filter)
     {
         return filter.Operator switch
@@ -34,6 +38,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
             _ => throw new FilterParsingException($"Bilinmeyen operator: {filter.Operator}")
         };
     }
+
     private Expression? GetPropertyExpression(ParameterExpression parameter, string propertyPath)
     {
         if (string.IsNullOrWhiteSpace(propertyPath))
@@ -45,44 +50,52 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
             if (expression == null)
                 return null;
             var property = expression.Type.GetProperty(propName,
-                System.Reflection.BindingFlags.IgnoreCase |
-                System.Reflection.BindingFlags.Public);
+                BindingFlags.IgnoreCase |
+                BindingFlags.Public);
             if (property == null)
                 return null;
             expression = Expression.Property(expression, property);
         }
+
         return expression;
     }
+
     private Expression BuildEquals(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.Equal(property, constant);
     }
+
     private Expression BuildNotEquals(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.NotEqual(property, constant);
     }
+
     private Expression BuildGreaterThan(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.GreaterThan(property, constant);
     }
+
     private Expression BuildGreaterOrEqual(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.GreaterThanOrEqual(property, constant);
     }
+
     private Expression BuildLessThan(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.LessThan(property, constant);
     }
+
     private Expression BuildLessOrEqual(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.LessThanOrEqual(property, constant);
     }
+
     private Expression BuildContains(Expression property, string value)
     {
         if (property.Type != typeof(string))
@@ -100,11 +113,12 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, containsMethod,
             Expression.Constant(value.ToLower()));
     }
+
     private Expression BuildStartsWith(Expression property, string value)
     {
         if (property.Type != typeof(string))
             throw new FilterParsingException(
-                $"StartsWith operatörü sadece string property'de kullanılabilir");
+                "StartsWith operatörü sadece string property'de kullanılabilir");
         var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
         if (toLowerMethod == null)
             throw new FilterParsingException("String.ToLower() method bulunamadı");
@@ -116,11 +130,12 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, startsWithMethod,
             Expression.Constant(value.ToLower()));
     }
+
     private Expression BuildEndsWith(Expression property, string value)
     {
         if (property.Type != typeof(string))
             throw new FilterParsingException(
-                $"EndsWith operatörü sadece string property'de kullanılabilir");
+                "EndsWith operatörü sadece string property'de kullanılabilir");
         var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
         if (toLowerMethod == null)
             throw new FilterParsingException("String.ToLower() method bulunamadı");
@@ -132,6 +147,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, endsWithMethod,
             Expression.Constant(value.ToLower()));
     }
+
     private Expression BuildBetween(Expression property, List<string> values)
     {
         if (values.Count < 2)
@@ -143,6 +159,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         var lessOrEqual = Expression.LessThanOrEqual(property, value2);
         return Expression.AndAlso(greaterOrEqual, lessOrEqual);
     }
+
     private Expression BuildIn(Expression property, List<string> values)
     {
         if (values.Count == 0)
@@ -157,24 +174,28 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
                 ? equal
                 : Expression.OrElse(expression, equal);
         }
+
         return expression ?? Expression.Constant(false);
     }
+
     private Expression BuildIsNull(Expression property)
     {
         return Expression.Equal(property, Expression.Constant(null));
     }
+
     private Expression BuildIsNotNull(Expression property)
     {
         return Expression.NotEqual(property, Expression.Constant(null));
     }
+
     private Expression ConvertToConstant(Type targetType, string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new FilterParsingException($"Değer boş olamaz");
+            throw new FilterParsingException("Değer boş olamaz");
         var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
         try
         {
-            object? convertedValue = underlyingType switch
+            var convertedValue = underlyingType switch
             {
                 _ when underlyingType == typeof(string) => value,
                 _ when underlyingType == typeof(int) => int.Parse(value),
@@ -194,7 +215,7 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
                 _ when underlyingType == typeof(Guid) =>
                     Guid.Parse(value),
                 _ when underlyingType.IsEnum =>
-                    Enum.Parse(underlyingType, value, ignoreCase: true),
+                    Enum.Parse(underlyingType, value, true),
                 _ => throw new FilterParsingException(
                     $"Tip dönüşümü desteklenmiyor: {underlyingType.Name}")
             };

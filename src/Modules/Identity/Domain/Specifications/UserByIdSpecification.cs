@@ -1,4 +1,3 @@
-using Core.Domain.Pagination;
 using Core.Domain.Specifications;
 using Identity.Domain.Aggregates;
 
@@ -13,6 +12,7 @@ public class UserByIdSpecification : Specification<User>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
+
     public UserByIdSpecification(Guid id)
     {
         Criteria = u => u.Id == id && !u.IsDeleted;

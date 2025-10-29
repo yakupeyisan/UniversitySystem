@@ -2,7 +2,9 @@ using Academic.Domain.Aggregates;
 using Academic.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
+
 public class CourseConfiguration : IEntityTypeConfiguration<Course>
 {
     public void Configure(EntityTypeBuilder<Course> builder)
@@ -57,13 +59,17 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasColumnName("InstructorIds")
             .HasConversion(
                 v => string.Join(",", v),
-                v => string.IsNullOrEmpty(v) ? new List<Guid>() : v.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList())
+                v => string.IsNullOrEmpty(v)
+                    ? new List<Guid>()
+                    : v.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList())
             .IsRequired();
         builder.Property<List<Guid>>("_prerequisiteIds")
             .HasColumnName("PrerequisiteIds")
             .HasConversion(
                 v => string.Join(",", v),
-                v => string.IsNullOrEmpty(v) ? new List<Guid>() : v.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList())
+                v => string.IsNullOrEmpty(v)
+                    ? new List<Guid>()
+                    : v.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList())
             .IsRequired();
         builder.Property(c => c.CreatedAt)
             .IsRequired();

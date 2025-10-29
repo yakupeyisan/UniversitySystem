@@ -1,11 +1,9 @@
 using Core.Domain.Events;
+
 namespace PersonMgmt.Domain.Events;
+
 public class StudentEnrolledDomainEvent : DomainEvent
 {
-    public Guid PersonId { get; set; }
-    public string StudentNumber { get; set; }
-    public int EducationLevel { get; set; }
-    public DateTime EnrollmentDate { get; set; }
     public StudentEnrolledDomainEvent(
         Guid personId,
         string studentNumber,
@@ -17,4 +15,9 @@ public class StudentEnrolledDomainEvent : DomainEvent
         EducationLevel = educationLevel;
         EnrollmentDate = enrollmentDate;
     }
+
+    public Guid PersonId { get; set; }
+    public string StudentNumber { get; set; }
+    public int EducationLevel { get; set; }
+    public DateTime EnrollmentDate { get; set; }
 }

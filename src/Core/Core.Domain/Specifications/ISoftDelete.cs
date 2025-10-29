@@ -1,4 +1,5 @@
 namespace Core.Domain.Specifications;
+
 public interface ISoftDelete
 {
     bool IsDeleted { get; }

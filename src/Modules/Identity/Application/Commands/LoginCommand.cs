@@ -3,7 +3,6 @@ using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
 using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -11,21 +10,21 @@ namespace Identity.Application.Commands;
 
 public class LoginCommand : IRequest<Result<LoginResponse>>
 {
-    public LoginRequest Request { get; set; }
-
     public LoginCommand(LoginRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
+    public LoginRequest Request { get; set; }
+
     public class Handler : IRequestHandler<LoginCommand, Result<LoginResponse>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordHasher _passwordHasher;
-        private readonly ITokenService _tokenService;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ITokenService _tokenService;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -38,7 +37,8 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
-            _refreshTokenRepository = refreshTokenRepository ?? throw new ArgumentNullException(nameof(refreshTokenRepository));
+            _refreshTokenRepository =
+                refreshTokenRepository ?? throw new ArgumentNullException(nameof(refreshTokenRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

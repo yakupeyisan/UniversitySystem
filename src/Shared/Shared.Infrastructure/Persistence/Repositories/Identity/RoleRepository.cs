@@ -1,6 +1,5 @@
 ﻿using Core.Domain.Specifications;
 using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Shared.Infrastructure.Persistence.Contexts;
@@ -41,10 +40,10 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
         return await GetAsync(spec, cancellationToken);
     }
 
-    public async Task<List<Role>> GetBySpecificationAsync(ISpecification<Role> spec, CancellationToken cancellationToken = default)
+    public async Task<List<Role>> GetBySpecificationAsync(ISpecification<Role> spec,
+        CancellationToken cancellationToken = default)
     {
         var result = await GetAllAsync(spec, cancellationToken);
         return result.ToList();
     }
-
 }

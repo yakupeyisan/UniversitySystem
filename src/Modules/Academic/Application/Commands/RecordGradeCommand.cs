@@ -1,35 +1,42 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
-using Academic.Domain.Interfaces;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class RecordGradeCommand : IRequest<Result<GradeResponse>>
 {
-    public RecordGradeRequest Request { get; set; }
     public RecordGradeCommand(RecordGradeRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public RecordGradeRequest Request { get; set; }
+
     public class Handler : IRequestHandler<RecordGradeCommand, Result<GradeResponse>>
     {
-        private readonly IGradeRepository _gradeRepository;
-        private readonly ICourseRegistrationRepository _registrationRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRepository<CourseRegistration> _registrationRepository;
+
         public Handler(
-            IGradeRepository gradeRepository,
-            ICourseRegistrationRepository registrationRepository,
+            IRepository<Grade> gradeRepository,
+            IRepository<CourseRegistration> registrationRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
-            _registrationRepository = registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
+            _registrationRepository =
+                registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<GradeResponse>> Handle(
             RecordGradeCommand request,
             CancellationToken cancellationToken)
@@ -51,13 +58,14 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
                     return Result<GradeResponse>.Failure(
                         $"Registration with ID {request.Request.RegistrationId} not found");
                 }
+
                 var grade = Grade.Create(
-                    studentId: request.Request.StudentId,
-                    courseId: request.Request.CourseId,
-                    registrationId: request.Request.RegistrationId,
-                    semester: request.Request.Semester,
-                    midtermScore: request.Request.MidtermScore,
-                    finalScore: request.Request.FinalScore,
+                    request.Request.StudentId,
+                    request.Request.CourseId,
+                    request.Request.RegistrationId,
+                    request.Request.Semester,
+                    request.Request.MidtermScore,
+                    request.Request.FinalScore,
                     ects: request.Request.ECTS);
                 await _gradeRepository.AddAsync(grade, cancellationToken);
                 registration.AssignGrade(grade.Id);

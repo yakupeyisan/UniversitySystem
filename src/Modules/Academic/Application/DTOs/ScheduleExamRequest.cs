@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class ScheduleExamRequest
 {
     public Guid CourseId { get; set; }

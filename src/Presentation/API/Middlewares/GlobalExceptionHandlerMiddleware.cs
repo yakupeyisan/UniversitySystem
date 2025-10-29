@@ -1,15 +1,19 @@
 using System.Text.Json;
 using Core.Application.Exceptions;
+
 namespace API.Middlewares;
+
 public class GlobalExceptionHandlerMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+    private readonly RequestDelegate _next;
+
     public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -21,6 +25,7 @@ public class GlobalExceptionHandlerMiddleware
             await HandleExceptionAsync(context, ex);
         }
     }
+
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
@@ -69,6 +74,7 @@ public class GlobalExceptionHandlerMiddleware
                 };
                 break;
         }
+
         var json = JsonSerializer.Serialize(response);
         return context.Response.WriteAsync(json);
     }

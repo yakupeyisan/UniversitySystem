@@ -1,6 +1,8 @@
 using Academic.Domain.Aggregates;
 using Core.Domain.Specifications;
+
 namespace Academic.Domain.Specifications;
+
 public class GradeObjectionsByStudentSpec : Specification<GradeObjection>
 {
     public GradeObjectionsByStudentSpec(Guid studentId)

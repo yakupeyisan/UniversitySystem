@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Identity.Application.Commands;
 
 public class VerifyEmailCommand : IRequest<Result<UserDto>>
 {
-    public Guid UserId { get; set; }
-    public string VerificationCode { get; set; } = string.Empty;
-
     public VerifyEmailCommand(Guid userId, string verificationCode)
     {
         if (userId == Guid.Empty)
@@ -24,11 +20,14 @@ public class VerifyEmailCommand : IRequest<Result<UserDto>>
         VerificationCode = verificationCode.Trim();
     }
 
+    public Guid UserId { get; set; }
+    public string VerificationCode { get; set; } = string.Empty;
+
     public class Handler : IRequestHandler<VerifyEmailCommand, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

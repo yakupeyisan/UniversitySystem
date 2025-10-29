@@ -11,6 +11,7 @@ public class ActivePermissionsSpecification : Specification<Permission>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
+
     public ActivePermissionsSpecification()
     {
         Criteria = p => p.IsActive;

@@ -2,12 +2,11 @@ using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Interfaces;
+
 namespace PersonMgmt.Application.Queries;
+
 public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
 {
-    public Guid PersonId { get; set; }
-    public bool OnlyActive { get; set; }
     public GetPersonRestrictionsQuery(Guid personId, bool onlyActive = true)
     {
         if (personId == Guid.Empty)
@@ -15,15 +14,21 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
         PersonId = personId;
         OnlyActive = onlyActive;
     }
+
+    public Guid PersonId { get; set; }
+    public bool OnlyActive { get; set; }
+
     public class Handler : IRequestHandler<GetPersonRestrictionsQuery, Result<PersonResponse>>
     {
-        private readonly IPersonRepository _personRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IPersonRepository _personRepository;
+
         public Handler(IPersonRepository personRepository, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _logger = logger;
         }
+
         public async Task<Result<PersonResponse>> Handle(
             GetPersonRestrictionsQuery request,
             CancellationToken cancellationToken)
@@ -41,6 +46,7 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Person with ID {request.PersonId} not found");
                 }
+
                 var restrictions = request.OnlyActive
                     ? person.GetActiveRestrictions().ToList()
                     : person.Restrictions.Where(r => !r.IsDeleted).ToList();
@@ -51,6 +57,7 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
                         : $"Person {request.PersonId} has no restrictions";
                     _logger.LogInformation(message);
                 }
+
                 _logger.LogInformation(
                     "Successfully retrieved {RestrictionCount} restrictions for person: {PersonId}",
                     restrictions.Count,
@@ -62,7 +69,7 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
                     LastName = person.Name.LastName,
                     Email = person.Email,
                     PhoneNumber = person.PhoneNumber,
-                    IdentificationNumber = person.IdentificationNumber,
+                    IdentificationNumber = person.IdentificationNumber
                 };
                 return Result<PersonResponse>.Success(
                     response,

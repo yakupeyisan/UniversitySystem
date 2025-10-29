@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -10,8 +9,6 @@ namespace Identity.Application.Commands;
 
 public class RefreshTokenCommand : IRequest<Result<TokenResponse>>
 {
-    public string RefreshToken { get; set; } = string.Empty;
-
     public RefreshTokenCommand(string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
@@ -20,11 +17,13 @@ public class RefreshTokenCommand : IRequest<Result<TokenResponse>>
         RefreshToken = refreshToken.Trim();
     }
 
+    public string RefreshToken { get; set; } = string.Empty;
+
     public class Handler : IRequestHandler<RefreshTokenCommand, Result<TokenResponse>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly ITokenService _tokenService;
         private readonly ILogger<Handler> _logger;
+        private readonly ITokenService _tokenService;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

@@ -1,7 +1,9 @@
 using Academic.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
+
 public class ExamConfiguration : IEntityTypeConfiguration<Exam>
 {
     public void Configure(EntityTypeBuilder<Exam> builder)

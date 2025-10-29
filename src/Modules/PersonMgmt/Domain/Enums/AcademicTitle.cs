@@ -1,4 +1,5 @@
 namespace PersonMgmt.Domain.Enums;
+
 public enum AcademicTitle
 {
     Professor = 1,

@@ -2,6 +2,7 @@ using FluentValidation;
 using Identity.Application.Commands;
 
 namespace Identity.Application.Validators;
+
 public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
 {
     public RegisterUserValidator()

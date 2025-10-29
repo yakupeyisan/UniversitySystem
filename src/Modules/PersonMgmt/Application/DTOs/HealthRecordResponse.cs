@@ -1,4 +1,5 @@
 namespace PersonMgmt.Application.DTOs;
+
 public class HealthRecordResponse
 {
     public Guid Id { get; set; }

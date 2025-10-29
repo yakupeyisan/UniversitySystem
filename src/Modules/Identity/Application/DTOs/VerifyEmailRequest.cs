@@ -2,9 +2,9 @@ namespace Identity.Application.DTOs;
 
 public class VerifyEmailRequest
 {
-    public string VerificationCode { get; set; } = string.Empty;
-
-    public VerifyEmailRequest() { }
+    public VerifyEmailRequest()
+    {
+    }
 
     public VerifyEmailRequest(string verificationCode)
     {
@@ -13,4 +13,6 @@ public class VerifyEmailRequest
 
         VerificationCode = verificationCode.Trim();
     }
+
+    public string VerificationCode { get; set; } = string.Empty;
 }

@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Identity.Application.Commands;
 
 public class RevokeRoleCommand : IRequest<Result<UserDto>>
 {
-    public Guid UserId { get; set; }
-    public RevokeRoleRequest Request { get; set; }
-
     public RevokeRoleCommand(Guid userId, RevokeRoleRequest request)
     {
         if (userId == Guid.Empty)
@@ -21,11 +17,14 @@ public class RevokeRoleCommand : IRequest<Result<UserDto>>
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
+    public Guid UserId { get; set; }
+    public RevokeRoleRequest Request { get; set; }
+
     public class Handler : IRequestHandler<RevokeRoleCommand, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

@@ -9,15 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 /// <summary>
-/// Authentication endpoints - Login, Register, Token Management
+///     Authentication endpoints - Login, Register, Token Management
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<AuthController> _logger;
+    private readonly IMediator _mediator;
 
     public AuthController(IMediator mediator, ILogger<AuthController> logger)
     {
@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register new user
+    ///     Register new user
     /// </summary>
     /// <param name="request">Registration details</param>
     /// <returns>Newly created user with tokens</returns>
@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Login user with email and password
+    ///     Login user with email and password
     /// </summary>
     /// <param name="request">Login credentials</param>
     /// <returns>Access token and refresh token</returns>
@@ -103,7 +103,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Refresh access token using refresh token
+    ///     Refresh access token using refresh token
     /// </summary>
     /// <param name="request">Refresh token request</param>
     /// <returns>New access token</returns>
@@ -141,7 +141,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Change user password
+    ///     Change user password
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Password change details</param>
@@ -181,7 +181,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Logout user and revoke refresh tokens
+    ///     Logout user and revoke refresh tokens
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>Success message</returns>
@@ -216,7 +216,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verify email address
+    ///     Verify email address
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="request">Email verification token</param>
@@ -255,7 +255,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Request password reset
+    ///     Request password reset
     /// </summary>
     /// <param name="request">Email address</param>
     /// <returns>Success message</returns>
@@ -282,12 +282,13 @@ public class AuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during password reset request for email: {Email}", request.Email);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Password reset request failed" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Password reset request failed" });
         }
     }
 
     /// <summary>
-    /// Reset password with token
+    ///     Reset password with token
     /// </summary>
     /// <param name="request">Reset token and new password</param>
     /// <returns>Success message</returns>
@@ -324,7 +325,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user profile
+    ///     Get current user profile
     /// </summary>
     /// <returns>Current user details</returns>
     [HttpGet("profile")]
@@ -338,7 +339,9 @@ public class AuthController : ControllerBase
         try
         {
             // Extract user ID from JWT claims
-            var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var userIdClaim = User.FindFirst("sub")?.Value ??
+                              User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                                  ?.Value;
 
             if (!Guid.TryParse(userIdClaim, out var userId))
             {

@@ -3,28 +3,33 @@ using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Interfaces;
+
 namespace PersonMgmt.Application.Queries;
+
 public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
 {
-    public string EmployeeNumber { get; set; }
     public GetStaffByNumberQuery(string employeeNumber)
     {
         if (string.IsNullOrWhiteSpace(employeeNumber))
             throw new ArgumentException("Employee number cannot be empty", nameof(employeeNumber));
         EmployeeNumber = employeeNumber.Trim();
     }
+
+    public string EmployeeNumber { get; set; }
+
     public class Handler : IRequestHandler<GetStaffByNumberQuery, Result<PersonResponse>>
     {
-        private readonly IPersonRepository _personRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPersonRepository _personRepository;
+
         public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
+
         public async Task<Result<PersonResponse>> Handle(
             GetStaffByNumberQuery request,
             CancellationToken cancellationToken)
@@ -45,12 +50,11 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Person with employee number {request.EmployeeNumber} not found");
                 }
+
                 var person = persons.FirstOrDefault();
                 if (person == null)
-                {
                     return Result<PersonResponse>.Failure(
                         $"Person with employee number {request.EmployeeNumber} not found");
-                }
                 var response = _mapper.Map<PersonResponse>(person);
                 _logger.LogInformation(
                     "Successfully retrieved person by employee number: {EmployeeNumber}",

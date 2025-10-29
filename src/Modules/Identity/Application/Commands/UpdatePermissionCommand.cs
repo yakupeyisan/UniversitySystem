@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,27 +8,28 @@ namespace Identity.Application.Commands;
 
 public class UpdatePermissionCommand : IRequest<Result<PermissionDto>>
 {
-    public Guid PermissionId { get; set; }
-    public UpdatePermissionRequest Request { get; set; }
-
-    public UpdatePermissionCommand(Guid permissionId,UpdatePermissionRequest request)
+    public UpdatePermissionCommand(Guid permissionId, UpdatePermissionRequest request)
     {
         Request = request;
         PermissionId = permissionId;
     }
 
+    public Guid PermissionId { get; set; }
+    public UpdatePermissionRequest Request { get; set; }
+
     public class Handler : IRequestHandler<UpdatePermissionCommand, Result<PermissionDto>>
     {
-        private readonly IPermissionRepository _permissionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPermissionRepository _permissionRepository;
 
         public Handler(
             IPermissionRepository permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
-            _permissionRepository = permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
+            _permissionRepository =
+                permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -48,7 +48,8 @@ public class UpdatePermissionCommand : IRequest<Result<PermissionDto>>
                     _logger.LogWarning("Permission not found: {PermissionId}", request.PermissionId);
                     return Result<PermissionDto>.Failure("Permission not found");
                 }
-                permission.UpdatePermission(request.Request.PermissionName,request.Request.Description);
+
+                permission.UpdatePermission(request.Request.PermissionName, request.Request.Description);
                 await _permissionRepository.UpdateAsync(permission, cancellationToken);
                 await _permissionRepository.SaveChangesAsync(cancellationToken);
 

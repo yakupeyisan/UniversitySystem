@@ -1,7 +1,6 @@
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using Identity.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,9 +9,6 @@ namespace Identity.Application.Commands;
 
 public class ChangePasswordCommand : IRequest<Result<Unit>>
 {
-    public Guid UserId { get; set; }
-    public ChangePasswordRequest Request { get; set; }
-
     public ChangePasswordCommand(Guid userId, ChangePasswordRequest request)
     {
         if (userId == Guid.Empty)
@@ -22,11 +18,14 @@ public class ChangePasswordCommand : IRequest<Result<Unit>>
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
+    public Guid UserId { get; set; }
+    public ChangePasswordRequest Request { get; set; }
+
     public class Handler : IRequestHandler<ChangePasswordCommand, Result<Unit>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordHasher _passwordHasher;
         private readonly ILogger<Handler> _logger;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -69,8 +68,10 @@ public class ChangePasswordCommand : IRequest<Result<Unit>>
                 // Validate new password strength
                 if (!_passwordHasher.ValidatePasswordStrength(request.Request.NewPassword))
                 {
-                    _logger.LogWarning("New password does not meet strength requirements for user: {UserId}", request.UserId);
-                    return Result<Unit>.Failure($"New password does not meet requirements: {_passwordHasher.GetPasswordRequirements()}");
+                    _logger.LogWarning("New password does not meet strength requirements for user: {UserId}",
+                        request.UserId);
+                    return Result<Unit>.Failure(
+                        $"New password does not meet requirements: {_passwordHasher.GetPasswordRequirements()}");
                 }
 
                 // Hash new password

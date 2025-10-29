@@ -5,16 +5,18 @@ namespace Identity.Domain.Aggregates;
 
 public class Role : AuditableEntity
 {
+    private readonly List<Permission> _permissions = new();
+
+    private Role()
+    {
+    }
+
     public string RoleName { get; private set; }
     public RoleType RoleType { get; private set; }
     public string Description { get; private set; }
     public bool IsActive { get; private set; }
     public bool IsSystemRole { get; private set; }
-
-    private readonly List<Permission> _permissions = new();
     public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
-
-    private Role() { }
 
     public static Role Create(
         string roleName,
@@ -66,7 +68,10 @@ public class Role : AuditableEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public bool HasPermission(Guid permissionId) => _permissions.Any(p => p.Id == permissionId);
+    public bool HasPermission(Guid permissionId)
+    {
+        return _permissions.Any(p => p.Id == permissionId);
+    }
 
     public void Activate()
     {

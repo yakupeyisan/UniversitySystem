@@ -2,8 +2,9 @@ using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using AutoMapper;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace Academic.Application.Mappers;
+
 public class CourseProfile : Profile
 {
     public CourseProfile()

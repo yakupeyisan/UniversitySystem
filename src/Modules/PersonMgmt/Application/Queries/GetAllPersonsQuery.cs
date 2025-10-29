@@ -1,32 +1,38 @@
 using AutoMapper;
+using Core.Domain.Filtering;
 using Core.Domain.Pagination;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
-using PersonMgmt.Domain.Interfaces;
 using PersonMgmt.Domain.Specifications;
+
 namespace PersonMgmt.Application.Queries;
+
 public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
-    public PagedRequest PagedRequest { get; set; }
-    public string? FilterString { get; set; }
     public GetAllPersonsQuery(PagedRequest pagedRequest, string? filterString = null)
     {
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
         FilterString = filterString;
     }
+
+    public PagedRequest PagedRequest { get; set; }
+    public string? FilterString { get; set; }
+
     public class Handler : IRequestHandler<GetAllPersonsQuery, Result<PagedList<PersonResponse>>>
     {
-        private readonly IPersonRepository _personRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPersonRepository _personRepository;
+
         public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
+
         public async Task<Result<PagedList<PersonResponse>>> Handle(
             GetAllPersonsQuery request,
             CancellationToken cancellationToken)
@@ -41,6 +47,7 @@ public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
                         request.PagedRequest.PageSize);
                     return Result<PagedList<PersonResponse>>.Failure(errorMsg);
                 }
+
                 _logger.LogInformation(
                     "Fetching all persons - Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}, Sort: {SortBy} {SortDirection}",
                     request.FilterString ?? "none",
@@ -73,7 +80,7 @@ public class GetAllPersonsQuery : IRequest<Result<PagedList<PersonResponse>>>
                     $"({result.TotalCount} total)" +
                     (string.IsNullOrEmpty(request.FilterString) ? "" : $" with filter: {request.FilterString}"));
             }
-            catch (Core.Domain.Filtering.FilterParsingException ex)
+            catch (FilterParsingException ex)
             {
                 _logger.LogWarning(ex, "Filter parsing error: {FilterString}", request.FilterString);
                 return Result<PagedList<PersonResponse>>.Failure($"Filter error: {ex.Message}");

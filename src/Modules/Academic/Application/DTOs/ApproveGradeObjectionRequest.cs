@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class ApproveGradeObjectionRequest
 {
     public Guid ObjectionId { get; set; }

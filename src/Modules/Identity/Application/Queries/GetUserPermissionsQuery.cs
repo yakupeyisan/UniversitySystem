@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,8 +8,6 @@ namespace Identity.Application.Queries;
 
 public class GetUserPermissionsQuery : IRequest<Result<List<PermissionDto>>>
 {
-    public Guid UserId { get; set; }
-
     public GetUserPermissionsQuery(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -19,11 +16,13 @@ public class GetUserPermissionsQuery : IRequest<Result<List<PermissionDto>>>
         UserId = userId;
     }
 
+    public Guid UserId { get; set; }
+
     public class Handler : IRequestHandler<GetUserPermissionsQuery, Result<List<PermissionDto>>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,
@@ -57,7 +56,8 @@ public class GetUserPermissionsQuery : IRequest<Result<List<PermissionDto>>>
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while fetching user permissions: {UserId}", request.UserId);
-                return Result<List<PermissionDto>>.Failure("An unexpected error occurred while fetching user permissions");
+                return Result<List<PermissionDto>>.Failure(
+                    "An unexpected error occurred while fetching user permissions");
             }
         }
     }

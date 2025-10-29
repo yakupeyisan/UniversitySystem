@@ -5,12 +5,14 @@ namespace Identity.Domain.Aggregates;
 
 public class Permission : AuditableEntity
 {
+    private Permission()
+    {
+    }
+
     public string PermissionName { get; private set; }
     public PermissionType PermissionType { get; private set; }
     public string Description { get; private set; }
     public bool IsActive { get; private set; }
-
-    private Permission() { }
 
     public static Permission Create(
         string permissionName,

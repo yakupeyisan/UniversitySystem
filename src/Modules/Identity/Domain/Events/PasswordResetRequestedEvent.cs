@@ -4,26 +4,6 @@ namespace Identity.Domain.Events;
 
 public class PasswordResetRequestedEvent : DomainEvent
 {
-    /// <summary>
-    /// Þifre sýfýrlama isteði yapan kullanýcý ID'si
-    /// </summary>
-    public Guid UserId { get; }
-
-    /// <summary>
-    /// Kullanýcý email adresi
-    /// </summary>
-    public string Email { get; }
-
-    /// <summary>
-    /// Þifre sýfýrlama kodu (token)
-    /// </summary>
-    public string ResetCode { get; }
-
-    /// <summary>
-    /// Event oluþturulma zamaný (UTC)
-    /// </summary>
-    public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
     public PasswordResetRequestedEvent(Guid userId, string email, string resetCode)
     {
         if (userId == Guid.Empty)
@@ -39,4 +19,24 @@ public class PasswordResetRequestedEvent : DomainEvent
         Email = email;
         ResetCode = resetCode;
     }
+
+    /// <summary>
+    ///     Þifre sýfýrlama isteði yapan kullanýcý ID'si
+    /// </summary>
+    public Guid UserId { get; }
+
+    /// <summary>
+    ///     Kullanýcý email adresi
+    /// </summary>
+    public string Email { get; }
+
+    /// <summary>
+    ///     Þifre sýfýrlama kodu (token)
+    /// </summary>
+    public string ResetCode { get; }
+
+    /// <summary>
+    ///     Event oluþturulma zamaný (UTC)
+    /// </summary>
+    public DateTime OccurredOn { get; } = DateTime.UtcNow;
 }

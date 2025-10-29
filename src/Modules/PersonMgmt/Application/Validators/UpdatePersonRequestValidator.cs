@@ -1,6 +1,8 @@
 using FluentValidation;
 using PersonMgmt.Application.DTOs;
+
 namespace PersonMgmt.Application.Validators;
+
 public class UpdatePersonRequestValidator : AbstractValidator<UpdatePersonRequest>
 {
     public UpdatePersonRequestValidator()

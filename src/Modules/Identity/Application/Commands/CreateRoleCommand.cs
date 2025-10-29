@@ -3,7 +3,6 @@ using Core.Domain.Results;
 using Identity.Application.DTOs;
 using Identity.Domain.Aggregates;
 using Identity.Domain.Enums;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -11,10 +10,6 @@ namespace Identity.Application.Commands;
 
 public class CreateRoleCommand : IRequest<Result<RoleDto>>
 {
-    public string RoleName { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public RoleType RoleType { get; set; }
-
     public CreateRoleCommand(string roleName, string description, RoleType roleType)
     {
         if (string.IsNullOrWhiteSpace(roleName))
@@ -25,11 +20,15 @@ public class CreateRoleCommand : IRequest<Result<RoleDto>>
         RoleType = roleType;
     }
 
+    public string RoleName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public RoleType RoleType { get; set; }
+
     public class Handler : IRequestHandler<CreateRoleCommand, Result<RoleDto>>
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
 
         public Handler(
             IRoleRepository roleRepository,

@@ -2,9 +2,9 @@ namespace Identity.Application.DTOs;
 
 public class AssignPermissionToRoleRequest
 {
-    public Guid PermissionId { get; set; }
-
-    public AssignPermissionToRoleRequest() { }
+    public AssignPermissionToRoleRequest()
+    {
+    }
 
     public AssignPermissionToRoleRequest(Guid permissionId)
     {
@@ -13,4 +13,6 @@ public class AssignPermissionToRoleRequest
 
         PermissionId = permissionId;
     }
+
+    public Guid PermissionId { get; set; }
 }

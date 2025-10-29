@@ -1,5 +1,7 @@
 using Core.Domain.Filtering;
+
 namespace PersonMgmt.Domain.Filtering;
+
 public class PersonFilterWhitelist : IFilterWhitelist
 {
     private static readonly HashSet<string> AllowedProperties = new(StringComparer.OrdinalIgnoreCase)
@@ -41,12 +43,14 @@ public class PersonFilterWhitelist : IFilterWhitelist
         "restrictions.endDate",
         "restrictions.severity"
     };
+
     public bool IsAllowed(string propertyName)
     {
         if (string.IsNullOrWhiteSpace(propertyName))
             return false;
         return AllowedProperties.Contains(propertyName);
     }
+
     IReadOnlySet<string> IFilterWhitelist.GetAllowedProperties()
     {
         return AllowedProperties;

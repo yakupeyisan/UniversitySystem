@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 /// <summary>
-/// Role management endpoints - CRUD and Permission assignment
+///     Role management endpoints - CRUD and Permission assignment
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -18,8 +18,8 @@ namespace API.Controllers;
 [Authorize]
 public class RolesController : ControllerBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<RolesController> _logger;
+    private readonly IMediator _mediator;
 
     public RolesController(IMediator mediator, ILogger<RolesController> logger)
     {
@@ -28,7 +28,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Get role by ID
+    ///     Get role by ID
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <returns>Role details with permissions</returns>
@@ -61,7 +61,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all active roles
+    ///     Get all active roles
     /// </summary>
     /// <returns>List of all active roles</returns>
     [HttpGet]
@@ -86,7 +86,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Get role by name
+    ///     Get role by name
     /// </summary>
     /// <param name="name">Role name</param>
     /// <returns>Role details</returns>
@@ -122,7 +122,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Create new role
+    ///     Create new role
     /// </summary>
     /// <param name="request">Role creation request</param>
     /// <returns>Created role details</returns>
@@ -159,7 +159,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Update role
+    ///     Update role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <param name="request">Role update request</param>
@@ -198,7 +198,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete role
+    ///     Delete role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <returns>Success message</returns>
@@ -232,7 +232,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Get role's permissions
+    ///     Get role's permissions
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <returns>List of role's permissions</returns>
@@ -257,12 +257,13 @@ public class RolesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting role permissions: {RoleId}", roleId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving role permissions" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving role permissions" });
         }
     }
 
     /// <summary>
-    /// Assign permission to role
+    ///     Assign permission to role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <param name="request">Permission assignment request</param>
@@ -301,7 +302,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Remove permission from role
+    ///     Remove permission from role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <param name="permissionId">Permission ID</param>
@@ -336,7 +337,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Activate role
+    ///     Activate role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <returns>Success message</returns>
@@ -366,7 +367,7 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
-    /// Deactivate role
+    ///     Deactivate role
     /// </summary>
     /// <param name="roleId">Role ID</param>
     /// <returns>Success message</returns>

@@ -5,7 +5,7 @@ using Identity.Domain.Enums;
 namespace Identity.Domain.Specifications;
 
 /// <summary>
-/// Specification for retrieving permissions by their type
+///     Specification for retrieving permissions by their type
 /// </summary>
 public class PermissionsByTypeSpecification : Specification<Permission>
 {

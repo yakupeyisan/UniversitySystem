@@ -1,5 +1,4 @@
 using Core.Domain.Results;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -7,8 +6,6 @@ namespace Identity.Application.Commands;
 
 public class DeletePermissionCommand : IRequest<Result<bool>>
 {
-    public Guid PermissionId { get; set; }
-
     public DeletePermissionCommand(Guid permissionId)
     {
         if (permissionId == Guid.Empty)
@@ -17,16 +14,19 @@ public class DeletePermissionCommand : IRequest<Result<bool>>
         PermissionId = permissionId;
     }
 
+    public Guid PermissionId { get; set; }
+
     public class Handler : IRequestHandler<DeletePermissionCommand, Result<bool>>
     {
-        private readonly IPermissionRepository _permissionRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IPermissionRepository _permissionRepository;
 
         public Handler(
             IPermissionRepository permissionRepository,
             ILogger<Handler> logger)
         {
-            _permissionRepository = permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
+            _permissionRepository =
+                permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

@@ -1,12 +1,10 @@
-using Core.Domain.ValueObjects;
 using System.Text.RegularExpressions;
+using Core.Domain.ValueObjects;
 
 namespace Identity.Domain.ValueObjects;
 
 public class Email : ValueObject
 {
-    public string Value { get; }
-
     public Email(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -19,6 +17,8 @@ public class Email : ValueObject
 
         Value = value;
     }
+
+    public string Value { get; }
 
     private static bool IsValidEmail(string email)
     {
@@ -33,10 +33,21 @@ public class Email : ValueObject
         }
     }
 
-    public static implicit operator string(Email email) => email.Value;
-    public static implicit operator Email(string value) => new(value);
+    public static implicit operator string(Email email)
+    {
+        return email.Value;
+    }
 
-    public override string ToString() => Value;
+    public static implicit operator Email(string value)
+    {
+        return new Email(value);
+    }
+
+    public override string ToString()
+    {
+        return Value;
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Value;

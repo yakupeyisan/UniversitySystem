@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,8 +8,6 @@ namespace Identity.Application.Commands;
 
 public class DeactivatePermissionCommand : IRequest<Result<PermissionDto>>
 {
-    public Guid PermissionId { get; set; }
-
     public DeactivatePermissionCommand(Guid permissionId)
     {
         if (permissionId == Guid.Empty)
@@ -19,18 +16,21 @@ public class DeactivatePermissionCommand : IRequest<Result<PermissionDto>>
         PermissionId = permissionId;
     }
 
+    public Guid PermissionId { get; set; }
+
     public class Handler : IRequestHandler<DeactivatePermissionCommand, Result<PermissionDto>>
     {
-        private readonly IPermissionRepository _permissionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPermissionRepository _permissionRepository;
 
         public Handler(
             IPermissionRepository permissionRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
-            _permissionRepository = permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
+            _permissionRepository =
+                permissionRepository ?? throw new ArgumentNullException(nameof(permissionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class StudentCoursesResponse
 {
     public Guid StudentId { get; set; }

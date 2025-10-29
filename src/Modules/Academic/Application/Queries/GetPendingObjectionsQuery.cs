@@ -1,23 +1,27 @@
 using Academic.Application.DTOs;
-using Academic.Domain.Interfaces;
 using AutoMapper;
 using Core.Domain.Pagination;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Queries.Courses;
+
 public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResponse>>>
 {
-    public PagedRequest? PagedRequest { get; set; }
     public GetPendingObjectionsQuery(PagedRequest? pagedRequest = null)
     {
         PagedRequest = pagedRequest;
     }
+
+    public PagedRequest? PagedRequest { get; set; }
+
     public class Handler : IRequestHandler<GetPendingObjectionsQuery, Result<List<GradeObjectionResponse>>>
     {
-        private readonly IGradeObjectionRepository _objectionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IGradeObjectionRepository _objectionRepository;
+
         public Handler(
             IGradeObjectionRepository objectionRepository,
             IMapper mapper,
@@ -27,6 +31,7 @@ public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResp
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<List<GradeObjectionResponse>>> Handle(
             GetPendingObjectionsQuery request,
             CancellationToken cancellationToken)

@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,10 +8,6 @@ namespace Identity.Application.Commands;
 
 public class UpdateRoleCommand : IRequest<Result<RoleDto>>
 {
-    public Guid RoleId { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; } = string.Empty;
-
     public UpdateRoleCommand(Guid roleId, string name, string description)
     {
         if (roleId == Guid.Empty)
@@ -23,11 +18,15 @@ public class UpdateRoleCommand : IRequest<Result<RoleDto>>
         Description = description?.Trim() ?? string.Empty;
     }
 
+    public Guid RoleId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; } = string.Empty;
+
     public class Handler : IRequestHandler<UpdateRoleCommand, Result<RoleDto>>
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
 
         public Handler(
             IRoleRepository roleRepository,

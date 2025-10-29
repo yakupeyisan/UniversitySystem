@@ -1,35 +1,43 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
-using Academic.Domain.Interfaces;
+using Academic.Domain.Specifications;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
 {
-    public EnrollStudentRequest Request { get; set; }
     public EnrollStudentCommand(EnrollStudentRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public EnrollStudentRequest Request { get; set; }
+
     public class Handler : IRequestHandler<EnrollStudentCommand, Result<CourseRegistrationResponse>>
     {
-        private readonly ICourseRegistrationRepository _registrationRepository;
-        private readonly ICourseRepository _courseRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Course> _courseRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRepository<CourseRegistration> _registrationRepository;
+
         public Handler(
-            ICourseRegistrationRepository registrationRepository,
-            ICourseRepository courseRepository,
+            IRepository<CourseRegistration> registrationRepository,
+            IRepository<Course> courseRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
-            _registrationRepository = registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
+            _registrationRepository =
+                registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
             _courseRepository = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<CourseRegistrationResponse>> Handle(
             EnrollStudentCommand request,
             CancellationToken cancellationToken)
@@ -40,9 +48,8 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     "Enrolling student {StudentId} in course {CourseId}",
                     request.Request.StudentId,
                     request.Request.CourseId);
-                var existingRegistration = await _registrationRepository.GetByStudentAndCourseAsync(
-                    request.Request.StudentId,
-                    request.Request.CourseId,
+                var existingRegistration = await _registrationRepository.GetAsync(
+                    new CourseRegistrationByStudentAndCourseSpec(request.Request.StudentId, request.Request.CourseId),
                     cancellationToken);
                 if (existingRegistration != null)
                 {
@@ -53,6 +60,7 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         "Student is already registered for this course");
                 }
+
                 var course = await _courseRepository.GetByIdAsync(
                     request.Request.CourseId,
                     cancellationToken);
@@ -64,12 +72,13 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
+
                 var registration = CourseRegistration.Create(
-                    studentId: request.Request.StudentId,
-                    courseId: request.Request.CourseId,
-                    semester: request.Request.Semester,
-                    isRetake: request.Request.IsRetake,
-                    previousGradeId: request.Request.PreviousGradeId);
+                    request.Request.StudentId,
+                    request.Request.CourseId,
+                    request.Request.Semester,
+                    request.Request.IsRetake,
+                    request.Request.PreviousGradeId);
                 await _registrationRepository.AddAsync(registration, cancellationToken);
                 await _registrationRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(

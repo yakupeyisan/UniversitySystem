@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class WaitingListResponse
 {
     public Guid Id { get; set; }

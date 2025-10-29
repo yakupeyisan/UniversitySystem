@@ -1,4 +1,5 @@
 namespace Academic.Application.DTOs;
+
 public class ExamRoomResponse
 {
     public Guid Id { get; set; }

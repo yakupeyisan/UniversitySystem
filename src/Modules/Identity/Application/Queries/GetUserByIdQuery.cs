@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,8 +8,6 @@ namespace Identity.Application.Queries;
 
 public class GetUserByIdQuery : IRequest<Result<UserDto>>
 {
-    public Guid UserId { get; set; }
-
     public GetUserByIdQuery(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -19,11 +16,13 @@ public class GetUserByIdQuery : IRequest<Result<UserDto>>
         UserId = userId;
     }
 
+    public Guid UserId { get; set; }
+
     public class Handler : IRequestHandler<GetUserByIdQuery, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

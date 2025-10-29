@@ -1,9 +1,15 @@
 using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
+
 namespace PersonMgmt.Domain.Aggregates;
+
 public class Student : AuditableEntity, ISoftDelete
 {
+    private Student()
+    {
+    }
+
     public string StudentNumber { get; private set; }
     public EducationLevel EducationLevel { get; private set; }
     public int CurrentSemester { get; private set; }
@@ -16,18 +22,41 @@ public class Student : AuditableEntity, ISoftDelete
     public DateTime? GraduationDate { get; private set; }
     public Guid? AdvisorId { get; private set; }
     public Guid? ProgramId { get; private set; }
+    public bool HasPassingGPA => CGPA >= 2.0;
+    public bool IsGraduated => Status == StudentStatus.Graduated;
+    public bool IsCurrentlyActive => Status == StudentStatus.Active && !IsDeleted;
+
+    public double CompletionPercentage => TotalCredits > 0
+        ? Math.Round((double)CompletedCredits / TotalCredits * 100, 2)
+        : 0.0;
+
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    private Student()
+
+    public void Delete(Guid deletedBy)
     {
+        IsDeleted = true;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public static Student Create(
-    string studentNumber,
-    EducationLevel educationLevel,
-    DateTime enrollmentDate,
-    Guid? advisorId = null,
-    Guid? programId = null)
+        string studentNumber,
+        EducationLevel educationLevel,
+        DateTime enrollmentDate,
+        Guid? advisorId = null,
+        Guid? programId = null)
     {
         if (string.IsNullOrWhiteSpace(studentNumber))
             throw new ArgumentException("Student number cannot be empty", nameof(studentNumber));
@@ -53,6 +82,7 @@ public class Student : AuditableEntity, ISoftDelete
             ProgramId = programId
         };
     }
+
     public void UpdateStatus(StudentStatus newStatus)
     {
         if (Status == StudentStatus.Graduated && newStatus != StudentStatus.Graduated)
@@ -64,26 +94,32 @@ public class Student : AuditableEntity, ISoftDelete
         if (newStatus == StudentStatus.Graduated && !GraduationDate.HasValue)
             GraduationDate = DateTime.UtcNow;
     }
+
     public void Suspend()
     {
         UpdateStatus(StudentStatus.Suspended);
     }
+
     public void MakePassive()
     {
         UpdateStatus(StudentStatus.Passive);
     }
+
     public void MakeActive()
     {
         UpdateStatus(StudentStatus.Active);
     }
+
     public void Graduate()
     {
         UpdateStatus(StudentStatus.Graduated);
     }
+
     public void Expel()
     {
         UpdateStatus(StudentStatus.Expelled);
     }
+
     public void UpdateCGPA(double cgpa)
     {
         if (cgpa < 0.0 || cgpa > 4.0)
@@ -91,6 +127,7 @@ public class Student : AuditableEntity, ISoftDelete
         CGPA = Math.Round(cgpa, 2);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateSGPA(double sgpa)
     {
         if (sgpa < 0.0 || sgpa > 4.0)
@@ -98,6 +135,7 @@ public class Student : AuditableEntity, ISoftDelete
         SGPA = Math.Round(sgpa, 2);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateCredits(int totalCredits, int completedCredits)
     {
         if (totalCredits < 0)
@@ -110,11 +148,13 @@ public class Student : AuditableEntity, ISoftDelete
         CompletedCredits = completedCredits;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void IncrementSemester()
     {
         CurrentSemester++;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AssignAdvisor(Guid advisorId)
     {
         if (advisorId == Guid.Empty)
@@ -122,6 +162,7 @@ public class Student : AuditableEntity, ISoftDelete
         AdvisorId = advisorId;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void ChangeAdvisor(Guid newAdvisorId)
     {
         if (newAdvisorId == Guid.Empty)
@@ -129,30 +170,10 @@ public class Student : AuditableEntity, ISoftDelete
         AdvisorId = newAdvisorId;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void RemoveAdvisor()
     {
         AdvisorId = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        UpdatedAt = DateTime.UtcNow;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        UpdatedBy = deletedBy;
-    }
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedBy = null;
-        DeletedAt = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
-    public bool HasPassingGPA => CGPA >= 2.0;
-    public bool IsGraduated => Status == StudentStatus.Graduated;
-    public bool IsCurrentlyActive => Status == StudentStatus.Active && !IsDeleted;
-    public double CompletionPercentage => TotalCredits > 0
-    ? Math.Round((double)CompletedCredits / TotalCredits * 100, 2)
-    : 0.0;
 }

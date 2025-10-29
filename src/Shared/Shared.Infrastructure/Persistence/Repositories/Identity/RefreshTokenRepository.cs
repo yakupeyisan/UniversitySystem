@@ -1,5 +1,4 @@
 ﻿using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Shared.Infrastructure.Persistence.Contexts;

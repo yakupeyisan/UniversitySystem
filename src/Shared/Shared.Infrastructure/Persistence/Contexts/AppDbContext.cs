@@ -1,24 +1,25 @@
+using System.Linq.Expressions;
 using Academic.Domain.Aggregates;
 using Core.Application.Abstractions;
 using Core.Domain;
 using Core.Domain.Events;
 using Core.Domain.Specifications;
+using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PersonMgmt.Domain.Aggregates;
 using Shared.Infrastructure.Persistence.Configurations.Academic;
-using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
-using System;
-using System.Linq.Expressions;
-using Identity.Domain.Aggregates;
 using Shared.Infrastructure.Persistence.Configurations.Identity;
+using Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
 
 namespace Shared.Infrastructure.Persistence.Contexts;
+
 public class AppDbContext : DbContext
 {
     private readonly ICurrentUserService _currentUserService;
-    private readonly IPublisher _mediator;
     private readonly IDateTime _dateTime;
+    private readonly IPublisher _mediator;
+
     public AppDbContext(DbContextOptions<AppDbContext> options,
         ICurrentUserService currentUserService,
         IPublisher mediator, IDateTime dateTime) : base(options)
@@ -27,6 +28,7 @@ public class AppDbContext : DbContext
         _mediator = mediator;
         _dateTime = dateTime;
     }
+
     public DbSet<Person> Persons { get; set; } = null!;
     public DbSet<Student> Students { get; set; } = null!;
     public DbSet<Address> Addresses { get; set; } = null!;
@@ -47,6 +49,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles { get; set; } = null!;
     public DbSet<Permission> Permissions { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -72,14 +75,11 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PrerequisiteConfiguration());
         modelBuilder.ApplyConfiguration(new PrerequisiteWaiverConfiguration());
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
-            {
                 modelBuilder.Entity(entityType.ClrType)
                     .HasQueryFilter(GetSoftDeleteFilter(entityType.ClrType));
-            }
-        }
     }
+
     private static LambdaExpression GetSoftDeleteFilter(Type entityType)
     {
         var parameter = Expression.Parameter(entityType, "e");
@@ -87,10 +87,10 @@ public class AppDbContext : DbContext
         var condition = Expression.Equal(property, Expression.Constant(false));
         return Expression.Lambda(condition, parameter);
     }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
-        {
             switch (entry.State)
             {
                 case EntityState.Added:
@@ -107,12 +107,14 @@ public class AppDbContext : DbContext
                         entry.State = EntityState.Modified;
                         softDeleteEntity.Delete(_currentUserService.UserId);
                     }
+
                     break;
             }
-        }
+
         await DispatchDomainEventsAsync(cancellationToken);
         return await base.SaveChangesAsync(cancellationToken);
     }
+
     private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
     {
         var domainEntities = ChangeTracker
@@ -123,9 +125,6 @@ public class AppDbContext : DbContext
             .SelectMany(x => x.Entity.DomainEvents)
             .ToList();
         domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
-        foreach (var domainEvent in domainEvents)
-        {
-            await _mediator.Publish(domainEvent, cancellationToken);
-        }
+        foreach (var domainEvent in domainEvents) await _mediator.Publish(domainEvent, cancellationToken);
     }
 }

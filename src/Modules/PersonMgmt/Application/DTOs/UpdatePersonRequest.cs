@@ -1,4 +1,5 @@
 namespace PersonMgmt.Application.DTOs;
+
 public class UpdatePersonRequest
 {
     public string? Email { get; set; }

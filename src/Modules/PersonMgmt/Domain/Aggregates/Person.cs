@@ -1,12 +1,22 @@
+using System.Text.RegularExpressions;
 using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
-using System.Text.RegularExpressions;
+
 namespace PersonMgmt.Domain.Aggregates;
+
 public class Person : AuditableEntity, ISoftDelete
 {
+    private readonly List<Address> _addresses = new();
+    private readonly List<EmergencyContact> _emergencyContacts = new();
+    private readonly List<PersonRestriction> _restrictions = new();
+
+    private Person()
+    {
+    }
+
     public Guid? DepartmentId { get; private set; }
     public PersonName Name { get; private set; } = null!;
     public string IdentificationNumber { get; private set; } = null!;
@@ -15,24 +25,51 @@ public class Person : AuditableEntity, ISoftDelete
     public string Email { get; private set; } = null!;
     public string PhoneNumber { get; private set; } = null!;
     public string? ProfilePhotoUrl { get; private set; }
+    public Student? Student { get; private set; }
+
+    public Staff? Staff { get; private set; }
+
+    public HealthRecord? HealthRecord { get; private set; }
+
+    public IReadOnlyList<Address> Addresses => _addresses.AsReadOnly();
+    public IReadOnlyList<EmergencyContact> EmergencyContacts => _emergencyContacts.AsReadOnly();
+    public IReadOnlyCollection<PersonRestriction> Restrictions => _restrictions.AsReadOnly();
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    private Student? _student;
-    public Student? Student => _student;
-    private Staff? _staff;
-    public Staff? Staff => _staff;
-    private HealthRecord? _healthRecord;
-    public HealthRecord? HealthRecord => _healthRecord;
-    private readonly List<Address> _addresses = new();
-    public IReadOnlyList<Address> Addresses => _addresses.AsReadOnly();
-    private readonly List<EmergencyContact> _emergencyContacts = new();
-    public IReadOnlyList<EmergencyContact> EmergencyContacts => _emergencyContacts.AsReadOnly();
-    private readonly List<PersonRestriction> _restrictions = new();
-    public IReadOnlyCollection<PersonRestriction> Restrictions => _restrictions.AsReadOnly();
-    private Person()
+
+    public void Delete(Guid deletedBy)
     {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        Student?.Delete(deletedBy);
+        Staff?.Delete(deletedBy);
+        HealthRecord?.Delete(deletedBy);
+        foreach (var address in _addresses) address.Delete(deletedBy);
+        foreach (var restriction in _restrictions) restriction.Delete(deletedBy);
+        AddDomainEvent(new PersonDeletedDomainEvent(
+            Id,
+            Name.FirstName,
+            Name.LastName,
+            DateTime.UtcNow
+        ));
     }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
+        Student?.Restore();
+        Staff?.Restore();
+        HealthRecord?.Restore();
+        foreach (var address in _addresses) address.Restore();
+        foreach (var restriction in _restrictions) restriction.Restore();
+    }
+
     public static Person Create(
         string firstName,
         string lastName,
@@ -70,30 +107,32 @@ public class Person : AuditableEntity, ISoftDelete
         ));
         return person;
     }
+
     public Address? GetCurrentAddress()
     {
         return _addresses.FirstOrDefault(a => a.IsCurrent && a.IsActive);
     }
+
     public IEnumerable<Address> GetAddressHistory()
     {
         return _addresses.Where(a => !a.IsCurrent && !a.IsDeleted).OrderByDescending(a => a.ValidTo);
     }
+
     public void AddAddress(Address address)
     {
         if (address.PersonId != Id)
             throw new InvalidOperationException("Address does not belong to this person");
-        foreach (var oldAddress in _addresses.Where(a => a.IsCurrent && !a.IsDeleted))
-        {
-            oldAddress.Archive();
-        }
+        foreach (var oldAddress in _addresses.Where(a => a.IsCurrent && !a.IsDeleted)) oldAddress.Archive();
         _addresses.Add(address);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AddTurkishAddress(string street, string city, string? postalCode = null)
     {
         var address = Address.CreateTurkish(Id, street, city, postalCode);
         AddAddress(address);
     }
+
     public void DeleteAddress(Guid addressId, Guid deletedBy)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
@@ -102,6 +141,7 @@ public class Person : AuditableEntity, ISoftDelete
         address.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void RestoreAddress(Guid addressId)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
@@ -110,6 +150,7 @@ public class Person : AuditableEntity, ISoftDelete
         address.Restore();
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void EnrollAsStudent(
         string studentNumber,
         EducationLevel educationLevel,
@@ -117,11 +158,11 @@ public class Person : AuditableEntity, ISoftDelete
         Guid? advisorId = null,
         Guid? programId = null)
     {
-        if (_staff != null)
+        if (Staff != null)
             throw new InvalidOperationException("Person is already registered as staff");
-        if (_student != null)
+        if (Student != null)
             throw new InvalidOperationException("Person is already enrolled as student");
-        _student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId, programId);
+        Student = Student.Create(studentNumber, educationLevel, enrollmentDate, advisorId, programId);
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new StudentEnrolledDomainEvent(
             Id,
@@ -130,16 +171,17 @@ public class Person : AuditableEntity, ISoftDelete
             enrollmentDate
         ));
     }
+
     public void HireAsStaff(
         string employeeNumber,
         AcademicTitle academicTitle,
         DateTime hireDate)
     {
-        if (_student != null)
+        if (Student != null)
             throw new InvalidOperationException("Person is already enrolled as student");
-        if (_staff != null)
+        if (Staff != null)
             throw new InvalidOperationException("Person is already registered as staff");
-        _staff = Staff.Create(employeeNumber, academicTitle, hireDate);
+        Staff = Staff.Create(employeeNumber, academicTitle, hireDate);
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new StaffHiredDomainEvent(
             Id,
@@ -148,6 +190,7 @@ public class Person : AuditableEntity, ISoftDelete
             hireDate
         ));
     }
+
     public void CreateOrUpdateHealthRecord(
         string? bloodType = null,
         string? allergies = null,
@@ -156,29 +199,31 @@ public class Person : AuditableEntity, ISoftDelete
         string? emergencyHealthInfo = null,
         string? notes = null)
     {
-        if (_healthRecord == null)
+        if (HealthRecord == null)
         {
-            _healthRecord = HealthRecord.Create(
+            HealthRecord = HealthRecord.Create(
                 Id, bloodType, allergies, chronicDiseases, medications, emergencyHealthInfo, notes
             );
         }
         else
         {
             if (!string.IsNullOrEmpty(bloodType))
-                _healthRecord.UpdateBloodType(bloodType);
+                HealthRecord.UpdateBloodType(bloodType);
             if (!string.IsNullOrEmpty(allergies))
-                _healthRecord.UpdateAllergies(allergies);
+                HealthRecord.UpdateAllergies(allergies);
             if (!string.IsNullOrEmpty(chronicDiseases))
-                _healthRecord.UpdateChronicDiseases(chronicDiseases);
+                HealthRecord.UpdateChronicDiseases(chronicDiseases);
             if (!string.IsNullOrEmpty(medications))
-                _healthRecord.UpdateMedications(medications);
+                HealthRecord.UpdateMedications(medications);
             if (!string.IsNullOrEmpty(emergencyHealthInfo))
-                _healthRecord.UpdateEmergencyHealthInfo(emergencyHealthInfo);
+                HealthRecord.UpdateEmergencyHealthInfo(emergencyHealthInfo);
             if (!string.IsNullOrEmpty(notes))
-                _healthRecord.UpdateNotes(notes);
+                HealthRecord.UpdateNotes(notes);
         }
+
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdatePersonalInfo(
         string email,
         string phoneNumber,
@@ -202,6 +247,7 @@ public class Person : AuditableEntity, ISoftDelete
             UpdatedAt.Value
         ));
     }
+
     public void AddRestriction(
         RestrictionType restrictionType,
         RestrictionLevel restrictionLevel,
@@ -224,6 +270,7 @@ public class Person : AuditableEntity, ISoftDelete
         _restrictions.Add(restriction);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void RemoveRestriction(Guid restrictionId, Guid deletedBy)
     {
         var restriction = _restrictions.FirstOrDefault(r => r.Id == restrictionId);
@@ -232,16 +279,19 @@ public class Person : AuditableEntity, ISoftDelete
         restriction.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
+
     public IEnumerable<PersonRestriction> GetActiveRestrictions()
     {
         return _restrictions.Where(r => r.IsCurrentlyActive()).ToList();
     }
+
     public bool HasActiveRestrictionAtLevel(RestrictionLevel level)
     {
         return _restrictions.Any(r =>
             r.IsCurrentlyActive() && r.RestrictionLevel == level
         );
     }
+
     public void UpdateProfilePhoto(string photoUrl)
     {
         if (string.IsNullOrWhiteSpace(photoUrl))
@@ -249,49 +299,9 @@ public class Person : AuditableEntity, ISoftDelete
         ProfilePhotoUrl = photoUrl;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        _student?.Delete(deletedBy);
-        _staff?.Delete(deletedBy);
-        _healthRecord?.Delete(deletedBy);
-        foreach (var address in _addresses)
-        {
-            address.Delete(deletedBy);
-        }
-        foreach (var restriction in _restrictions)
-        {
-            restriction.Delete(deletedBy);
-        }
-        AddDomainEvent(new PersonDeletedDomainEvent(
-            Id,
-            Name.FirstName,
-            Name.LastName,
-            DateTime.UtcNow
-        ));
-    }
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedAt = null;
-        DeletedBy = null;
-        UpdatedAt = DateTime.UtcNow;
-        _student?.Restore();
-        _staff?.Restore();
-        _healthRecord?.Restore();
-        foreach (var address in _addresses)
-        {
-            address.Restore();
-        }
-        foreach (var restriction in _restrictions)
-        {
-            restriction.Restore();
-        }
-    }
+
     #region Validation
+
     private static void ValidateBasicInfo(
         string firstName,
         string lastName,
@@ -311,6 +321,7 @@ public class Person : AuditableEntity, ISoftDelete
             throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
         ValidateEmail(email);
     }
+
     private static void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -325,10 +336,12 @@ public class Person : AuditableEntity, ISoftDelete
         if (email.StartsWith(".") || email.EndsWith("."))
             throw new ArgumentException("Email format is invalid", nameof(email));
     }
+
     private static void ValidateBirthDate(DateTime birthDate)
     {
         if (birthDate > DateTime.UtcNow)
             throw new ArgumentException("Birth date cannot be in the future", nameof(birthDate));
     }
+
     #endregion
 }

@@ -5,26 +5,31 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-using PersonMgmt.Domain.Interfaces;
+
 namespace PersonMgmt.Application.Commands;
+
 public class CreatePersonCommand : IRequest<Result<PersonResponse>>
 {
-    public CreatePersonRequest Request { get; set; }
     public CreatePersonCommand(CreatePersonRequest request)
     {
         Request = request;
     }
+
+    public CreatePersonRequest Request { get; set; }
+
     public class Handler : IRequestHandler<CreatePersonCommand, Result<PersonResponse>>
     {
-        private readonly IPersonRepository _personRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IPersonRepository _personRepository;
+
         public Handler(IPersonRepository personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
+
         public async Task<Result<PersonResponse>> Handle(
             CreatePersonCommand request,
             CancellationToken cancellationToken)
@@ -42,6 +47,7 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                         request.Request.IdentificationNumber);
                     return Result<PersonResponse>.Failure("National ID already exists");
                 }
+
                 var isEmailUnique = await _personRepository.IsEmailUniqueAsync(
                     request.Request.Email,
                     cancellationToken: cancellationToken);
@@ -50,17 +56,18 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                     _logger.LogWarning("Email already exists: {Email}", request.Request.Email);
                     return Result<PersonResponse>.Failure("Email already exists");
                 }
+
                 var gender = (Gender)request.Request.Gender;
                 var person = Person.Create(
-                    firstName: request.Request.FirstName,
-                    lastName: request.Request.LastName,
-                    identificationNumber: request.Request.IdentificationNumber,
-                    birthDate: request.Request.BirthDate,
-                    gender: gender,
-                    email: request.Request.Email,
-                    phoneNumber: request.Request.PhoneNumber,
-                    departmentId: request.Request.DepartmentId,
-                    profilePhotoUrl: request.Request.ProfilePhotoUrl
+                    request.Request.FirstName,
+                    request.Request.LastName,
+                    request.Request.IdentificationNumber,
+                    request.Request.BirthDate,
+                    gender,
+                    request.Request.Email,
+                    request.Request.PhoneNumber,
+                    request.Request.DepartmentId,
+                    request.Request.ProfilePhotoUrl
                 );
                 await _personRepository.AddAsync(person, cancellationToken);
                 await _personRepository.SaveChangesAsync(cancellationToken);

@@ -1,4 +1,5 @@
 namespace Academic.Domain.Enums;
+
 public enum PrerequisiteWaiverStatus
 {
     Submitted = 1,

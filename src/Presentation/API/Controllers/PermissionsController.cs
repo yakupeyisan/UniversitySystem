@@ -2,6 +2,7 @@ using Core.Domain.Results;
 using Identity.Application.Commands;
 using Identity.Application.DTOs;
 using Identity.Application.Queries;
+using Identity.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 /// <summary>
-/// Permission management endpoints - CRUD and Listing
+///     Permission management endpoints - CRUD and Listing
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
@@ -17,8 +18,8 @@ namespace API.Controllers;
 [Authorize]
 public class PermissionsController : ControllerBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<PermissionsController> _logger;
+    private readonly IMediator _mediator;
 
     public PermissionsController(IMediator mediator, ILogger<PermissionsController> logger)
     {
@@ -27,7 +28,7 @@ public class PermissionsController : ControllerBase
     }
 
     /// <summary>
-    /// Get permission by ID
+    ///     Get permission by ID
     /// </summary>
     /// <param name="permissionId">Permission ID</param>
     /// <returns>Permission details</returns>
@@ -55,12 +56,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting permission: {PermissionId}", permissionId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving permission" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving permission" });
         }
     }
 
     /// <summary>
-    /// Get all active permissions
+    ///     Get all active permissions
     /// </summary>
     /// <returns>List of all active permissions</returns>
     [HttpGet]
@@ -81,12 +83,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting permissions");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving permissions" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving permissions" });
         }
     }
 
     /// <summary>
-    /// Get permission by name
+    ///     Get permission by name
     /// </summary>
     /// <param name="name">Permission name</param>
     /// <returns>Permission details</returns>
@@ -118,12 +121,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting permission by name");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving permission" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving permission" });
         }
     }
 
     /// <summary>
-    /// Search permissions by name or description
+    ///     Search permissions by name or description
     /// </summary>
     /// <param name="searchTerm">Search term</param>
     /// <returns>List of matching permissions</returns>
@@ -149,12 +153,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching permissions");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error searching permissions" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error searching permissions" });
         }
     }
 
     /// <summary>
-    /// Get permissions by type
+    ///     Get permissions by type
     /// </summary>
     /// <param name="type">Permission type</param>
     /// <returns>List of permissions of the specified type</returns>
@@ -169,10 +174,10 @@ public class PermissionsController : ControllerBase
 
         try
         {
-            if (!Enum.IsDefined(typeof(Identity.Domain.Enums.PermissionType), type))
+            if (!Enum.IsDefined(typeof(PermissionType), type))
                 return BadRequest(new { message = "Invalid permission type" });
 
-            var query = new GetPermissionsByTypeQuery((Identity.Domain.Enums.PermissionType)type);
+            var query = new GetPermissionsByTypeQuery((PermissionType)type);
             var result = await _mediator.Send(query);
 
             return Ok(result);
@@ -180,12 +185,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting permissions by type");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving permissions" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error retrieving permissions" });
         }
     }
 
     /// <summary>
-    /// Create new permission
+    ///     Create new permission
     /// </summary>
     /// <param name="request">Permission creation request</param>
     /// <returns>Created permission details</returns>
@@ -222,7 +228,7 @@ public class PermissionsController : ControllerBase
     }
 
     /// <summary>
-    /// Update permission
+    ///     Update permission
     /// </summary>
     /// <param name="permissionId">Permission ID</param>
     /// <param name="request">Permission update request</param>
@@ -261,7 +267,7 @@ public class PermissionsController : ControllerBase
     }
 
     /// <summary>
-    /// Delete permission
+    ///     Delete permission
     /// </summary>
     /// <param name="permissionId">Permission ID</param>
     /// <returns>Success message</returns>
@@ -295,7 +301,7 @@ public class PermissionsController : ControllerBase
     }
 
     /// <summary>
-    /// Activate permission
+    ///     Activate permission
     /// </summary>
     /// <param name="permissionId">Permission ID</param>
     /// <returns>Success message</returns>
@@ -320,12 +326,13 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating permission: {PermissionId}", permissionId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error activating permission" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error activating permission" });
         }
     }
 
     /// <summary>
-    /// Deactivate permission
+    ///     Deactivate permission
     /// </summary>
     /// <param name="permissionId">Permission ID</param>
     /// <returns>Success message</returns>
@@ -350,7 +357,8 @@ public class PermissionsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating permission: {PermissionId}", permissionId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deactivating permission" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error deactivating permission" });
         }
     }
 }

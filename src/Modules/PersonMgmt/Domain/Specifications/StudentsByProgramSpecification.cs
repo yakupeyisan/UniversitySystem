@@ -1,7 +1,9 @@
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
+
 namespace PersonMgmt.Domain.Specifications;
+
 public class StudentsByProgramSpecification : Specification<Person>
 {
     public StudentsByProgramSpecification(Guid programId)

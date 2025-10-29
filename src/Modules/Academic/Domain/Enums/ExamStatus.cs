@@ -1,4 +1,5 @@
 namespace Academic.Domain.Enums;
+
 public enum ExamStatus
 {
     Scheduled = 1,

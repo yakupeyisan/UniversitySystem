@@ -1,4 +1,5 @@
 namespace API.Middlewares;
+
 public class ErrorResponse
 {
     public bool IsSuccess { get; set; }

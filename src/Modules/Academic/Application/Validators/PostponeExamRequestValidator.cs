@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
 using FluentValidation;
+
 namespace Academic.Application.Validators;
+
 public class PostponeExamRequestValidator : AbstractValidator<PostponeExamRequest>
 {
     public PostponeExamRequestValidator()
@@ -18,7 +20,9 @@ public class PostponeExamRequestValidator : AbstractValidator<PostponeExamReques
                         context.AddFailure("Yeni s�nav tarihi ge�mi� tarih olamaz");
                 }
                 else
+                {
                     context.AddFailure("Yeni s�nav tarihi ge�ersiz");
+                }
             });
         RuleFor(x => x.NewStartTime)
             .NotEmpty().WithMessage("Yeni ba�lang�� saati bo� olamaz")

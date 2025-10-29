@@ -1,6 +1,8 @@
 using Academic.Application.DTOs;
 using FluentValidation;
+
 namespace Academic.Application.Validators;
+
 public class ApproveGradeObjectionRequestValidator : AbstractValidator<ApproveGradeObjectionRequest>
 {
     public ApproveGradeObjectionRequestValidator()

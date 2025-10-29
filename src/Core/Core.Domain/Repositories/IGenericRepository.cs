@@ -1,46 +1,61 @@
 using Core.Domain.Pagination;
 using Core.Domain.Specifications;
+
 namespace Core.Domain.Repositories;
+
 public interface IGenericRepository<TEntity> where TEntity : Entity
 {
     Task<TEntity?> GetByIdAsync(
-    Guid id,
-    CancellationToken cancellationToken = default);
+        Guid id,
+        CancellationToken cancellationToken = default);
+
     Task<TEntity?> GetAsync(
-    ISpecification<TEntity> specification,
-    CancellationToken cancellationToken = default);
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
     Task<IEnumerable<TEntity>> GetAllAsync(
-    CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default);
+
     Task<PagedList<TEntity>> GetAllAsync(
-    PagedRequest pagedRequest,
-    CancellationToken cancellationToken = default);
+        PagedRequest pagedRequest,
+        CancellationToken cancellationToken = default);
+
     Task<PagedList<TEntity>> GetAllAsync(
-    ISpecification<TEntity> specification,
-    PagedRequest pagedRequest,
-    CancellationToken cancellationToken = default);
+        ISpecification<TEntity> specification,
+        PagedRequest pagedRequest,
+        CancellationToken cancellationToken = default);
+
     Task<IEnumerable<TEntity>> GetAllAsync(
-    ISpecification<TEntity> specification,
-    CancellationToken cancellationToken = default);
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
     Task<bool> ExistsAsync(
-    Guid id,
-    CancellationToken cancellationToken = default);
+        Guid id,
+        CancellationToken cancellationToken = default);
+
     Task<int> CountAsync(
-    CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
-    TEntity aggregate,
-    CancellationToken cancellationToken = default);
+        TEntity aggregate,
+        CancellationToken cancellationToken = default);
+
     Task AddRangeAsync(
-    IEnumerable<TEntity> aggregates,
-    CancellationToken cancellationToken = default);
+        IEnumerable<TEntity> aggregates,
+        CancellationToken cancellationToken = default);
+
     Task UpdateAsync(
-    TEntity aggregate,
-    CancellationToken cancellationToken = default);
+        TEntity aggregate,
+        CancellationToken cancellationToken = default);
+
     Task DeleteAsync(
-    TEntity aggregate,
-    CancellationToken cancellationToken = default);
+        TEntity aggregate,
+        CancellationToken cancellationToken = default);
+
     Task DeleteRangeAsync(
-    IEnumerable<TEntity> aggregates,
-    CancellationToken cancellationToken = default);
+        IEnumerable<TEntity> aggregates,
+        CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<int> GetCountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default);
     Task<int> GetCountAsync(CancellationToken cancellationToken = default);

@@ -4,15 +4,15 @@ namespace Identity.Domain.Events;
 
 public class UserRoleRevokedEvent : DomainEvent
 {
-    public Guid UserId { get; }
-    public string Email { get; }
-    public string RoleName { get; }
-    public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
     public UserRoleRevokedEvent(Guid userId, string email, string roleName)
     {
         UserId = userId;
         Email = email;
         RoleName = roleName;
     }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public string RoleName { get; }
+    public DateTime OccurredOn { get; } = DateTime.UtcNow;
 }

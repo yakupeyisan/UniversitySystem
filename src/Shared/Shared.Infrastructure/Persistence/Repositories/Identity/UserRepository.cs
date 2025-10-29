@@ -1,11 +1,10 @@
-﻿using Core.Domain.Specifications;
-using Identity.Domain.Aggregates;
-using Identity.Domain.Interfaces;
+﻿using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Shared.Infrastructure.Persistence.Contexts;
 
 namespace Shared.Infrastructure.Persistence.Repositories.Identity;
+
 public class UserRepository : GenericRepository<User>, IUserRepository
 {
     private readonly AppDbContext _context;
@@ -54,5 +53,4 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         var spec = new UserByIdSpecification(userId);
         return await GetAsync(spec, cancellationToken);
     }
-
 }

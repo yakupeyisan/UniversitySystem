@@ -1,29 +1,34 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
-using Academic.Domain.Interfaces;
 using Academic.Domain.ValueObjects;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
 {
-    public ScheduleExamRequest Request { get; set; }
     public ScheduleExamCommand(ScheduleExamRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public ScheduleExamRequest Request { get; set; }
+
     public class Handler : IRequestHandler<ScheduleExamCommand, Result<ExamResponse>>
     {
-        private readonly IExamRepository _examRepository;
-        private readonly ICourseRepository _courseRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Course> _courseRepository;
+        private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+
         public Handler(
-            IExamRepository examRepository,
-            ICourseRepository courseRepository,
+            IRepository<Exam> examRepository,
+            IRepository<Course> courseRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -32,6 +37,7 @@ public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<ExamResponse>> Handle(
             ScheduleExamCommand request,
             CancellationToken cancellationToken)
@@ -52,22 +58,21 @@ public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
                     return Result<ExamResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
+
                 if (!DateOnly.TryParse(request.Request.ExamDate, out var examDate))
-                {
                     return Result<ExamResponse>.Failure("Invalid exam date format (yyyy-MM-dd)");
-                }
                 var timeSlot = TimeSlot.Create(
                     request.Request.StartTime,
                     request.Request.EndTime);
                 var exam = Exam.Create(
-                    courseId: request.Request.CourseId,
-                    examType: (ExamType)request.Request.ExamType,
-                    examDate: examDate,
-                    timeSlot: timeSlot,
-                    maxCapacity: request.Request.MaxCapacity,
-                    examRoomId: request.Request.ExamRoomId,
-                    isOnline: request.Request.IsOnline,
-                    onlineLink: request.Request.OnlineLink);
+                    request.Request.CourseId,
+                    (ExamType)request.Request.ExamType,
+                    examDate,
+                    timeSlot,
+                    request.Request.MaxCapacity,
+                    request.Request.ExamRoomId,
+                    request.Request.IsOnline,
+                    request.Request.OnlineLink);
                 await _examRepository.AddAsync(exam, cancellationToken);
                 await _examRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(

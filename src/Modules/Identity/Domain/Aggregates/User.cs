@@ -6,8 +6,19 @@ using Identity.Domain.Exceptions;
 using Identity.Domain.ValueObjects;
 
 namespace Identity.Domain.Aggregates;
+
 public class User : AuditableEntity, ISoftDelete
 {
+    private readonly List<Permission> _permissions = new();
+    private readonly List<RefreshToken> _refreshTokens = new();
+
+    // ============ Collections ============
+    private readonly List<Role> _roles = new();
+
+    private User()
+    {
+    }
+
     // ============ Identity Properties ============
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
@@ -30,21 +41,66 @@ public class User : AuditableEntity, ISoftDelete
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntil { get; private set; }
 
+    public IReadOnlyList<Role> Roles => _roles.AsReadOnly();
+    public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
+    public IReadOnlyList<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+
+    // ============ Properties ============
+    public string FullName => $"{FirstName} {LastName}";
+
+    /// <summary>
+    ///     Hesabýn kilitli olup olmadýðýný kontrol et
+    /// </summary>
+    public bool IsAccountLocked =>
+        Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
+
+    // ============ Status Helpers ============
+
+    /// <summary>
+    ///     Hesap aktif ve kullanýlabilir mi
+    /// </summary>
+    public bool IsActive => Status == UserStatus.Active && !IsDeleted && !IsAccountLocked;
+
+    /// <summary>
+    ///     Hesap login yapabilir mi
+    /// </summary>
+    public bool CanLogin => IsActive && IsEmailVerified;
+
+    public bool IsLocked => Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
+
     // ============ Soft Delete Properties ============
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
 
-    // ============ Collections ============
-    private readonly List<Role> _roles = new();
-    private readonly List<Permission> _permissions = new();
-    private readonly List<RefreshToken> _refreshTokens = new();
+    // ============ Soft Delete ============
 
-    public IReadOnlyList<Role> Roles => _roles.AsReadOnly();
-    public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
-    public IReadOnlyList<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+    /// <summary>
+    ///     Soft delete - verileri kalýcý olarak silmez
+    /// </summary>
+    public void Delete(Guid deletedBy)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedAt = DateTime.UtcNow;
 
-    private User() { }
+        // Tüm refresh token'larýný iptal et
+        RevokeAllRefreshTokens();
+
+        AddDomainEvent(new UserDeletedEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    ///     Silinen hesabý geri yükle
+    /// </summary>
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     // ============ Factory Method ============
     public static User Create(
@@ -89,9 +145,6 @@ public class User : AuditableEntity, ISoftDelete
         return user;
     }
 
-    // ============ Properties ============
-    public string FullName => $"{FirstName} {LastName}";
-
     // ============ Profile Management ============
     public void UpdateProfile(string firstName, string lastName)
     {
@@ -111,7 +164,7 @@ public class User : AuditableEntity, ISoftDelete
     // ============ Password Management ============
 
     /// <summary>
-    /// Þifreyi deðiþtir (kullanýcý tarafýndan, eski þifre doðrulandýktan sonra)
+    ///     Þifreyi deðiþtir (kullanýcý tarafýndan, eski þifre doðrulandýktan sonra)
     /// </summary>
     public void ChangePassword(PasswordHash newPasswordHash)
     {
@@ -131,7 +184,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Þifre sýfýrlama kodu ayarla (forgot password akýþýnda)
+    ///     Þifre sýfýrlama kodu ayarla (forgot password akýþýnda)
     /// </summary>
     public void SetPasswordResetCode(string resetCode)
     {
@@ -142,11 +195,11 @@ public class User : AuditableEntity, ISoftDelete
         PasswordResetCodeExpiry = DateTime.UtcNow.AddHours(1); // 1 saat geçerli
         UpdatedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new PasswordResetRequestedEvent(Id, Email.Value,PasswordResetCode));
+        AddDomainEvent(new PasswordResetRequestedEvent(Id, Email.Value, PasswordResetCode));
     }
 
     /// <summary>
-    /// Þifre sýfýrlama kodunu valide et
+    ///     Þifre sýfýrlama kodunu valide et
     /// </summary>
     public bool ValidatePasswordResetCode(string resetCode)
     {
@@ -163,11 +216,11 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Þifreyi sýfýrla (password reset akýþýnda)
+    ///     Þifreyi sýfýrla (password reset akýþýnda)
     /// </summary>
-    public void ResetPassword(string passwordHash,string passwordSalt)
+    public void ResetPassword(string passwordHash, string passwordSalt)
     {
-        PasswordHash = new PasswordHash(passwordHash,passwordSalt);
+        PasswordHash = new PasswordHash(passwordHash, passwordSalt);
         PasswordResetCode = null;
         PasswordResetCodeExpiry = null;
         LastPasswordChangeAt = DateTime.UtcNow;
@@ -184,7 +237,7 @@ public class User : AuditableEntity, ISoftDelete
     // ============ Email Verification ============
 
     /// <summary>
-    /// Email doðrulama kodu ayarla
+    ///     Email doðrulama kodu ayarla
     /// </summary>
     public void SetEmailVerificationCode(string code)
     {
@@ -197,7 +250,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Email doðrulama kodunu valide et
+    ///     Email doðrulama kodunu valide et
     /// </summary>
     public bool ValidateEmailVerificationCode(string code)
     {
@@ -217,7 +270,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Email'i doðrula
+    ///     Email'i doðrula
     /// </summary>
     public void VerifyEmail()
     {
@@ -233,7 +286,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Email doðrulamasýný temizle (email deðiþtirildiðinde)
+    ///     Email doðrulamasýný temizle (email deðiþtirildiðinde)
     /// </summary>
     public void ClearEmailVerification()
     {
@@ -277,9 +330,15 @@ public class User : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public bool HasRole(Guid roleId) => _roles.Any(r => r.Id == roleId);
+    public bool HasRole(Guid roleId)
+    {
+        return _roles.Any(r => r.Id == roleId);
+    }
 
-    public bool HasRole(string roleName) => _roles.Any(r => r.RoleName == roleName);
+    public bool HasRole(string roleName)
+    {
+        return _roles.Any(r => r.RoleName == roleName);
+    }
 
     // ============ Permission Management ============
 
@@ -306,29 +365,28 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Kullanýcý veya roller aracýlýðýyla izne sahip mi
+    ///     Kullanýcý veya roller aracýlýðýyla izne sahip mi
     /// </summary>
-    public bool HasPermission(Guid permissionId) =>
-        _permissions.Any(p => p.Id == permissionId) ||
-        _roles.Any(r => r.HasPermission(permissionId));
+    public bool HasPermission(Guid permissionId)
+    {
+        return _permissions.Any(p => p.Id == permissionId) ||
+               _roles.Any(r => r.HasPermission(permissionId));
+    }
 
     /// <summary>
-    /// Tüm izinleri al (direkt + rol aracýlýðýyla)
+    ///     Tüm izinleri al (direkt + rol aracýlýðýyla)
     /// </summary>
     public IEnumerable<Permission> GetAllPermissions()
     {
         var allPermissions = new HashSet<Permission>(_permissions);
-        foreach (var permission in _roles.SelectMany(r => r.Permissions))
-        {
-            allPermissions.Add(permission);
-        }
+        foreach (var permission in _roles.SelectMany(r => r.Permissions)) allPermissions.Add(permission);
         return allPermissions;
     }
 
     // ============ Login & Account Lock ============
 
     /// <summary>
-    /// Baþarýlý login kaydý
+    ///     Baþarýlý login kaydý
     /// </summary>
     public void RecordSuccessfulLogin()
     {
@@ -340,8 +398,8 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Baþarýsýz login denemesini kaydet
-    /// 5 deneme sonrasý otomatik hesap kilitlenir
+    ///     Baþarýsýz login denemesini kaydet
+    ///     5 deneme sonrasý otomatik hesap kilitlenir
     /// </summary>
     public void RecordFailedLoginAttempt()
     {
@@ -358,7 +416,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Hesabý kilitle (admin tarafýndan)
+    ///     Hesabý kilitle (admin tarafýndan)
     /// </summary>
     public void LockAccount(string reason = "")
     {
@@ -370,7 +428,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Hesabýn kilidini aç
+    ///     Hesabýn kilidini aç
     /// </summary>
     public void UnlockAccount()
     {
@@ -381,11 +439,6 @@ public class User : AuditableEntity, ISoftDelete
 
         AddDomainEvent(new UserUnlockedEvent(Id, Email.Value));
     }
-
-    /// <summary>
-    /// Hesabýn kilitli olup olmadýðýný kontrol et
-    /// </summary>
-    public bool IsAccountLocked => Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
 
     // ============ Status Management ============
 
@@ -420,7 +473,7 @@ public class User : AuditableEntity, ISoftDelete
     // ============ Refresh Token Management ============
 
     /// <summary>
-    /// Refresh token ekle
+    ///     Refresh token ekle
     /// </summary>
     public void AddRefreshToken(RefreshToken token)
     {
@@ -441,18 +494,20 @@ public class User : AuditableEntity, ISoftDelete
         _refreshTokens.Add(token);
         UpdatedAt = DateTime.UtcNow;
     }
+
     /// <summary>
-    /// Updates the current refresh token
+    ///     Updates the current refresh token
     /// </summary>
     public void UpdateRefreshToken(string newToken)
     {
         if (string.IsNullOrWhiteSpace(newToken))
             throw new ArgumentException("Token cannot be empty", nameof(newToken));
 
-        AddRefreshToken(RefreshToken.Create(Id,newToken,
-            DateTime.UtcNow.AddDays(7),"",""));
+        AddRefreshToken(RefreshToken.Create(Id, newToken,
+            DateTime.UtcNow.AddDays(7), "", ""));
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void ClearRefreshToken()
     {
         _refreshTokens.Where(t => !t.IsExpired && !t.IsRevoked).ToList().ForEach(activeToken =>
@@ -463,7 +518,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Refresh token'ý iptal et
+    ///     Refresh token'ý iptal et
     /// </summary>
     public void RevokeRefreshToken(string token, string reason = "")
     {
@@ -476,7 +531,7 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Geçerli refresh token'ý al
+    ///     Geçerli refresh token'ý al
     /// </summary>
     public RefreshToken GetValidRefreshToken(string token)
     {
@@ -488,60 +543,16 @@ public class User : AuditableEntity, ISoftDelete
     }
 
     /// <summary>
-    /// Tüm refresh token'larý iptal et (logout all devices)
+    ///     Tüm refresh token'larý iptal et (logout all devices)
     /// </summary>
     public void RevokeAllRefreshTokens()
     {
-        foreach (var token in _refreshTokens.Where(t => !t.IsRevoked))
-        {
-            token.Revoke("Revoked all tokens");
-        }
+        foreach (var token in _refreshTokens.Where(t => !t.IsRevoked)) token.Revoke("Revoked all tokens");
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // ============ Soft Delete ============
-
     /// <summary>
-    /// Soft delete - verileri kalýcý olarak silmez
-    /// </summary>
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        UpdatedAt = DateTime.UtcNow;
-
-        // Tüm refresh token'larýný iptal et
-        RevokeAllRefreshTokens();
-
-        AddDomainEvent(new UserDeletedEvent(Id, Email.Value));
-    }
-
-    /// <summary>
-    /// Silinen hesabý geri yükle
-    /// </summary>
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedAt = null;
-        DeletedBy = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    // ============ Status Helpers ============
-
-    /// <summary>
-    /// Hesap aktif ve kullanýlabilir mi
-    /// </summary>
-    public bool IsActive => Status == UserStatus.Active && !IsDeleted && !IsAccountLocked;
-
-    /// <summary>
-    /// Hesap login yapabilir mi
-    /// </summary>
-    public bool CanLogin => IsActive && IsEmailVerified;
-
-    /// <summary>
-    /// Profil özeti al
+    ///     Profil özeti al
     /// </summary>
     public (string Email, string FullName, bool IsActive, bool IsLocked, int RoleCount) GetProfile()
     {
@@ -553,6 +564,4 @@ public class User : AuditableEntity, ISoftDelete
             _roles.Count
         );
     }
-    public bool IsLocked => Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
-
 }

@@ -1,7 +1,6 @@
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,18 +9,18 @@ namespace Identity.Application.Commands;
 
 public class ResetPasswordCommand : IRequest<Result<bool>>
 {
-
-    public ResetPasswordRequest Request { get; set; }
     public ResetPasswordCommand(ResetPasswordRequest request)
     {
         Request = request;
     }
 
+    public ResetPasswordRequest Request { get; set; }
+
     public class Handler : IRequestHandler<ResetPasswordCommand, Result<bool>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPasswordHasher _passwordHasher;
         private readonly ILogger<Handler> _logger;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

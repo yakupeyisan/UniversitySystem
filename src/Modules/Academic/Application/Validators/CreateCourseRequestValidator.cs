@@ -1,6 +1,8 @@
-using FluentValidation;
 using Academic.Application.DTOs;
+using FluentValidation;
+
 namespace Academic.Application.Validators;
+
 public class CreateCourseRequestValidator : AbstractValidator<CreateCourseRequest>
 {
     public CreateCourseRequestValidator()

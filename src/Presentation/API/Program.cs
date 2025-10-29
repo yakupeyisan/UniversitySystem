@@ -1,18 +1,20 @@
+using System.Reflection;
 using Academic.Application.Extensions;
 using API.Middlewares;
 using Core.Application.Extensions;
+using Identity.Application.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using PersonMgmt.Application.Extensions;
+using Serilog;
 using Shared.Infrastructure.Extensions;
 using Shared.Infrastructure.Persistence.Contexts;
-using Microsoft.EntityFrameworkCore;
-using PersonMgmt.Application.Extensions;
-using Identity.Application.Extensions;
-using Serilog;
-using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddJsonFile("appsettings.json", false, true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables();
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -32,8 +34,8 @@ try
         options.AddPolicy("AllowAll", policy =>
         {
             policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
+                .AllowAnyMethod()
+                .AllowAnyHeader();
         });
     });
     builder.Services.AddCoreApplication();
@@ -78,23 +80,17 @@ try
                 new string[] { }
             }
         });
-        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        if (File.Exists(xmlPath))
-        {
-            options.IncludeXmlComments(xmlPath);
-        }
+        if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
     });
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<AppDbContext>(
-            name: "database",
+            "database",
             tags: new[] { "db", "sql" });
     var app = builder.Build();
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-    if (app.Environment.IsProduction())
-    {
-        app.UseHttpsRedirection();
-    }
+    if (app.Environment.IsProduction()) app.UseHttpsRedirection();
     app.UseCors("AllowAll");
     app.UseRouting();
     app.UseMiddleware<RequestLoggingMiddleware>();
@@ -109,10 +105,10 @@ try
             c.RoutePrefix = string.Empty;
         });
     }
+
     app.MapControllers();
     app.MapHealthChecks("/health");
     if (app.Environment.IsDevelopment())
-    {
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
@@ -128,7 +124,7 @@ try
                 throw;
             }
         }
-    }
+
     Log.Information("Application started successfully");
     await app.RunAsync();
 }

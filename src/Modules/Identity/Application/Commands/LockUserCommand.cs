@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,9 +8,6 @@ namespace Identity.Application.Commands;
 
 public class LockUserCommand : IRequest<Result<UserDto>>
 {
-    public Guid UserId { get; set; }
-    public string Reason { get; set; } = string.Empty;
-
     public LockUserCommand(Guid userId, string reason = "")
     {
         if (userId == Guid.Empty)
@@ -21,11 +17,14 @@ public class LockUserCommand : IRequest<Result<UserDto>>
         Reason = reason?.Trim() ?? string.Empty;
     }
 
+    public Guid UserId { get; set; }
+    public string Reason { get; set; } = string.Empty;
+
     public class Handler : IRequestHandler<LockUserCommand, Result<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
         public Handler(
             IUserRepository userRepository,

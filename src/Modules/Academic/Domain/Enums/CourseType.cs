@@ -1,4 +1,5 @@
 namespace Academic.Domain.Enums;
+
 public enum CourseType
 {
     Compulsory = 1,

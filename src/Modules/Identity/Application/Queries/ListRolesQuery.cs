@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
-using Identity.Domain.Interfaces;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,20 +9,20 @@ namespace Identity.Application.Queries;
 
 public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
 {
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-
     public ListRolesQuery(int pageNumber = 1, int pageSize = 10)
     {
         PageNumber = pageNumber > 0 ? pageNumber : 1;
         PageSize = pageSize > 0 ? pageSize : 10;
     }
 
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+
     public class Handler : IRequestHandler<ListRolesQuery, Result<PaginatedListDto<RoleDto>>>
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
 
         public Handler(
             IRoleRepository roleRepository,

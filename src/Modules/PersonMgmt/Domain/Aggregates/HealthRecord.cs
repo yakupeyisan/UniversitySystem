@@ -1,8 +1,14 @@
 using Core.Domain;
 using Core.Domain.Specifications;
+
 namespace PersonMgmt.Domain.Aggregates;
+
 public class HealthRecord : AuditableEntity, ISoftDelete
 {
+    private HealthRecord()
+    {
+    }
+
     public Guid PersonId { get; private set; }
     public string? BloodType { get; private set; }
     public string? Allergies { get; private set; }
@@ -11,20 +17,44 @@ public class HealthRecord : AuditableEntity, ISoftDelete
     public string? EmergencyHealthInfo { get; private set; }
     public string? Notes { get; private set; }
     public DateTime? LastCheckupDate { get; private set; }
+
+    public bool IsEmpty =>
+        string.IsNullOrEmpty(BloodType) &&
+        string.IsNullOrEmpty(Allergies) &&
+        string.IsNullOrEmpty(ChronicDiseases) &&
+        string.IsNullOrEmpty(Medications) &&
+        string.IsNullOrEmpty(EmergencyHealthInfo) &&
+        string.IsNullOrEmpty(Notes);
+
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-    private HealthRecord()
+
+    public void Delete(Guid deletedBy)
     {
+        IsDeleted = true;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        UpdatedBy = deletedBy;
     }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedBy = null;
+        DeletedAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public static HealthRecord Create(
         Guid personId,
-    string? bloodType = null,
-    string? allergies = null,
-    string? chronicDiseases = null,
-    string? medications = null,
-    string? emergencyHealthInfo = null,
-    string? notes = null)
+        string? bloodType = null,
+        string? allergies = null,
+        string? chronicDiseases = null,
+        string? medications = null,
+        string? emergencyHealthInfo = null,
+        string? notes = null)
     {
         return new HealthRecord
         {
@@ -42,55 +72,47 @@ public class HealthRecord : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
+
     public void UpdateBloodType(string? bloodType)
     {
         BloodType = string.IsNullOrEmpty(bloodType) ? null : bloodType.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
+
     public void UpdateAllergies(string? allergies)
     {
         Allergies = string.IsNullOrEmpty(allergies) ? null : allergies.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
+
     public void UpdateChronicDiseases(string? chronicDiseases)
     {
         ChronicDiseases = string.IsNullOrEmpty(chronicDiseases) ? null : chronicDiseases.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
+
     public void UpdateMedications(string? medications)
     {
         Medications = string.IsNullOrEmpty(medications) ? null : medications.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
+
     public void UpdateEmergencyHealthInfo(string? emergencyHealthInfo)
     {
         EmergencyHealthInfo = string.IsNullOrEmpty(emergencyHealthInfo) ? null : emergencyHealthInfo.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateNotes(string? notes)
     {
         Notes = string.IsNullOrEmpty(notes) ? null : notes.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        UpdatedAt = DateTime.UtcNow;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        UpdatedBy = deletedBy;
-    }
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedBy = null;
-        DeletedAt = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
+
     public void ClearAllHealthInfo()
     {
         BloodType = null;
@@ -102,11 +124,4 @@ public class HealthRecord : AuditableEntity, ISoftDelete
         LastCheckupDate = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
-    public bool IsEmpty =>
-    string.IsNullOrEmpty(BloodType) &&
-    string.IsNullOrEmpty(Allergies) &&
-    string.IsNullOrEmpty(ChronicDiseases) &&
-    string.IsNullOrEmpty(Medications) &&
-    string.IsNullOrEmpty(EmergencyHealthInfo) &&
-    string.IsNullOrEmpty(Notes);
 }

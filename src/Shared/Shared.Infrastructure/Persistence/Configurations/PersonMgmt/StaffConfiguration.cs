@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
+
 namespace Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
+
 public class StaffConfiguration : IEntityTypeConfiguration<Staff>
 {
     public void Configure(EntityTypeBuilder<Staff> builder)

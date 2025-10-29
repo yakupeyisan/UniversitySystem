@@ -1,27 +1,32 @@
 using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
-using Academic.Domain.Interfaces;
 using AutoMapper;
+using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace Academic.Application.Commands.Courses;
+
 public class SubmitGradeObjectionCommand : IRequest<Result<GradeObjectionResponse>>
 {
-    public SubmitGradeObjectionRequest Request { get; set; }
     public SubmitGradeObjectionCommand(SubmitGradeObjectionRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
+
+    public SubmitGradeObjectionRequest Request { get; set; }
+
     public class Handler : IRequestHandler<SubmitGradeObjectionCommand, Result<GradeObjectionResponse>>
     {
-        private readonly IGradeObjectionRepository _objectionRepository;
-        private readonly IGradeRepository _gradeRepository;
-        private readonly IMapper _mapper;
+        private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IRepository<GradeObjection> _objectionRepository;
+
         public Handler(
-            IGradeObjectionRepository objectionRepository,
-            IGradeRepository gradeRepository,
+            IRepository<GradeObjection> objectionRepository,
+            IRepository<Grade> gradeRepository,
             IMapper mapper,
             ILogger<Handler> logger)
         {
@@ -30,6 +35,7 @@ public class SubmitGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task<Result<GradeObjectionResponse>> Handle(
             SubmitGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -51,11 +57,12 @@ public class SubmitGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                     return Result<GradeObjectionResponse>.Failure(
                         $"Grade with ID {request.Request.GradeId} not found");
                 }
+
                 var objection = GradeObjection.Create(
-                    gradeId: request.Request.GradeId,
-                    studentId: request.Request.StudentId,
-                    courseId: request.Request.CourseId,
-                    reason: request.Request.Reason);
+                    request.Request.GradeId,
+                    request.Request.StudentId,
+                    request.Request.CourseId,
+                    request.Request.Reason);
                 await _objectionRepository.AddAsync(objection, cancellationToken);
                 await _objectionRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(
