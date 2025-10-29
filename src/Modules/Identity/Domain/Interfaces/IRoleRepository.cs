@@ -11,5 +11,4 @@ public interface IRoleRepository : IRepository<Role>
     Task<List<Role>> GetActiveRolesAsync(CancellationToken cancellationToken = default);
     Task<Role> GetWithPermissionsAsync(Guid roleId, CancellationToken cancellationToken = default);
     Task<List<Role>> GetBySpecificationAsync(ISpecification<Role> spec, CancellationToken cancellationToken = default);
-    Task<int> GetCountAsync(ISpecification<Role> spec, CancellationToken cancellationToken = default);
 }

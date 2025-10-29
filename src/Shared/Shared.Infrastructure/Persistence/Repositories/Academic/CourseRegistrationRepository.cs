@@ -11,7 +11,7 @@ public class CourseRegistrationRepository : GenericRepository<CourseRegistration
     {
         var spec = new CourseRegistrationByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<CourseRegistration?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
     {
@@ -22,12 +22,12 @@ public class CourseRegistrationRepository : GenericRepository<CourseRegistration
     {
         var spec = new CourseRegistrationByCourseSpec(courseId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<CourseRegistration>> GetByStudentAndSemesterAsync(Guid studentId, string semester, CancellationToken ct = default)
     {
         var spec = new CourseRegistrationBySemesterSpec(studentId, semester);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
 }

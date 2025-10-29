@@ -18,7 +18,7 @@ public interface IGenericRepository<TEntity> where TEntity : Entity
     ISpecification<TEntity> specification,
     PagedRequest pagedRequest,
     CancellationToken cancellationToken = default);
-    Task<PagedList<TEntity>> GetAllAsync(
+    Task<IEnumerable<TEntity>> GetAllAsync(
     ISpecification<TEntity> specification,
     CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(
@@ -42,4 +42,6 @@ public interface IGenericRepository<TEntity> where TEntity : Entity
     IEnumerable<TEntity> aggregates,
     CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<int> GetCountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default);
+    Task<int> GetCountAsync(CancellationToken cancellationToken = default);
 }

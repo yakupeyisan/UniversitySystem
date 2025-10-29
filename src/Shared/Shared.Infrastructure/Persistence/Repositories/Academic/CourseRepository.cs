@@ -16,18 +16,18 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
     {
         var spec = new CoursesByLevelSpec((CourseLevel)level);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Course>> GetAvailableCoursesAsync(CancellationToken ct = default)
     {
         var spec = new AvailableCoursesSpec();
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Course>> GetByDepartmentAsync(Guid departmentId, CancellationToken ct = default)
     {
         var spec = new CourseByDepartmentSpec(departmentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
 }

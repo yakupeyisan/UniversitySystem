@@ -26,7 +26,7 @@ public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshT
     {
         var spec = new RefreshTokensByUserSpecification(userId);
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task RemoveExpiredTokensAsync(CancellationToken cancellationToken = default)

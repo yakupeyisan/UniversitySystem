@@ -10,13 +10,13 @@ public class GradeRepository : GenericRepository<Grade>, IGradeRepository
     {
         var spec = new GradesByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Grade>> GetByStudentAndSemesterAsync(Guid studentId, string semester, CancellationToken ct = default)
     {
         var spec = new GradesByStudentBySemesterSpec(studentId, semester);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<Grade?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
     {
@@ -27,12 +27,12 @@ public class GradeRepository : GenericRepository<Grade>, IGradeRepository
     {
         var spec = new GradeByRegistrationSpec(registrationId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Grade>> GetObjectedGradesAsync(Guid studentId, CancellationToken ct = default)
     {
         var spec = new ObjectedGradesByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
 }

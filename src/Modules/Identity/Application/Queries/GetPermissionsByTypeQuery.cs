@@ -3,6 +3,7 @@ using Core.Domain.Results;
 using Identity.Application.DTOs;
 using Identity.Domain.Enums;
 using Identity.Domain.Interfaces;
+using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -43,7 +44,6 @@ public class GetPermissionsByTypeQuery : IRequest<Result<List<PermissionDto>>>
 
                 var spec = new PermissionsByTypeSpecification(request.PermissionType);
                 var permissions = await _permissionRepository.GetAllAsync(spec, cancellationToken);
-
                 if (!permissions.Any())
                 {
                     _logger.LogWarning("No permissions found for type: {PermissionType}", request.PermissionType);

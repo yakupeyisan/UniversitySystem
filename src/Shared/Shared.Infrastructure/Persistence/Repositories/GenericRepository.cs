@@ -2,8 +2,9 @@ using Core.Domain;
 using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Specifications;
-using Shared.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Shared.Infrastructure.Persistence.Contexts;
+using System.Linq;
 namespace Shared.Infrastructure.Persistence.Repositories;
 public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     where TEntity : Entity
@@ -55,14 +56,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
             .ToListAsync(cancellationToken);
         return new PagedList<TEntity>(items, totalCount, pagedRequest.PageNumber, pagedRequest.PageSize);
     }
-    public async Task<PagedList<TEntity>> GetAllAsync(
+    public async Task<IEnumerable<TEntity>> GetAllAsync(
         ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
         var query = ApplySpecification(specification);
-        var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query.ToListAsync(cancellationToken);
-        return new PagedList<TEntity>(items, totalCount, 1, totalCount);
+        return await query.ToListAsync(cancellationToken);
     }
     public async Task<bool> ExistsAsync(
         Guid id,
@@ -113,6 +112,25 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     {
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<int> GetCountAsync(ISpecification<TEntity> spec, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Set<TEntity>().AsQueryable();
+
+        if (spec.Criteria != null)
+        {
+            query = query.Where(spec.Criteria);
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
+    public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
+    {
+        var query = _context.Set<TEntity>().AsQueryable();
+        return await query.CountAsync(cancellationToken);
+    }
+
     #endregion
     #region Specification Helper
     protected IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> spec)

@@ -10,13 +10,13 @@ public class PrerequisiteWaiverRepository : GenericRepository<PrerequisiteWaiver
     {
         var spec = new PrerequisiteWaiversByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<PrerequisiteWaiver>> GetPendingWaiversAsync(CancellationToken ct = default)
     {
         var spec = new PrerequisiteWaiversPendingSpec();
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<PrerequisiteWaiver?> GetByStudentAndPrerequisiteAsync(Guid studentId, Guid prerequisiteId, CancellationToken ct = default)
     {
@@ -27,6 +27,6 @@ public class PrerequisiteWaiverRepository : GenericRepository<PrerequisiteWaiver
     {
         var spec = new ApprovedPrerequisiteWaiversSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
 }

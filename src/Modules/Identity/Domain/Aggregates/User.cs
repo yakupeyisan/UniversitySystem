@@ -441,6 +441,26 @@ public class User : AuditableEntity, ISoftDelete
         _refreshTokens.Add(token);
         UpdatedAt = DateTime.UtcNow;
     }
+    /// <summary>
+    /// Updates the current refresh token
+    /// </summary>
+    public void UpdateRefreshToken(string newToken)
+    {
+        if (string.IsNullOrWhiteSpace(newToken))
+            throw new ArgumentException("Token cannot be empty", nameof(newToken));
+
+        AddRefreshToken(RefreshToken.Create(Id,newToken,
+            DateTime.UtcNow.AddDays(7),"",""));
+        UpdatedAt = DateTime.UtcNow;
+    }
+    public void ClearRefreshToken()
+    {
+        _refreshTokens.Where(t => !t.IsExpired && !t.IsRevoked).ToList().ForEach(activeToken =>
+        {
+            activeToken.Revoke("Cleared old tokens");
+        });
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     /// <summary>
     /// Refresh token'ý iptal et

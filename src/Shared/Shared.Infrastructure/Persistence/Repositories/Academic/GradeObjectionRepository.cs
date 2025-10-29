@@ -10,19 +10,19 @@ public class GradeObjectionRepository : GenericRepository<GradeObjection>, IGrad
     {
         var spec = new GradeObjectionsByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<GradeObjection>> GetByGradeAsync(Guid gradeId, CancellationToken ct = default)
     {
         var spec = new GradeObjectionByGradeSpec(gradeId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<GradeObjection>> GetPendingObjectionsAsync(CancellationToken ct = default)
     {
         var spec = new PendingGradeObjectionsSpec();
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<GradeObjection?> GetByStudentAndGradeAsync(Guid studentId, Guid gradeId, CancellationToken ct = default)
     {

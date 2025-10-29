@@ -2,6 +2,7 @@ using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
 using Identity.Domain.Interfaces;
+using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -45,7 +46,6 @@ public class SearchPermissionsQuery : IRequest<Result<List<PermissionDto>>>
 
                 var spec = new SearchPermissionsSpecification(request.SearchTerm);
                 var permissions = await _permissionRepository.GetAllAsync(spec, cancellationToken);
-
                 if (!permissions.Any())
                 {
                     _logger.LogWarning("No permissions found with search term: {SearchTerm}", request.SearchTerm);

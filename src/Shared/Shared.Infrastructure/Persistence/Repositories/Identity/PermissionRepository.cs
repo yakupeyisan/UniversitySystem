@@ -32,24 +32,13 @@ public class PermissionRepository : GenericRepository<Permission>, IPermissionRe
     {
         var spec = new ActivePermissionsSpecification();
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task<List<Permission>> GetBySpecificationAsync(ISpecification<Permission> spec, CancellationToken cancellationToken = default)
     {
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
-    public async Task<int> GetCountAsync(ISpecification<Permission> spec, CancellationToken cancellationToken = default)
-    {
-        var query = _context.Permissions.AsQueryable();
-
-        if (spec.Criteria != null)
-        {
-            query = query.Where(spec.Criteria);
-        }
-
-        return await query.CountAsync(cancellationToken);
-    }
 }

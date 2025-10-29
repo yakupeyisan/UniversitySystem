@@ -51,7 +51,7 @@ public class RefreshTokenCommand : IRequest<Result<TokenResponse>>
                 var userId = Guid.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
                 var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
-                if (user == null || user.RefreshToken != request.RefreshToken)
+                if (user == null || user.RefreshTokens.Where(x => x.Token == request.RefreshToken).Count() == 0)
                 {
                     _logger.LogWarning("Invalid refresh token for user: {UserId}", userId);
                     return Result<TokenResponse>.Failure("Invalid refresh token");

@@ -12,13 +12,13 @@ public class WaitingListRepository : GenericRepository<CourseWaitingListEntry>, 
     {
         var spec = new WaitingListByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<CourseWaitingListEntry>> GetByCourseOrderedByPositionAsync(Guid courseId, CancellationToken ct = default)
     {
         var spec = new WaitingListByCourseSpec(courseId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<CourseWaitingListEntry?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
     {
@@ -29,13 +29,13 @@ public class WaitingListRepository : GenericRepository<CourseWaitingListEntry>, 
     {
         var spec = new WaitingListByCourseSpec(courseId);
         var result = await GetAllAsync(spec, ct);
-        var entries = result.Data.ToList();
+        var entries = result.ToList();
         return entries.Any() ? entries.Max(e => e.QueuePosition) + 1 : 1;
     }
     public async Task<IEnumerable<CourseWaitingListEntry>> GetAdmittedEntriesAsync(Guid courseId, CancellationToken ct = default)
     {
         var spec = new WaitingListAdmittedEntriesByStatusSpec(courseId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
 }

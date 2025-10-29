@@ -10,7 +10,7 @@ public class PrerequisiteRepository : GenericRepository<Prerequisite>, IPrerequi
     {
         var spec = new PrerequisitesByPrerequisiteCourseSpec(prerequisiteCourseId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<Prerequisite?> GetByCoursesAsync(Guid courseId, Guid prerequisiteCourseId, CancellationToken ct = default)
     {

@@ -12,5 +12,4 @@ public interface IUserRepository : IRepository<User>
     Task<List<User>> GetByRoleAsync(Guid roleId, CancellationToken cancellationToken = default);
     Task<List<User>> GetLockedUsersAsync(CancellationToken cancellationToken = default);
     Task<User> GetWithRolesAndPermissionsAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<int> GetCountAsync(ISpecification<User> spec, CancellationToken cancellationToken = default);
 }

@@ -32,21 +32,21 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     {
         var spec = new ActiveUsersSpecification();
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task<List<User>> GetByRoleAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         var spec = new UsersByRoleSpecification(roleId);
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task<List<User>> GetLockedUsersAsync(CancellationToken cancellationToken = default)
     {
         var spec = new LockedUsersSpecification();
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task<User> GetWithRolesAndPermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -55,21 +55,4 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         return await GetAsync(spec, cancellationToken);
     }
 
-    public async Task<List<User>> GetBySpecificationAsync(ISpecification<User> spec, CancellationToken cancellationToken = default)
-    {
-        var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
-    }
-
-    public async Task<int> GetCountAsync(ISpecification<User> spec, CancellationToken cancellationToken = default)
-    {
-        var query = _context.Users.Where(u => !u.IsDeleted).AsQueryable();
-
-        if (spec.Criteria != null)
-        {
-            query = query.Where(spec.Criteria);
-        }
-
-        return await query.CountAsync(cancellationToken);
-    }
 }

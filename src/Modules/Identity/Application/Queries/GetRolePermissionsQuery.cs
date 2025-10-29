@@ -2,6 +2,7 @@ using AutoMapper;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
 using Identity.Domain.Interfaces;
+using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -44,8 +45,7 @@ public class GetRolePermissionsQuery : IRequest<Result<List<PermissionDto>>>
                 _logger.LogInformation("Fetching permissions for role: {RoleId}", request.RoleId);
 
                 var spec = new RoleWithPermissionsSpecification(request.RoleId);
-                var role = await _roleRepository.GetBySpecificationAsync(spec, cancellationToken);
-
+                var role = await _roleRepository.GetAsync(spec, cancellationToken);
                 if (role == null)
                 {
                     _logger.LogWarning("Role not found: {RoleId}", request.RoleId);

@@ -13,19 +13,19 @@ public class ExamRepository : GenericRepository<Exam>, IExamRepository
     {
         var spec = new ExamByCourseSpec(courseId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Exam>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, CancellationToken ct = default)
     {
         var spec = new ExamsByDateRangeSpec(startDate, endDate);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Exam>> GetByStudentAsync(Guid studentId, CancellationToken ct = default)
     {
         var spec = new ExamsByStudentSpec(studentId);
         var result = await GetAllAsync(spec, ct);
-        return result.Data;
+        return result;
     }
     public async Task<IEnumerable<Exam>> GetConflictingExamsAsync(
         Guid studentId,
@@ -36,7 +36,7 @@ public class ExamRepository : GenericRepository<Exam>, IExamRepository
     {
         var spec = new NotCancelledExamsSpec();
         var result = await GetAllAsync(spec, ct);
-        var conflicting = result.Data
+        var conflicting = result
             .Where(e => e.ExamDate == examDate &&
                         e.TimeSlot.OverlapsWith(TimeSlot.Create(startTime, endTime)))
             .ToList();

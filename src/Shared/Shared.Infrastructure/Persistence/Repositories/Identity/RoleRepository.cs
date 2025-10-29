@@ -32,7 +32,7 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     {
         var spec = new ActiveRolesSpecification();
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
     public async Task<Role> GetWithPermissionsAsync(Guid roleId, CancellationToken cancellationToken = default)
@@ -44,18 +44,7 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     public async Task<List<Role>> GetBySpecificationAsync(ISpecification<Role> spec, CancellationToken cancellationToken = default)
     {
         var result = await GetAllAsync(spec, cancellationToken);
-        return result.Data.ToList();
+        return result.ToList();
     }
 
-    public async Task<int> GetCountAsync(ISpecification<Role> spec, CancellationToken cancellationToken = default)
-    {
-        var query = _context.Roles.AsQueryable();
-
-        if (spec.Criteria != null)
-        {
-            query = query.Where(spec.Criteria);
-        }
-
-        return await query.CountAsync(cancellationToken);
-    }
 }
