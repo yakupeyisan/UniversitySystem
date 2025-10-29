@@ -5,12 +5,6 @@ namespace Identity.Domain.Specifications;
 
 public class DeletedUsersSpecification : Specification<User>
 {
-    public DeletedUsersSpecification(
-        int pageNumber,
-        int pageSize) : this()
-    {
-        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
-    }
 
     public DeletedUsersSpecification()
     {

@@ -10,16 +10,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Queries;
 
-public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
+public class ListUsersQuery : IRequest<Result<PagedList<UserDto>>>
 {
-    public ListUsersQuery(PagedRequest pagedRequest)
+    public PagedRequest Request { get; private set; }
+
+    public ListUsersQuery(PagedRequest request)
     {
-        PagedRequest = pagedRequest;
+        Request = request;
     }
 
-    public PagedRequest PagedRequest { get; set; }
 
-    public class Handler : IRequestHandler<ListUsersQuery, Result<PaginatedListDto<UserDto>>>
+    public class Handler : IRequestHandler<ListUsersQuery, Result<PagedList<UserDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
@@ -38,7 +39,7 @@ public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<PaginatedListDto<UserDto>>> Handle(
+        public async Task<Result<PagedList<UserDto>>> Handle(
             ListUsersQuery request,
             CancellationToken cancellationToken)
         {
@@ -46,30 +47,23 @@ public class ListUsersQuery : IRequest<Result<PaginatedListDto<UserDto>>>
             {
                 _logger.LogInformation(
                     "Fetching users - PageNumber: {PageNumber}, PageSize: {PageSize}",
-                    request.PagedRequest.PageNumber,
-                    request.PagedRequest.PageSize);
+                    request.Request.PageNumber,
+                    request.Request.PageSize);
 
-                var spec = new ActiveUsersSpecification(request.PagedRequest.PageNumber, request.PagedRequest.PageSize);
+                var spec = new ActiveUsersSpecification();
 
-                var users = await _userRepository.GetAsync(spec, cancellationToken);
-                var totalCount = await _userRepository.CountAsync(new ActiveUsersSpecification(), cancellationToken);
+                var users = await _userRepository.GetAllAsync(spec, request.Request, cancellationToken);
 
-                var userDtos = _mapper.Map<List<UserDto>>(users);
+                var userDtos = _mapper.Map<List<UserDto>>(users.Data);
 
-                var result = new PaginatedListDto<UserDto>
-                {
-                    Items = userDtos,
-                    TotalCount = totalCount,
-                    PageNumber = request.PagedRequest.PageNumber,
-                    PageSize = request.PagedRequest.PageSize
-                };
+                var result = new PagedList<UserDto>(userDtos, users.TotalCount, users.PageNumber, users.PageSize);
 
-                return Result<PaginatedListDto<UserDto>>.Success(result);
+                return Result<PagedList<UserDto>>.Success(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while listing users");
-                return Result<PaginatedListDto<UserDto>>.Failure("An unexpected error occurred while listing users");
+                return Result<PagedList<UserDto>>.Failure("An unexpected error occurred while listing users");
             }
         }
     }

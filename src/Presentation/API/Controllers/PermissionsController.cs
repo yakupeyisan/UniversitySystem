@@ -1,3 +1,4 @@
+using Core.Domain.Pagination;
 using Core.Domain.Results;
 using Identity.Application.Commands;
 using Identity.Application.DTOs;
@@ -69,13 +70,13 @@ public class PermissionsController : ControllerBase
     [ProducesResponseType(typeof(Result<List<PermissionDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [AllowAnonymous] // Optionally allow anonymous access to list permissions
-    public async Task<IActionResult> GetAllPermissions()
+    public async Task<IActionResult> GetAllPermissions([FromBody] PagedRequest request)
     {
         _logger.LogInformation("Getting all permissions");
 
         try
         {
-            var query = new ListPermissionsQuery();
+            var query = new ListPermissionsQuery(request);
             var result = await _mediator.Send(query);
 
             return Ok(result);

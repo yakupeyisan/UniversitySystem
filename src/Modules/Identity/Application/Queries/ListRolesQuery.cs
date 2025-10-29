@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
@@ -9,18 +10,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Queries;
 
-public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
+public class ListRolesQuery : IRequest<Result<PagedList<RoleDto>>>
 {
-    public ListRolesQuery(int pageNumber = 1, int pageSize = 10)
+    public PagedRequest Request { get; private set; }
+
+    public ListRolesQuery(PagedRequest request)
     {
-        PageNumber = pageNumber > 0 ? pageNumber : 1;
-        PageSize = pageSize > 0 ? pageSize : 10;
+        Request = request;
     }
 
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-
-    public class Handler : IRequestHandler<ListRolesQuery, Result<PaginatedListDto<RoleDto>>>
+    public class Handler : IRequestHandler<ListRolesQuery, Result<PagedList<RoleDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
@@ -39,7 +38,7 @@ public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<PaginatedListDto<RoleDto>>> Handle(
+        public async Task<Result<PagedList<RoleDto>>> Handle(
             ListRolesQuery request,
             CancellationToken cancellationToken)
         {
@@ -47,30 +46,23 @@ public class ListRolesQuery : IRequest<Result<PaginatedListDto<RoleDto>>>
             {
                 _logger.LogInformation(
                     "Fetching roles - PageNumber: {PageNumber}, PageSize: {PageSize}",
-                    request.PageNumber,
-                    request.PageSize);
+                    request.Request.PageNumber,
+                    request.Request.PageSize);
 
-                var spec = new ActiveRolesSpecification(request.PageNumber, request.PageSize);
+                var spec = new ActiveRolesSpecification();
 
-                var roles = await _roleRepository.GetAsync(spec, cancellationToken);
-                var totalCount = await _roleRepository.CountAsync(new ActiveRolesSpecification(), cancellationToken);
+                var roles = await _roleRepository.GetAllAsync(spec, request.Request, cancellationToken);
 
-                var roleDtos = _mapper.Map<List<RoleDto>>(roles);
+                var roleDtos = _mapper.Map<List<RoleDto>>(roles.Data);
 
-                var result = new PaginatedListDto<RoleDto>
-                {
-                    Items = roleDtos,
-                    TotalCount = totalCount,
-                    PageNumber = request.PageNumber,
-                    PageSize = request.PageSize
-                };
+                var result = new PagedList<RoleDto>(roleDtos, roles.TotalCount, roles.PageNumber, roles.PageSize);
 
-                return Result<PaginatedListDto<RoleDto>>.Success(result);
+                return Result<PagedList<RoleDto>>.Success(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while listing roles");
-                return Result<PaginatedListDto<RoleDto>>.Failure("An unexpected error occurred while listing roles");
+                return Result<PagedList<RoleDto>>.Failure("An unexpected error occurred while listing roles");
             }
         }
     }

@@ -6,12 +6,6 @@ namespace Identity.Domain.Specifications;
 
 public class ActiveUsersSpecification : Specification<User>
 {
-    public ActiveUsersSpecification(
-        int pageNumber,
-        int pageSize) : this()
-    {
-        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
-    }
 
     public ActiveUsersSpecification()
     {

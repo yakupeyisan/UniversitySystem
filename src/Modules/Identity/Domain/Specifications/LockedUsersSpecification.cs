@@ -6,12 +6,6 @@ namespace Identity.Domain.Specifications;
 
 public class LockedUsersSpecification : Specification<User>
 {
-    public LockedUsersSpecification(
-        int pageNumber,
-        int pageSize) : this()
-    {
-        ApplyPaging((pageNumber - 1) * pageSize, pageSize);
-    }
 
     public LockedUsersSpecification()
     {

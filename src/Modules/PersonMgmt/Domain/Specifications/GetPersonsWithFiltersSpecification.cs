@@ -35,26 +35,6 @@ public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Pers
 
     public GetPersonsWithFiltersSpecification(
         string? filterString,
-        int pageNumber,
-        int pageSize)
-        : base(
-            filterString,
-            new FilterParser<Person>(null, new PersonFilterWhitelist()),
-            pageNumber,
-            pageSize)
-    {
-        AddCriteria(x => !x.IsDeleted);
-        AddIncludes(
-            p => p.Student,
-            p => p.Staff,
-            p => p.HealthRecord,
-            p => p.Restrictions
-        );
-        ApplyOrderBy(p => p.Name);
-    }
-
-    public GetPersonsWithFiltersSpecification(
-        string? filterString,
         Expression<Func<Person, object>>? orderBy = null,
         bool descending = false)
         : base(filterString, new FilterParser<Person>(null, new PersonFilterWhitelist()))
@@ -121,22 +101,5 @@ public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Pers
         {
             ApplyOrderBy(p => p.Name);
         }
-    }
-
-    public GetPersonsWithFiltersSpecification(
-        string? filterString,
-        IFilterParser<Person> customFilterParser,
-        int pageNumber,
-        int pageSize)
-        : base(filterString, customFilterParser, pageNumber, pageSize)
-    {
-        AddCriteria(x => !x.IsDeleted);
-        AddIncludes(
-            p => p.Student,
-            p => p.Staff,
-            p => p.HealthRecord,
-            p => p.Restrictions
-        );
-        ApplyOrderBy(p => p.Name);
     }
 }

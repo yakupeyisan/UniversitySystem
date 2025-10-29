@@ -103,18 +103,16 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SearchUsers(
         [FromQuery] string searchTerm,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromBody] PagedRequest request)
     {
-        _logger.LogInformation("Searching users - Term: {SearchTerm}, Page: {PageNumber}", searchTerm, pageNumber);
+        _logger.LogInformation("Searching users - Term: {SearchTerm}, Page: {PageNumber}", searchTerm,
+            request.PageNumber);
 
         try
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return BadRequest(new { message = "Search term is required" });
-
-            var pagedRequest = new PagedRequest { PageNumber = pageNumber, PageSize = pageSize };
-            var query = new SearchUsersQuery(searchTerm, pageNumber, pageSize);
+            var query = new SearchUsersQuery(searchTerm, request);
             var result = await _mediator.Send(query);
 
             return Ok(result);

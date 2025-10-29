@@ -1,3 +1,4 @@
+using Core.Domain.Pagination;
 using Core.Domain.Results;
 using Identity.Application.Commands;
 using Identity.Application.DTOs;
@@ -67,13 +68,13 @@ public class RolesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(Result<List<RoleDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetAllRoles()
+    public async Task<IActionResult> GetAllRoles([FromBody] PagedRequest request)
     {
         _logger.LogInformation("Getting all roles");
 
         try
         {
-            var query = new ListRolesQuery();
+            var query = new ListRolesQuery(request);
             var result = await _mediator.Send(query);
 
             return Ok(result);

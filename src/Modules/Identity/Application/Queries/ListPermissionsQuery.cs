@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Domain.Pagination;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
@@ -9,18 +10,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Queries;
 
-public class ListPermissionsQuery : IRequest<Result<PaginatedListDto<PermissionDto>>>
+public class ListPermissionsQuery : IRequest<Result<PagedList<PermissionDto>>>
 {
-    public ListPermissionsQuery(int pageNumber = 1, int pageSize = 10)
+    public PagedRequest Request { get; private set; }
+
+    public ListPermissionsQuery(PagedRequest request)
     {
-        PageNumber = pageNumber > 0 ? pageNumber : 1;
-        PageSize = pageSize > 0 ? pageSize : 10;
+        Request = request;
     }
 
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-
-    public class Handler : IRequestHandler<ListPermissionsQuery, Result<PaginatedListDto<PermissionDto>>>
+    public class Handler : IRequestHandler<ListPermissionsQuery, Result<PagedList<PermissionDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
@@ -40,7 +39,7 @@ public class ListPermissionsQuery : IRequest<Result<PaginatedListDto<PermissionD
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<PaginatedListDto<PermissionDto>>> Handle(
+        public async Task<Result<PagedList<PermissionDto>>> Handle(
             ListPermissionsQuery request,
             CancellationToken cancellationToken)
         {
@@ -48,31 +47,24 @@ public class ListPermissionsQuery : IRequest<Result<PaginatedListDto<PermissionD
             {
                 _logger.LogInformation(
                     "Fetching permissions - PageNumber: {PageNumber}, PageSize: {PageSize}",
-                    request.PageNumber,
-                    request.PageSize);
+                    request.Request.PageNumber,
+                    request.Request.PageSize);
 
-                var spec = new ActivePermissionsSpecification(request.PageNumber, request.PageSize);
+                var spec = new ActivePermissionsSpecification();
 
-                var permissions = await _permissionRepository.GetAsync(spec, cancellationToken);
-                var totalCount =
-                    await _permissionRepository.CountAsync(new ActivePermissionsSpecification(), cancellationToken);
+                var permissions = await _permissionRepository.GetAllAsync(spec, request.Request, cancellationToken);
 
-                var permissionDtos = _mapper.Map<List<PermissionDto>>(permissions);
+                var permissionDtos = _mapper.Map<List<PermissionDto>>(permissions.Data);
 
-                var result = new PaginatedListDto<PermissionDto>
-                {
-                    Items = permissionDtos,
-                    TotalCount = totalCount,
-                    PageNumber = request.PageNumber,
-                    PageSize = request.PageSize
-                };
+                var result = new PagedList<PermissionDto>(permissionDtos, permissions.TotalCount,
+                    permissions.PageNumber, permissions.PageSize);
 
-                return Result<PaginatedListDto<PermissionDto>>.Success(result);
+                return Result<PagedList<PermissionDto>>.Success(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while listing permissions");
-                return Result<PaginatedListDto<PermissionDto>>.Failure(
+                return Result<PagedList<PermissionDto>>.Failure(
                     "An unexpected error occurred while listing permissions");
             }
         }
