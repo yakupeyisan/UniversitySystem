@@ -1,3 +1,4 @@
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
@@ -25,6 +26,7 @@ public class ChangePasswordCommand : IRequest<Result<Unit>>
 
     public class Handler : IRequestHandler<ChangePasswordCommand, Result<Unit>>
     {
+        private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<Handler> _logger;
         private readonly IPasswordHasher _passwordHasher;
 
@@ -35,11 +37,12 @@ public class ChangePasswordCommand : IRequest<Result<Unit>>
             IRepository<User>
                 userRepository,
             IPasswordHasher passwordHasher,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger, ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<Unit>> Handle(
@@ -81,10 +84,9 @@ public class ChangePasswordCommand : IRequest<Result<Unit>>
 
                 // Hash new password
                 var (hashedPassword, salt) = _passwordHasher.HashPassword(request.Request.NewPassword);
-                var newPasswordHash = new PasswordHash(hashedPassword, salt);
 
                 // Update password and revoke all tokens
-                user.ChangePassword(newPasswordHash);
+                user.ChangePassword(hashedPassword, salt, _currentUserService.UserId);
                 user.RevokeAllRefreshTokens();
 
                 await _userRepository.UpdateAsync(user, cancellationToken);

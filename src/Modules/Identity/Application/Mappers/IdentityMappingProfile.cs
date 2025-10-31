@@ -22,7 +22,23 @@ public class IdentityMappingProfile : Profile
         CreateMap<Permission, PermissionDto>()
             .ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.PermissionType.ToString()));
 
-        // RefreshToken mappings
-        CreateMap<RefreshToken, RefreshTokenDto>();
+        // TwoFactorToken mappings
+        CreateMap<TwoFactorToken, TwoFactorStatusDto>()
+            .ForMember(dest => dest.IsEnabled, opt => opt.MapFrom(src => src.IsActive && src.IsVerified))
+            .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method.ToString()))
+            .ForMember(dest => dest.EnabledAt, opt => opt.MapFrom(src => src.VerifiedAt))
+            .ForMember(dest => dest.RemainingBackupCodes,
+                opt => opt.MapFrom(src => src.GetBackupCodes().Count));
+
+        // LoginHistory mappings
+        CreateMap<LoginHistory, LoginHistoryDto>()
+            .ForMember(dest => dest.Result, opt => opt.MapFrom(src => src.Result.ToString()));
+
+        // FailedLoginAttempt mappings
+        CreateMap<FailedLoginAttempt, FailedLoginAttemptDto>();
+
+        // UserAccountLockout mappings
+        CreateMap<UserAccountLockout, AccountLockoutStatusDto>()
+            .ForMember(dest => dest.LockReason, opt => opt.MapFrom(src => src.Reason.ToString()));
     }
 }

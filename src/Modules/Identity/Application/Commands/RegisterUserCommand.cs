@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
@@ -25,6 +26,7 @@ public class RegisterUserCommand : IRequest<Result<UserDto>>
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly ICurrentUserService _currentUserService;
 
         private readonly IRepository<User>
             _userRepository;
@@ -34,12 +36,13 @@ public class RegisterUserCommand : IRequest<Result<UserDto>>
                 userRepository,
             IPasswordHasher passwordHasher,
             IMapper mapper,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger, ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserDto>> Handle(
@@ -68,19 +71,18 @@ public class RegisterUserCommand : IRequest<Result<UserDto>>
                         $"Password does not meet requirements: {_passwordHasher.GetPasswordRequirements()}");
                 }
 
-                // Create email value object
-                var email = new Email(request.Request.Email);
-
                 // Hash password
                 var (hashedPassword, salt) = _passwordHasher.HashPassword(request.Request.Password);
-                var passwordHash = new PasswordHash(hashedPassword, salt);
 
                 // Create user aggregate
                 var user = User.Create(
-                    email,
-                    passwordHash,
+                    request.Request.Email,
                     request.Request.FirstName,
-                    request.Request.LastName);
+                    request.Request.LastName,
+                    hashedPassword,
+                    salt,
+                    _currentUserService.UserId
+                );
 
                 // Save user
                 await _userRepository.AddAsync(user, cancellationToken);

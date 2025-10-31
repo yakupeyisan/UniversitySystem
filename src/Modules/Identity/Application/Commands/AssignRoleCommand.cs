@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
@@ -24,6 +25,7 @@ public class AssignRoleCommand : IRequest<Result<UserDto>>
 
     public class Handler : IRequestHandler<AssignRoleCommand, Result<UserDto>>
     {
+        private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
 
@@ -39,12 +41,14 @@ public class AssignRoleCommand : IRequest<Result<UserDto>>
             IRepository<Role>
                 roleRepository,
             IMapper mapper,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger,
+            ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserDto>> Handle(
@@ -75,7 +79,7 @@ public class AssignRoleCommand : IRequest<Result<UserDto>>
                 }
 
                 // Add role to user
-                user.AddRole(role);
+                user.AddRole(role, _currentUserService.UserId);
 
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);

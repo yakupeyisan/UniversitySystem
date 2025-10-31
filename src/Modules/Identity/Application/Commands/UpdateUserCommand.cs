@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
@@ -26,19 +27,19 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
-        private readonly IRepository<User>
-            _userRepository;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IRepository<User> _userRepository;
 
         public Handler(
             IRepository<User>
                 userRepository,
             IMapper mapper,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger, ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserDto>> Handle(
@@ -58,7 +59,7 @@ public class UpdateUserCommand : IRequest<Result<UserDto>>
                 }
 
                 // Update profile
-                user.UpdateProfile(request.Request.FirstName, request.Request.LastName);
+                user.UpdateProfile(request.Request.FirstName, request.Request.LastName, _currentUserService.UserId);
 
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);

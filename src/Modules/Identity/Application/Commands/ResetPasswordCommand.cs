@@ -1,3 +1,4 @@
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.Abstractions;
@@ -22,6 +23,7 @@ public class ResetPasswordCommand : IRequest<Result<bool>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly ICurrentUserService _currentUserService;
 
         private readonly IRepository<User>
             _userRepository;
@@ -30,11 +32,12 @@ public class ResetPasswordCommand : IRequest<Result<bool>>
             IRepository<User>
                 userRepository,
             IPasswordHasher passwordHasher,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger, ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<bool>> Handle(
@@ -55,7 +58,7 @@ public class ResetPasswordCommand : IRequest<Result<bool>>
                 }
 
                 var password = _passwordHasher.HashPassword(request.Request.NewPassword);
-                user.ResetPassword(password.HashedPassword, password.Salt);
+                user.ResetPassword(password.HashedPassword, password.Salt, _currentUserService.UserId);
 
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);

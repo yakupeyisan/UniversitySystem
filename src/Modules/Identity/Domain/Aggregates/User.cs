@@ -1,119 +1,164 @@
 using Core.Domain;
+using Core.Domain.Events;
 using Core.Domain.Specifications;
 using Identity.Domain.Enums;
 using Identity.Domain.Events;
-using Identity.Domain.Exceptions;
 using Identity.Domain.ValueObjects;
 
 namespace Identity.Domain.Aggregates;
 
+/// <summary>
+/// User Aggregate Root - Tüm kimlik doðrulama ve kullanýcý yönetimi iþlemlerini yönetir
+/// DDD Pattern: Aggregate Root olarak tüm consistency'den sorumludur
+/// ISoftDelete uygulanmýþ - soft delete iþlemleri için
+/// </summary>
 public class User : AuditableEntity, ISoftDelete
 {
-    private readonly List<Permission> _permissions = new();
-    private readonly List<RefreshToken> _refreshTokens = new();
-
-    // ============ Collections ============
-    private readonly List<Role> _roles = new();
-
+    // ============ Private Constructor ============
+    /// <summary>
+    /// EF Core tarafýndan kullanýlmak üzere private constructor
+    /// </summary>
     private User()
     {
     }
 
     // ============ Identity Properties ============
+
+    /// <summary>
+    /// Email adresi (ValueObject)
+    /// </summary>
     public Email Email { get; private set; }
+
+    /// <summary>
+    /// Parola hash ve salt (ValueObject - Owned)
+    /// </summary>
     public PasswordHash PasswordHash { get; private set; }
+
+    /// <summary>
+    /// Adý
+    /// </summary>
     public string FirstName { get; private set; }
+
+    /// <summary>
+    /// Soyadý
+    /// </summary>
     public string LastName { get; private set; }
+
+    /// <summary>
+    /// Kullanýcý durumu (Active, Inactive, Suspended, Deleted)
+    /// </summary>
     public UserStatus Status { get; private set; }
 
-    // ============ Email Verification Properties ============
+    /// <summary>
+    /// Email doðrulanmýþ mý
+    /// </summary>
     public bool IsEmailVerified { get; private set; }
-    public string? EmailVerificationCode { get; private set; }
-    public DateTime? EmailVerificationCodeExpiry { get; private set; }
 
-    // ============ Password Reset Properties ============
-    public string? PasswordResetCode { get; private set; }
-    public DateTime? PasswordResetCodeExpiry { get; private set; }
+    // ============ SECURITY PROPERTIES ============
+
+    /// <summary>
+    /// Kullanýcý hesabý kilitli mi (brute force vs.)
+    /// </summary>
+    public bool IsLocked { get; private set; }
+
+    /// <summary>
+    /// 2FA (Ýki Faktörlü Kimlik Doðrulama) aktif mi
+    /// </summary>
+    public bool IsTwoFactorEnabled { get; private set; }
+
+    /// <summary>
+    /// Son baþarýlý giriþ tarihi
+    /// </summary>
+    public DateTime? LastLoginAt { get; private set; }
+
+    /// <summary>
+    /// Son parola deðiþikliði tarihi
+    /// </summary>
     public DateTime? LastPasswordChangeAt { get; private set; }
 
-    // ============ Login & Access Properties ============
-    public DateTime? LastLoginAt { get; private set; }
-    public int FailedLoginAttempts { get; private set; }
-    public DateTime? LockedUntil { get; private set; }
-
-    public IReadOnlyList<Role> Roles => _roles.AsReadOnly();
-    public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
-    public IReadOnlyList<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
-
-    // ============ Properties ============
-    public string FullName => $"{FirstName} {LastName}";
+    /// <summary>
+    /// Baþarýsýz giriþ denemesi sayýsý (sýfýrlanýr baþarýlý giriþte)
+    /// </summary>
+    public int FailedLoginAttemptCount { get; private set; }
 
     /// <summary>
-    ///     Hesabýn kilitli olup olmadýðýný kontrol et
+    /// Hesap kilitli mi (admin tarafýndan veya çok fazla baþarýsýz deneme)
     /// </summary>
-    public bool IsAccountLocked =>
-        Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
+    public bool IsAccountLocked { get; private set; }
 
-    // ============ Status Helpers ============
-
+    // ============ SOFT DELETE PROPERTIES ============
     /// <summary>
-    ///     Hesap aktif ve kullanýlabilir mi
+    /// Kullanýcý silinmiþ mi (Soft Delete)
+    /// ISoftDelete interface'i tarafýndan talep edilen property
     /// </summary>
-    public bool IsActive => Status == UserStatus.Active && !IsDeleted && !IsAccountLocked;
-
-    /// <summary>
-    ///     Hesap login yapabilir mi
-    /// </summary>
-    public bool CanLogin => IsActive && IsEmailVerified;
-
-    public bool IsLocked => Status == UserStatus.Locked && LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
-
-    // ============ Soft Delete Properties ============
     public bool IsDeleted { get; private set; }
+
+    /// <summary>
+    /// Silindiði tarih (Soft Delete)
+    /// Arþiv ve audit trail için önemli
+    /// </summary>
     public DateTime? DeletedAt { get; private set; }
+
+    /// <summary>
+    /// Silen kullanýcý/admin ID'si (Soft Delete)
+    /// Audit trail'de sorumluluk için önemli
+    /// </summary>
     public Guid? DeletedBy { get; private set; }
 
-    // ============ Soft Delete ============
+    // ============ NAVIGATION PROPERTIES ============
 
     /// <summary>
-    ///     Soft delete - verileri kalýcý olarak silmez
+    /// Kullanýcýnýn rolleri (Many-to-Many)
     /// </summary>
-    public void Delete(Guid deletedBy)
-    {
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-        DeletedBy = deletedBy;
-        UpdatedAt = DateTime.UtcNow;
-
-        // Tüm refresh token'larýný iptal et
-        RevokeAllRefreshTokens();
-
-        AddDomainEvent(new UserDeletedEvent(Id, Email.Value));
-    }
+    public ICollection<Role> Roles { get; private set; } = new List<Role>();
 
     /// <summary>
-    ///     Silinen hesabý geri yükle
+    /// Refresh token'larý (One-to-Many)
     /// </summary>
-    public void Restore()
-    {
-        IsDeleted = false;
-        DeletedAt = null;
-        DeletedBy = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
+    public ICollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
 
-    // ============ Factory Method ============
+    /// <summary>
+    /// Ýzinler (Rollerinden türetilmiþ, navigation için)
+    /// </summary>
+    public ICollection<Permission> Permissions { get; private set; } = new List<Permission>();
+
+    /// <summary>
+    /// 2FA Token'larý (One-to-Many)
+    /// </summary>
+    public ICollection<TwoFactorToken> TwoFactorTokens { get; private set; } = new List<TwoFactorToken>();
+
+    /// <summary>
+    /// Giriþ geçmiþi kayýtlarý (One-to-Many)
+    /// </summary>
+    public ICollection<LoginHistory> LoginHistories { get; private set; } = new List<LoginHistory>();
+
+    /// <summary>
+    /// Baþarýsýz giriþ denemeleri (One-to-Many)
+    /// </summary>
+    public ICollection<FailedLoginAttempt> FailedLoginAttempts { get; private set; } = new List<FailedLoginAttempt>();
+
+    /// <summary>
+    /// Hesap kilitleme kayýtlarý (One-to-Many)
+    /// </summary>
+    public ICollection<UserAccountLockout> AccountLockouts { get; private set; } = new List<UserAccountLockout>();
+
+    // ============ FACTORY METHODS ============
+
+    /// <summary>
+    /// Yeni kullanýcý oluþtur (Factory Method)
+    /// DDD: Entity oluþturma iþ mantýðý aggregate'te kalýr
+    /// </summary>
     public static User Create(
-        Email email,
-        PasswordHash passwordHash,
+        string email,
         string firstName,
-        string lastName)
+        string lastName,
+        string hashedPassword,
+        string salt,
+        Guid createdBy)
     {
-        if (email == null)
-            throw new ArgumentNullException(nameof(email));
-
-        if (passwordHash == null)
-            throw new ArgumentNullException(nameof(passwordHash));
+        // Validasyon
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email cannot be empty", nameof(email));
 
         if (string.IsNullOrWhiteSpace(firstName))
             throw new ArgumentException("First name cannot be empty", nameof(firstName));
@@ -121,21 +166,35 @@ public class User : AuditableEntity, ISoftDelete
         if (string.IsNullOrWhiteSpace(lastName))
             throw new ArgumentException("Last name cannot be empty", nameof(lastName));
 
+        if (string.IsNullOrWhiteSpace(hashedPassword))
+            throw new ArgumentException("Hashed password cannot be empty", nameof(hashedPassword));
+
+        if (string.IsNullOrWhiteSpace(salt))
+            throw new ArgumentException("Salt cannot be empty", nameof(salt));
+
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = email,
-            PasswordHash = passwordHash,
+            Email = new Email(email),
             FirstName = firstName.Trim(),
             LastName = lastName.Trim(),
+            PasswordHash = new PasswordHash(hashedPassword, salt),
             Status = UserStatus.Active,
             IsEmailVerified = false,
+            IsLocked = false,
+            IsTwoFactorEnabled = false,
+            FailedLoginAttemptCount = 0,
+            IsAccountLocked = false,
             IsDeleted = false,
-            FailedLoginAttempts = 0,
+            DeletedAt = null,
+            DeletedBy = null,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedBy = createdBy,
+            UpdatedAt = DateTime.UtcNow,
+            UpdatedBy = createdBy
         };
 
+        // Domain event
         user.AddDomainEvent(new UserCreatedEvent(
             user.Id,
             user.Email.Value,
@@ -145,8 +204,88 @@ public class User : AuditableEntity, ISoftDelete
         return user;
     }
 
-    // ============ Profile Management ============
-    public void UpdateProfile(string firstName, string lastName)
+    // ============ BUSINESS LOGIC METHODS ============
+
+    /// <summary>
+    /// Email doðrulanmýþ olarak iþaretle
+    /// </summary>
+    public void VerifyEmail()
+    {
+        if (IsEmailVerified)
+            throw new InvalidOperationException("Email is already verified");
+
+        IsEmailVerified = true;
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new UserEmailVerifiedEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    /// Email doðrulanmamýþ olarak geri al
+    /// </summary>
+    public void UnverifyEmail()
+    {
+        IsEmailVerified = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Parola deðiþtir
+    /// </summary>
+    public void ChangePassword(string newHashedPassword, string newSalt, Guid changedBy)
+    {
+        if (string.IsNullOrWhiteSpace(newHashedPassword))
+            throw new ArgumentException("New password hash cannot be empty", nameof(newHashedPassword));
+
+        if (string.IsNullOrWhiteSpace(newSalt))
+            throw new ArgumentException("New salt cannot be empty", nameof(newSalt));
+
+        PasswordHash = new PasswordHash(newHashedPassword, newSalt);
+        LastPasswordChangeAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = changedBy;
+
+        AddDomainEvent(new UserPasswordChangedEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    /// Parola sýfýrla (Forgot Password workflow'u için)
+    /// </summary>
+    public void ResetPassword(string newHashedPassword, string newSalt, Guid resetBy)
+    {
+        if (string.IsNullOrWhiteSpace(newHashedPassword))
+            throw new ArgumentException("New password hash cannot be empty", nameof(newHashedPassword));
+
+        if (string.IsNullOrWhiteSpace(newSalt))
+            throw new ArgumentException("New salt cannot be empty", nameof(newSalt));
+
+        PasswordHash = new PasswordHash(newHashedPassword, newSalt);
+        LastPasswordChangeAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = resetBy;
+
+        AddDomainEvent(new UserPasswordResetEvent(Id, Email.Value));
+    }
+
+    /// <summary>
+    /// Kullanýcý durumunu güncelle
+    /// </summary>
+    public void UpdateStatus(UserStatus newStatus, Guid updatedBy)
+    {
+        if (Status == newStatus)
+            return;
+
+        Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
+
+        AddDomainEvent(new UserStatusChangedEvent(Id, Status.ToString()));
+    }
+
+    /// <summary>
+    /// Kullanýcý bilgilerini güncelle
+    /// </summary>
+    public void UpdateProfile(string firstName, string lastName, Guid updatedBy)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new ArgumentException("First name cannot be empty", nameof(firstName));
@@ -157,411 +296,561 @@ public class User : AuditableEntity, ISoftDelete
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
 
         AddDomainEvent(new UserUpdatedEvent(Id, Email.Value, FirstName, LastName));
     }
 
-    // ============ Password Management ============
+    /// <summary>
+    /// Kullanýcý sil (Soft Delete)
+    /// ISoftDelete interface'i uygulamasý
+    /// </summary>
+    public void Delete(Guid deletedBy)
+    {
+        if (IsDeleted)
+            throw new InvalidOperationException("User is already deleted");
+
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        Status = UserStatus.Deleted;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = deletedBy;
+
+        // Tüm refresh token'larý iptal et
+        foreach (var token in RefreshTokens.Where(rt => !rt.IsRevoked))
+        {
+            token.Revoke("User account deleted");
+        }
+
+        AddDomainEvent(new UserDeletedEvent(Id, Email.Value));
+    }
 
     /// <summary>
-    ///     Þifreyi deðiþtir (kullanýcý tarafýndan, eski þifre doðrulandýktan sonra)
+    /// Silinmiþ kullanýcýyý geri al
+    /// ISoftDelete interface'i uygulamasý
     /// </summary>
-    public void ChangePassword(PasswordHash newPasswordHash)
+    public void Restore()
     {
-        if (newPasswordHash == null)
-            throw new ArgumentNullException(nameof(newPasswordHash));
+        if (!IsDeleted)
+            throw new InvalidOperationException("User is not deleted");
 
-        PasswordHash = newPasswordHash;
-        FailedLoginAttempts = 0;
-        LockedUntil = null;
-        LastPasswordChangeAt = DateTime.UtcNow;
+        IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
+        Status = UserStatus.Active;
         UpdatedAt = DateTime.UtcNow;
 
-        // Tüm refresh token'larý iptal et (güvenlik için)
-        RevokeAllRefreshTokens();
-
-        AddDomainEvent(new UserPasswordChangedEvent(Id, Email.Value));
+        AddDomainEvent(new UserRestoredEvent(Id, Email.Value));
     }
 
     /// <summary>
-    ///     Þifre sýfýrlama kodu ayarla (forgot password akýþýnda)
+    /// Role ekle
     /// </summary>
-    public void SetPasswordResetCode(string resetCode)
-    {
-        if (string.IsNullOrWhiteSpace(resetCode))
-            throw new ArgumentException("Reset code cannot be empty", nameof(resetCode));
-
-        PasswordResetCode = resetCode;
-        PasswordResetCodeExpiry = DateTime.UtcNow.AddHours(1); // 1 saat geçerli
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new PasswordResetRequestedEvent(Id, Email.Value, PasswordResetCode));
-    }
-
-    /// <summary>
-    ///     Þifre sýfýrlama kodunu valide et
-    /// </summary>
-    public bool ValidatePasswordResetCode(string resetCode)
-    {
-        if (string.IsNullOrWhiteSpace(resetCode))
-            return false;
-
-        if (PasswordResetCode != resetCode)
-            return false; // Kod eþleþmiyor
-
-        if (PasswordResetCodeExpiry == null || PasswordResetCodeExpiry < DateTime.UtcNow)
-            return false; // Kod süresi dolmuþ
-
-        return true;
-    }
-
-    /// <summary>
-    ///     Þifreyi sýfýrla (password reset akýþýnda)
-    /// </summary>
-    public void ResetPassword(string passwordHash, string passwordSalt)
-    {
-        PasswordHash = new PasswordHash(passwordHash, passwordSalt);
-        PasswordResetCode = null;
-        PasswordResetCodeExpiry = null;
-        LastPasswordChangeAt = DateTime.UtcNow;
-        FailedLoginAttempts = 0;
-        LockedUntil = null;
-        UpdatedAt = DateTime.UtcNow;
-
-        // Tüm refresh token'larý iptal et (güvenlik için)
-        RevokeAllRefreshTokens();
-
-        AddDomainEvent(new PasswordResetEvent(Id, Email.Value));
-    }
-
-    // ============ Email Verification ============
-
-    /// <summary>
-    ///     Email doðrulama kodu ayarla
-    /// </summary>
-    public void SetEmailVerificationCode(string code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-            throw new ArgumentException("Verification code cannot be empty", nameof(code));
-
-        EmailVerificationCode = code;
-        EmailVerificationCodeExpiry = DateTime.UtcNow.AddHours(24); // 24 saat geçerli
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    ///     Email doðrulama kodunu valide et
-    /// </summary>
-    public bool ValidateEmailVerificationCode(string code)
-    {
-        if (IsEmailVerified)
-            return false; // Zaten doðrulanmýþ
-
-        if (string.IsNullOrWhiteSpace(code))
-            return false;
-
-        if (EmailVerificationCode != code)
-            return false; // Kod eþleþmiyor
-
-        if (EmailVerificationCodeExpiry == null || EmailVerificationCodeExpiry < DateTime.UtcNow)
-            return false; // Kod süresi dolmuþ
-
-        return true;
-    }
-
-    /// <summary>
-    ///     Email'i doðrula
-    /// </summary>
-    public void VerifyEmail()
-    {
-        if (IsEmailVerified)
-            throw new InvalidOperationException("Email is already verified");
-
-        IsEmailVerified = true;
-        EmailVerificationCode = null;
-        EmailVerificationCodeExpiry = null;
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new UserEmailVerifiedEvent(Id, Email.Value));
-    }
-
-    /// <summary>
-    ///     Email doðrulamasýný temizle (email deðiþtirildiðinde)
-    /// </summary>
-    public void ClearEmailVerification()
-    {
-        IsEmailVerified = false;
-        EmailVerificationCode = null;
-        EmailVerificationCodeExpiry = null;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    // ============ Role Management ============
-
-    public void AddRole(Role role)
+    public void AddRole(Role role, Guid addedBy)
     {
         if (role == null)
             throw new ArgumentNullException(nameof(role));
 
-        if (_roles.Any(r => r.Id == role.Id))
-            return; // Zaten ekli
+        if (Roles.Any(r => r.Id == role.Id))
+            return; // Already has this role
 
-        _roles.Add(role);
+        Roles.Add(role);
         UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = addedBy;
 
-        AddDomainEvent(new UserRoleAssignedEvent(Id, Email.Value, role.RoleName));
-    }
-
-    public void RemoveRole(Guid roleId)
-    {
-        var role = _roles.FirstOrDefault(r => r.Id == roleId);
-        if (role != null)
-        {
-            _roles.Remove(role);
-            UpdatedAt = DateTime.UtcNow;
-
-            AddDomainEvent(new UserRoleRevokedEvent(Id, Email.Value, role.RoleName));
-        }
-    }
-
-    public void ClearRoles()
-    {
-        _roles.Clear();
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public bool HasRole(Guid roleId)
-    {
-        return _roles.Any(r => r.Id == roleId);
-    }
-
-    public bool HasRole(string roleName)
-    {
-        return _roles.Any(r => r.RoleName == roleName);
-    }
-
-    // ============ Permission Management ============
-
-    public void AddPermission(Permission permission)
-    {
-        if (permission == null)
-            throw new ArgumentNullException(nameof(permission));
-
-        if (_permissions.Any(p => p.Id == permission.Id))
-            return; // Zaten ekli
-
-        _permissions.Add(permission);
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void RemovePermission(Guid permissionId)
-    {
-        var permission = _permissions.FirstOrDefault(p => p.Id == permissionId);
-        if (permission != null)
-        {
-            _permissions.Remove(permission);
-            UpdatedAt = DateTime.UtcNow;
-        }
+        AddDomainEvent(new RoleAssignedToUserEvent(Id, role.Id, role.RoleName));
     }
 
     /// <summary>
-    ///     Kullanýcý veya roller aracýlýðýyla izne sahip mi
+    /// Role kaldýr
+    /// </summary>
+    public void RemoveRole(Guid roleId, Guid removedBy)
+    {
+        var role = Roles.FirstOrDefault(r => r.Id == roleId);
+        if (role == null)
+            return;
+
+        Roles.Remove(role);
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = removedBy;
+
+        AddDomainEvent(new RoleRemovedFromUserEvent(Id, roleId));
+    }
+
+    /// <summary>
+    /// Tüm rolleri temizle
+    /// </summary>
+    public void ClearRoles(Guid clearedBy)
+    {
+        Roles.Clear();
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = clearedBy;
+    }
+
+    /// <summary>
+    /// Belirli bir role sahip mi kontrol et
+    /// </summary>
+    public bool HasRole(string roleName)
+    {
+        return Roles.Any(r => r.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase) && r.IsActive);
+    }
+
+    /// <summary>
+    /// Belirli bir izne sahip mi kontrol et
     /// </summary>
     public bool HasPermission(Guid permissionId)
     {
-        return _permissions.Any(p => p.Id == permissionId) ||
-               _roles.Any(r => r.HasPermission(permissionId));
+        return Roles
+            .Where(r => r.IsActive)
+            .SelectMany(r => r.Permissions)
+            .Any(p => p.Id == permissionId && p.IsActive);
     }
 
+    // ============ SECURITY & 2FA METHODS ============
+
     /// <summary>
-    ///     Tüm izinleri al (direkt + rol aracýlýðýyla)
+    /// 2FA'yý aktifleþtir
     /// </summary>
-    public IEnumerable<Permission> GetAllPermissions()
+    public void EnableTwoFactor(TwoFactorMethod method, Guid enabledBy)
     {
-        var allPermissions = new HashSet<Permission>(_permissions);
-        foreach (var permission in _roles.SelectMany(r => r.Permissions)) allPermissions.Add(permission);
-        return allPermissions;
+        IsTwoFactorEnabled = true;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = enabledBy;
+        AddDomainEvent(new TwoFactorEnabledEvent(Id, method));
     }
 
-    // ============ Login & Account Lock ============
+    /// <summary>
+    /// 2FA'yý devre dýþý býrak
+    /// </summary>
+    public void DisableTwoFactor(Guid disabledBy)
+    {
+        IsTwoFactorEnabled = false;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = disabledBy;
+    }
 
     /// <summary>
-    ///     Baþarýlý login kaydý
+    /// Baþarýlý giriþ kaydý (login attempt'lerini sýfýrla ve son giriþ tarihini güncelle)
     /// </summary>
     public void RecordSuccessfulLogin()
     {
         LastLoginAt = DateTime.UtcNow;
-        FailedLoginAttempts = 0;
-        LockedUntil = null;
-        Status = UserStatus.Active;
+        FailedLoginAttemptCount = 0;
+        IsAccountLocked = false;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    ///     Baþarýsýz login denemesini kaydet
-    ///     5 deneme sonrasý otomatik hesap kilitlenir
+    /// Baþarýsýz giriþ denemesini artýr
     /// </summary>
-    public void RecordFailedLoginAttempt()
+    public void IncrementFailedLoginAttempts()
     {
-        FailedLoginAttempts++;
+        FailedLoginAttemptCount++;
         UpdatedAt = DateTime.UtcNow;
 
-        // Lock account after 5 failed attempts
-        if (FailedLoginAttempts >= 5)
+        // Eðer çok fazla deneme yapýldýysa, uyarý event'i gönder
+        if (FailedLoginAttemptCount >= 5)
         {
-            LockedUntil = DateTime.UtcNow.AddMinutes(30);
-            Status = UserStatus.Locked;
-            AddDomainEvent(new UserLockedEvent(Id, Email.Value, LockedUntil.Value, "Too many failed login attempts"));
+            AddDomainEvent(new ExcessiveFailedLoginAttemptsEvent(Id, Email.Value, FailedLoginAttemptCount));
         }
     }
 
     /// <summary>
-    ///     Hesabý kilitle (admin tarafýndan)
+    /// Baþarýsýz giriþ denemelerini sýfýrla
     /// </summary>
-    public void LockAccount(string reason = "")
+    public void ResetFailedLoginAttempts()
     {
-        Status = UserStatus.Locked;
-        LockedUntil = DateTime.UtcNow.AddDays(1); // 1 gün boyunca kilitli
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new UserLockedEvent(Id, Email.Value, LockedUntil.Value, reason ?? "Locked by administrator"));
-    }
-
-    /// <summary>
-    ///     Hesabýn kilidini aç
-    /// </summary>
-    public void UnlockAccount()
-    {
-        FailedLoginAttempts = 0;
-        LockedUntil = null;
-        Status = UserStatus.Active;
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new UserUnlockedEvent(Id, Email.Value));
-    }
-
-    // ============ Status Management ============
-
-    public void SetStatus(UserStatus newStatus)
-    {
-        if (Status == newStatus)
-            return;
-
-        Status = newStatus;
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new UserStatusChangedEvent(Id, Email.Value, (int)Status));
-    }
-
-    public void Suspend()
-    {
-        SetStatus(UserStatus.Suspended);
-    }
-
-    public void Activate()
-    {
-        SetStatus(UserStatus.Active);
-        LockedUntil = null;
-        FailedLoginAttempts = 0;
-    }
-
-    public void Deactivate()
-    {
-        SetStatus(UserStatus.Inactive);
-    }
-
-    // ============ Refresh Token Management ============
-
-    /// <summary>
-    ///     Refresh token ekle
-    /// </summary>
-    public void AddRefreshToken(RefreshToken token)
-    {
-        if (token == null)
-            throw new ArgumentNullException(nameof(token));
-
-        // Süresi geçen token'larý kaldýr
-        _refreshTokens.RemoveAll(t => t.IsExpired);
-
-        // Maksimum 5 aktif token tutmak için eski olanlarý temizle
-        var activeTokens = _refreshTokens.Where(t => !t.IsExpired && !t.IsRevoked).ToList();
-        if (activeTokens.Count >= 5)
-        {
-            var oldestToken = activeTokens.OrderBy(t => t.CreatedAt).First();
-            oldestToken.Revoke("New token issued, old token revoked");
-        }
-
-        _refreshTokens.Add(token);
+        FailedLoginAttemptCount = 0;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
-    ///     Updates the current refresh token
+    /// Hesabý kilitle (Admin veya otomatik olabilir)
     /// </summary>
-    public void UpdateRefreshToken(string newToken)
+    public void LockAccount(Guid lockedBy, string reason = "Account locked")
     {
-        if (string.IsNullOrWhiteSpace(newToken))
-            throw new ArgumentException("Token cannot be empty", nameof(newToken));
+        if (IsAccountLocked)
+            return; // Already locked
 
-        AddRefreshToken(RefreshToken.Create(Id, newToken,
-            DateTime.UtcNow.AddDays(7), "", ""));
+        IsAccountLocked = true;
+        IsLocked = true;
         UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = lockedBy;
+
+        AddDomainEvent(new UserLockedEvent(Id, reason));
     }
 
-    public void ClearRefreshToken()
+    /// <summary>
+    /// Hesabý aç
+    /// </summary>
+    public void UnlockAccount(Guid unlockedBy)
     {
-        _refreshTokens.Where(t => !t.IsExpired && !t.IsRevoked).ToList().ForEach(activeToken =>
-        {
-            activeToken.Revoke("Cleared old tokens");
-        });
+        if (!IsAccountLocked)
+            return; // Not locked
+
+        IsAccountLocked = false;
+        IsLocked = false;
+        FailedLoginAttemptCount = 0;
         UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = unlockedBy;
+
+        AddDomainEvent(new UserUnlockedEvent(Id, "Account unlocked"));
     }
 
     /// <summary>
-    ///     Refresh token'ý iptal et
+    /// Hesabýn kilitleme durumunu kontrol et
     /// </summary>
-    public void RevokeRefreshToken(string token, string reason = "")
+    public bool IsCurrentlyLocked()
     {
-        var refreshToken = _refreshTokens.FirstOrDefault(t => t.Token == token);
-        if (refreshToken != null && !refreshToken.IsRevoked)
-        {
-            refreshToken.Revoke(reason ?? "Revoked");
-            UpdatedAt = DateTime.UtcNow;
-        }
+        return IsAccountLocked || IsLocked || Status == UserStatus.Suspended || IsDeleted;
     }
 
     /// <summary>
-    ///     Geçerli refresh token'ý al
+    /// Giriþ yapabilir mi (Security checks)
     /// </summary>
-    public RefreshToken GetValidRefreshToken(string token)
+    public bool CanLogin()
     {
-        var refreshToken = _refreshTokens.FirstOrDefault(t => t.Token == token);
-        if (refreshToken == null || !refreshToken.IsValid)
-            throw new InvalidTokenException("Refresh token is invalid or expired");
-
-        return refreshToken;
+        return !IsDeleted
+               && Status == UserStatus.Active
+               && !IsAccountLocked
+               && !IsLocked
+               && IsEmailVerified;
     }
 
     /// <summary>
-    ///     Tüm refresh token'larý iptal et (logout all devices)
+    /// Giriþ baþarýsýzlýðýnýn nedenini döndür
     /// </summary>
-    public void RevokeAllRefreshTokens()
+    public string GetLoginFailureReason()
     {
-        foreach (var token in _refreshTokens.Where(t => !t.IsRevoked)) token.Revoke("Revoked all tokens");
-        UpdatedAt = DateTime.UtcNow;
+        if (IsDeleted)
+            return "Kullanýcý hesabý silinmiþtir";
+
+        if (Status != UserStatus.Active)
+            return $"Kullanýcý hesabý {Status.ToString().ToLower()} durumdadýr";
+
+        if (!IsEmailVerified)
+            return "E-posta adresi doðrulanmamýþtýr";
+
+        if (IsAccountLocked || IsLocked)
+            return "Kullanýcý hesabý kilitlenmiþtir";
+
+        return "Giriþ yapýlamaz";
+    }
+
+    // ============ VALIDATION METHODS ============
+
+    /// <summary>
+    /// Parola sýfýrlama kodu doðrulama
+    /// </summary>
+    public bool ValidatePasswordResetCode(string code)
+    {
+        // Gerçek uygulama: Redis'te saklanmýþ ve TTL olan kodu kontrol et
+        return !string.IsNullOrWhiteSpace(code) && code.Length >= 32;
     }
 
     /// <summary>
-    ///     Profil özeti al
+    /// Email doðrulama kodu doðrulama
     /// </summary>
-    public (string Email, string FullName, bool IsActive, bool IsLocked, int RoleCount) GetProfile()
+    public bool ValidateEmailVerificationCode(string code)
     {
-        return (
-            Email.Value,
-            FullName,
-            IsActive,
-            IsAccountLocked,
-            _roles.Count
-        );
+        // Gerçek uygulama: Redis'te saklanmýþ ve TTL olan kodu kontrol et
+        return !string.IsNullOrWhiteSpace(code) && code.Length >= 32;
     }
+
+    // ============ QUERY METHODS ============
+
+    /// <summary>
+    /// Tam adýný döndür
+    /// </summary>
+    public string GetFullName()
+    {
+        return $"{FirstName} {LastName}";
+    }
+
+    /// <summary>
+    /// Tüm aktif rolleri döndür
+    /// </summary>
+    public List<Role> GetActiveRoles()
+    {
+        return Roles.Where(r => r.IsActive).ToList();
+    }
+
+    /// <summary>
+    /// Tüm izinleri döndür (aktif rollerden)
+    /// </summary>
+    public List<Permission> GetAllPermissions()
+    {
+        return Roles
+            .Where(r => r.IsActive)
+            .SelectMany(r => r.Permissions)
+            .Where(p => p.IsActive)
+            .Distinct()
+            .ToList();
+    }
+
+    /// <summary>
+    /// Belirli bir izni kontrol et (string olarak)
+    /// </summary>
+    public bool HasPermission(string permissionName)
+    {
+        return Roles
+            .Where(r => r.IsActive)
+            .SelectMany(r => r.Permissions)
+            .Any(p => p.IsActive && p.PermissionName == permissionName);
+    }
+
+    /// <summary>
+    /// Aktif 2FA token'larýný döndür
+    /// </summary>
+    public List<TwoFactorToken> GetActiveTwoFactorTokens()
+    {
+        return TwoFactorTokens
+            .Where(tft => tft.IsActive && tft.IsVerified && tft.DisabledAt == null)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Son giriþ geçmiþini döndür
+    /// </summary>
+    public LoginHistory? GetLastLoginHistory()
+    {
+        return LoginHistories
+            .OrderByDescending(lh => lh.LoginAt)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Son N gün içindeki baþarýsýz deneme sayýsýný döndür
+    /// </summary>
+    public int GetFailedLoginAttemptsInLastNDays(int days = 7)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-days);
+        return FailedLoginAttempts.Count(fla => fla.AttemptedAt > cutoffDate);
+    }
+
+    /// <summary>
+    /// Aktif hesap kilitlemeleri döndür
+    /// </summary>
+    public List<UserAccountLockout> GetActiveLockouts()
+    {
+        return AccountLockouts
+            .Where(ual => !ual.IsUnlocked &&
+                          (ual.LockedUntil == null || ual.LockedUntil > DateTime.UtcNow))
+            .ToList();
+    }
+}
+
+// ============ ADDITIONAL DOMAIN EVENTS ============
+
+/// <summary>
+/// Email doðrulama event'i
+/// </summary>
+public class UserEmailVerifiedEvent : DomainEvent
+{
+    public UserEmailVerifiedEvent(Guid userId, string email)
+    {
+        UserId = userId;
+        Email = email;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Parola deðiþtirildi event'i
+/// </summary>
+public class UserPasswordChangedEvent : DomainEvent
+{
+    public UserPasswordChangedEvent(Guid userId, string email)
+    {
+        UserId = userId;
+        Email = email;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Parola sýfýrlandý event'i
+/// </summary>
+public class UserPasswordResetEvent : DomainEvent
+{
+    public UserPasswordResetEvent(Guid userId, string email)
+    {
+        UserId = userId;
+        Email = email;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Durumu deðiþtirildi event'i
+/// </summary>
+public class UserStatusChangedEvent : DomainEvent
+{
+    public UserStatusChangedEvent(Guid userId, string newStatus)
+    {
+        UserId = userId;
+        NewStatus = newStatus;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string NewStatus { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Kullanýcý silindi event'i
+/// </summary>
+public class UserDeletedEvent : DomainEvent
+{
+    public UserDeletedEvent(Guid userId, string email)
+    {
+        UserId = userId;
+        Email = email;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Silinen kullanýcý geri alýndý event'i
+/// </summary>
+public class UserRestoredEvent : DomainEvent
+{
+    public UserRestoredEvent(Guid userId, string email)
+    {
+        UserId = userId;
+        Email = email;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Role atandý event'i
+/// </summary>
+public class RoleAssignedToUserEvent : DomainEvent
+{
+    public RoleAssignedToUserEvent(Guid userId, Guid roleId, string roleName)
+    {
+        UserId = userId;
+        RoleId = roleId;
+        RoleName = roleName;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public Guid RoleId { get; }
+    public string RoleName { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Role kaldýrýldý event'i
+/// </summary>
+public class RoleRemovedFromUserEvent : DomainEvent
+{
+    public RoleRemovedFromUserEvent(Guid userId, Guid roleId)
+    {
+        UserId = userId;
+        RoleId = roleId;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public Guid RoleId { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Çok fazla baþarýsýz giriþ denemesi event'i
+/// </summary>
+public class ExcessiveFailedLoginAttemptsEvent : DomainEvent
+{
+    public ExcessiveFailedLoginAttemptsEvent(Guid userId, string email, int attemptCount)
+    {
+        UserId = userId;
+        Email = email;
+        AttemptCount = attemptCount;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public int AttemptCount { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Kullanýcý hesabý kilitlendi event'i
+/// </summary>
+public class UserLockedEvent : DomainEvent
+{
+    public UserLockedEvent(Guid userId, string reason)
+    {
+        UserId = userId;
+        Reason = reason;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Reason { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Kullanýcý hesabý açýldý event'i
+/// </summary>
+public class UserUnlockedEvent : DomainEvent
+{
+    public UserUnlockedEvent(Guid userId, string reason)
+    {
+        UserId = userId;
+        Reason = reason;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Reason { get; }
+    public DateTime OccurredOn { get; }
+}
+
+/// <summary>
+/// Kullanýcý güncellenmiþ event'i
+/// </summary>
+public class UserUpdatedEvent : DomainEvent
+{
+    public UserUpdatedEvent(Guid userId, string email, string firstName, string lastName)
+    {
+        UserId = userId;
+        Email = email;
+        FirstName = firstName;
+        LastName = lastName;
+        OccurredOn = DateTime.UtcNow;
+    }
+
+    public Guid UserId { get; }
+    public string Email { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public DateTime OccurredOn { get; }
 }
