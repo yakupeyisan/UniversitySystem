@@ -2,17 +2,19 @@ using Core.Domain.Events;
 
 namespace Identity.Domain.Events;
 
+/// <summary>
+/// Durumu deðiþtirildi event'i
+/// </summary>
 public class UserStatusChangedEvent : DomainEvent
 {
-    public UserStatusChangedEvent(Guid userId, string email, int status)
+    public UserStatusChangedEvent(Guid userId, string newStatus)
     {
         UserId = userId;
-        Email = email;
-        Status = status;
+        NewStatus = newStatus;
+        OccurredOn = DateTime.UtcNow;
     }
 
     public Guid UserId { get; }
-    public string Email { get; }
-    public int Status { get; }
-    public DateTime OccurredOn { get; } = DateTime.UtcNow;
+    public string NewStatus { get; }
+    public DateTime OccurredOn { get; }
 }

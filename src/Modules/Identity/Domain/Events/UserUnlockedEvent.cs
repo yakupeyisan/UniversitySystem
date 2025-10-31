@@ -2,9 +2,12 @@ using Core.Domain.Events;
 
 namespace Identity.Domain.Events;
 
+/// <summary>
+/// Kullanýcý hesabý açýldý event'i
+/// </summary>
 public class UserUnlockedEvent : DomainEvent
 {
-    public UserUnlockedEvent(Guid userId, string reason = "")
+    public UserUnlockedEvent(Guid userId, string reason)
     {
         UserId = userId;
         Reason = reason;

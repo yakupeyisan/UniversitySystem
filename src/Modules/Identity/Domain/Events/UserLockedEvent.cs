@@ -3,18 +3,19 @@ using Identity.Domain.Enums;
 
 namespace Identity.Domain.Events;
 
+/// <summary>
+/// Kullanýcý hesabý kilitlendi event'i
+/// </summary>
 public class UserLockedEvent : DomainEvent
 {
-    public UserLockedEvent(Guid userId, AccountLockoutReason reason, string details = "")
+    public UserLockedEvent(Guid userId, string reason)
     {
         UserId = userId;
         Reason = reason;
-        Details = details;
         OccurredOn = DateTime.UtcNow;
     }
 
     public Guid UserId { get; }
-    public AccountLockoutReason Reason { get; }
-    public string Details { get; }
+    public string Reason { get; }
     public DateTime OccurredOn { get; }
 }

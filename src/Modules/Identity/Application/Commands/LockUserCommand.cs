@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.Application.Abstractions;
 using Core.Domain.Repositories;
 using Core.Domain.Results;
 using Identity.Application.DTOs;
@@ -26,6 +27,7 @@ public class LockUserCommand : IRequest<Result<UserDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
         private readonly IRepository<User>
             _userRepository;
@@ -34,11 +36,12 @@ public class LockUserCommand : IRequest<Result<UserDto>>
             IRepository<User>
                 userRepository,
             IMapper mapper,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger, ICurrentUserService currentUserService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserDto>> Handle(
@@ -56,7 +59,7 @@ public class LockUserCommand : IRequest<Result<UserDto>>
                     return Result<UserDto>.Failure("User not found");
                 }
 
-                user.LockAccount(request.Reason);
+                user.LockAccount(_currentUserService.UserId, request.Reason);
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
 
