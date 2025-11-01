@@ -5,9 +5,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetHealthRecordQuery : IRequest<Result<PersonResponse>>
 {
     public GetHealthRecordQuery(Guid personId)
@@ -16,17 +14,13 @@ public class GetHealthRecordQuery : IRequest<Result<PersonResponse>>
             throw new ArgumentException("Person ID cannot be empty", nameof(personId));
         PersonId = personId;
     }
-
     public Guid PersonId { get; set; }
-
     public class Handler : IRequestHandler<GetHealthRecordQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -34,7 +28,6 @@ public class GetHealthRecordQuery : IRequest<Result<PersonResponse>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetHealthRecordQuery request,
             CancellationToken cancellationToken)
@@ -49,7 +42,6 @@ public class GetHealthRecordQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Person with ID {request.PersonId} not found");
                 }
-
                 if (person.HealthRecord == null)
                 {
                     _logger.LogWarning(
@@ -58,7 +50,6 @@ public class GetHealthRecordQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Health record for person {request.PersonId} does not exist");
                 }
-
                 var response = _mapper.Map<PersonResponse>(person);
                 _logger.LogInformation(
                     "Successfully retrieved health record for person: {PersonId}",

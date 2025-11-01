@@ -7,25 +7,20 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
 {
     public ScheduleExamCommand(ScheduleExamRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public ScheduleExamRequest Request { get; set; }
-
     public class Handler : IRequestHandler<ScheduleExamCommand, Result<ExamResponse>>
     {
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Exam> examRepository,
             IRepository<Course> courseRepository,
@@ -37,7 +32,6 @@ public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<ExamResponse>> Handle(
             ScheduleExamCommand request,
             CancellationToken cancellationToken)
@@ -58,7 +52,6 @@ public class ScheduleExamCommand : IRequest<Result<ExamResponse>>
                     return Result<ExamResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
-
                 if (!DateOnly.TryParse(request.Request.ExamDate, out var examDate))
                     return Result<ExamResponse>.Failure("Invalid exam date format (yyyy-MM-dd)");
                 var timeSlot = TimeSlot.Create(

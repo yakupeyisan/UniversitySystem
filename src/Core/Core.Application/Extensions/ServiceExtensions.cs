@@ -4,9 +4,7 @@ using Core.Application.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-
 namespace Core.Application.Extensions;
-
 public static class ServiceExtensions
 {
     public static IServiceCollection AddCoreApplication(

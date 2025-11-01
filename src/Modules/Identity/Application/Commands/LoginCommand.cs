@@ -7,32 +7,24 @@ using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Commands;
-
 public class LoginCommand : IRequest<Result<LoginResponse>>
 {
     public LoginCommand(LoginRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public LoginRequest Request { get; set; }
-
     public class Handler : IRequestHandler<LoginCommand, Result<LoginResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IPasswordHasher _passwordHasher;
-
         private readonly IRepository<RefreshToken>
             _refreshTokenRepository;
-
         private readonly ITokenService _tokenService;
-
         private readonly IRepository<User>
             _userRepository;
-
         public Handler(
             IRepository<User>
                 userRepository,
@@ -51,7 +43,6 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<LoginResponse>> Handle(
             LoginCommand request,
             CancellationToken cancellationToken)
@@ -61,8 +52,6 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
                 _logger.LogInformation(
                     "Login attempt for email: {Email}",
                     request.Request.Email);
-
-                // Find user by email
                 var user = await _userRepository.GetAsync(new UserByEmailSpecification(request.Request.Email),
                     cancellationToken);
                 if (user == null)
@@ -70,34 +59,25 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
                     _logger.LogWarning("Login failed - user not found for email: {Email}", request.Request.Email);
                     return Result<LoginResponse>.Failure("Invalid email or password");
                 }
-
-                // Check if user is deleted
                 if (user.IsDeleted)
                 {
                     _logger.LogWarning("Login failed - user account deleted: {Email}", request.Request.Email);
                     return Result<LoginResponse>.Failure("User account does not exist");
                 }
-
-                // Check if user account is locked
                 if (user.IsLocked)
                 {
                     _logger.LogWarning("Login failed - user account locked: {Email}", request.Request.Email);
                     return Result<LoginResponse>.Failure("Account is locked. Please try again later");
                 }
-
-                // Check if user is active
                 if (!user.IsActive)
                 {
                     _logger.LogWarning("Login failed - user account inactive: {Email}", request.Request.Email);
                     return Result<LoginResponse>.Failure("User account is not active");
                 }
-
-                // Verify password
                 var passwordValid = _passwordHasher.VerifyPassword(
                     request.Request.Password,
                     user.PasswordHash.HashedPassword,
                     user.PasswordHash.Salt);
-
                 if (!passwordValid)
                 {
                     _logger.LogWarning("Login failed - invalid password for email: {Email}", request.Request.Email);
@@ -106,27 +86,20 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
                     await _userRepository.SaveChangesAsync(cancellationToken);
                     return Result<LoginResponse>.Failure("Invalid email or password");
                 }
-
-                // Record successful login
                 user.RecordSuccessfulLogin();
                 await _userRepository.UpdateAsync(user, cancellationToken);
-
-                // Generate tokens
                 var accessToken = _tokenService.GenerateAccessToken(user);
                 var refreshTokenString = _tokenService.GenerateRefreshToken();
                 var refreshTokenEntity = RefreshToken.Create(
                     user.Id,
                     refreshTokenString,
                     DateTime.UtcNow.AddDays(7),
-                    "", // IP Address - set from middleware
-                    ""); // User Agent - set from middleware
-
+                    "",
+                    "");
                 user.AddRefreshToken(refreshTokenEntity);
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation("User successfully logged in: {Email}", request.Request.Email);
-
                 var response = new LoginResponse
                 {
                     AccessToken = accessToken,
@@ -134,7 +107,6 @@ public class LoginCommand : IRequest<Result<LoginResponse>>
                     ExpiresIn = _tokenService.AccessTokenExpirationSeconds,
                     User = _mapper.Map<UserDto>(user)
                 };
-
                 return Result<LoginResponse>.Success(response);
             }
             catch (Exception ex)

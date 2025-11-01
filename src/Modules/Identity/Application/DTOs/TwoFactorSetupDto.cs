@@ -1,8 +1,4 @@
 namespace Identity.Application.DTOs;
-
-/// <summary>
-/// 2FA Kurulum DTO
-/// </summary>
 public class TwoFactorSetupDto
 {
     public Guid UserId { get; set; }

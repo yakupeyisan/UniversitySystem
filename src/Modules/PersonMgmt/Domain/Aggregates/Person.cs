@@ -4,19 +4,15 @@ using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
 using PersonMgmt.Domain.ValueObjects;
-
 namespace PersonMgmt.Domain.Aggregates;
-
 public class Person : AuditableEntity, ISoftDelete
 {
     private readonly List<Address> _addresses = new();
     private readonly List<EmergencyContact> _emergencyContacts = new();
     private readonly List<PersonRestriction> _restrictions = new();
-
     private Person()
     {
     }
-
     public Guid? DepartmentId { get; private set; }
     public PersonName Name { get; private set; } = null!;
     public string IdentificationNumber { get; private set; } = null!;
@@ -26,18 +22,14 @@ public class Person : AuditableEntity, ISoftDelete
     public string PhoneNumber { get; private set; } = null!;
     public string? ProfilePhotoUrl { get; private set; }
     public Student? Student { get; private set; }
-
     public Staff? Staff { get; private set; }
-
     public HealthRecord? HealthRecord { get; private set; }
-
     public IReadOnlyList<Address> Addresses => _addresses.AsReadOnly();
     public IReadOnlyList<EmergencyContact> EmergencyContacts => _emergencyContacts.AsReadOnly();
     public IReadOnlyCollection<PersonRestriction> Restrictions => _restrictions.AsReadOnly();
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
@@ -56,7 +48,6 @@ public class Person : AuditableEntity, ISoftDelete
             DateTime.UtcNow
         ));
     }
-
     public void Restore()
     {
         IsDeleted = false;
@@ -69,7 +60,6 @@ public class Person : AuditableEntity, ISoftDelete
         foreach (var address in _addresses) address.Restore();
         foreach (var restriction in _restrictions) restriction.Restore();
     }
-
     public static Person Create(
         string firstName,
         string lastName,
@@ -107,17 +97,14 @@ public class Person : AuditableEntity, ISoftDelete
         ));
         return person;
     }
-
     public Address? GetCurrentAddress()
     {
         return _addresses.FirstOrDefault(a => a.IsCurrent && a.IsActive);
     }
-
     public IEnumerable<Address> GetAddressHistory()
     {
         return _addresses.Where(a => !a.IsCurrent && !a.IsDeleted).OrderByDescending(a => a.ValidTo);
     }
-
     public void AddAddress(Address address)
     {
         if (address.PersonId != Id)
@@ -126,13 +113,11 @@ public class Person : AuditableEntity, ISoftDelete
         _addresses.Add(address);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void AddTurkishAddress(string street, string city, string? postalCode = null)
     {
         var address = Address.CreateTurkish(Id, street, city, postalCode);
         AddAddress(address);
     }
-
     public void DeleteAddress(Guid addressId, Guid deletedBy)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
@@ -141,7 +126,6 @@ public class Person : AuditableEntity, ISoftDelete
         address.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void RestoreAddress(Guid addressId)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
@@ -150,7 +134,6 @@ public class Person : AuditableEntity, ISoftDelete
         address.Restore();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void EnrollAsStudent(
         string studentNumber,
         EducationLevel educationLevel,
@@ -171,7 +154,6 @@ public class Person : AuditableEntity, ISoftDelete
             enrollmentDate
         ));
     }
-
     public void HireAsStaff(
         string employeeNumber,
         AcademicTitle academicTitle,
@@ -190,7 +172,6 @@ public class Person : AuditableEntity, ISoftDelete
             hireDate
         ));
     }
-
     public void CreateOrUpdateHealthRecord(
         string? bloodType = null,
         string? allergies = null,
@@ -220,10 +201,8 @@ public class Person : AuditableEntity, ISoftDelete
             if (!string.IsNullOrEmpty(notes))
                 HealthRecord.UpdateNotes(notes);
         }
-
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void UpdatePersonalInfo(
         string email,
         string phoneNumber,
@@ -247,7 +226,6 @@ public class Person : AuditableEntity, ISoftDelete
             UpdatedAt.Value
         ));
     }
-
     public void AddRestriction(
         RestrictionType restrictionType,
         RestrictionLevel restrictionLevel,
@@ -270,7 +248,6 @@ public class Person : AuditableEntity, ISoftDelete
         _restrictions.Add(restriction);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void RemoveRestriction(Guid restrictionId, Guid deletedBy)
     {
         var restriction = _restrictions.FirstOrDefault(r => r.Id == restrictionId);
@@ -279,19 +256,16 @@ public class Person : AuditableEntity, ISoftDelete
         restriction.Delete(deletedBy);
         UpdatedAt = DateTime.UtcNow;
     }
-
     public IEnumerable<PersonRestriction> GetActiveRestrictions()
     {
         return _restrictions.Where(r => r.IsCurrentlyActive()).ToList();
     }
-
     public bool HasActiveRestrictionAtLevel(RestrictionLevel level)
     {
         return _restrictions.Any(r =>
             r.IsCurrentlyActive() && r.RestrictionLevel == level
         );
     }
-
     public void UpdateProfilePhoto(string photoUrl)
     {
         if (string.IsNullOrWhiteSpace(photoUrl))
@@ -299,9 +273,7 @@ public class Person : AuditableEntity, ISoftDelete
         ProfilePhotoUrl = photoUrl;
         UpdatedAt = DateTime.UtcNow;
     }
-
     #region Validation
-
     private static void ValidateBasicInfo(
         string firstName,
         string lastName,
@@ -321,7 +293,6 @@ public class Person : AuditableEntity, ISoftDelete
             throw new ArgumentException("Phone number cannot be empty", nameof(phoneNumber));
         ValidateEmail(email);
     }
-
     private static void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -336,12 +307,10 @@ public class Person : AuditableEntity, ISoftDelete
         if (email.StartsWith(".") || email.EndsWith("."))
             throw new ArgumentException("Email format is invalid", nameof(email));
     }
-
     private static void ValidateBirthDate(DateTime birthDate)
     {
         if (birthDate > DateTime.UtcNow)
             throw new ArgumentException("Birth date cannot be in the future", nameof(birthDate));
     }
-
     #endregion
 }

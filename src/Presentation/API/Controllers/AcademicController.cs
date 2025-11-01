@@ -4,9 +4,7 @@ using Academic.Application.Queries.Courses;
 using Core.Domain.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-
 namespace API.Controllers;
-
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
@@ -14,13 +12,11 @@ public class AcademicController : ControllerBase
 {
     private readonly ILogger<AcademicController> _logger;
     private readonly IMediator _mediator;
-
     public AcademicController(IMediator mediator, ILogger<AcademicController> logger)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-
     [HttpGet("courses")]
     [ProducesResponseType(typeof(PagedList<CourseListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllCourses(
@@ -41,7 +37,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/{id}")]
     [ProducesResponseType(typeof(CourseResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,7 +57,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/code/{courseCode}")]
     [ProducesResponseType(typeof(CourseResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -83,7 +77,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/department/{departmentId}")]
     [ProducesResponseType(typeof(PagedList<CourseListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCoursesByDepartment(
@@ -105,7 +98,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/available")]
     [ProducesResponseType(typeof(IEnumerable<CourseListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAvailableCourses()
@@ -123,7 +115,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPost("courses")]
     [ProducesResponseType(typeof(CourseResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -146,7 +137,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/courses")]
     [ProducesResponseType(typeof(StudentCoursesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -171,7 +161,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPost("enrollments/enroll")]
     [ProducesResponseType(typeof(CourseRegistrationResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -196,7 +185,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpDelete("enrollments/drop-course")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -220,7 +208,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/exams")]
     [ProducesResponseType(typeof(IEnumerable<ExamResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudentExams(Guid studentId)
@@ -238,7 +225,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/{courseId}/exams")]
     [ProducesResponseType(typeof(IEnumerable<ExamResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseExams(Guid courseId)
@@ -256,7 +242,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("exams/date-range")]
     [ProducesResponseType(typeof(IEnumerable<ExamResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetExamsByDateRange(
@@ -276,7 +261,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/grades")]
     [ProducesResponseType(typeof(StudentGradesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -297,7 +281,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/grades/semester/{semester}")]
     [ProducesResponseType(typeof(IEnumerable<GradeResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudentGradesBySemester(Guid studentId, string semester)
@@ -316,7 +299,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/grades/course/{courseId}")]
     [ProducesResponseType(typeof(GradeResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -339,7 +321,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPut("grades/update")]
     [ProducesResponseType(typeof(GradeResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -363,7 +344,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPost("grade-objections")]
     [ProducesResponseType(typeof(GradeObjectionResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -386,7 +366,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/grade-objections")]
     [ProducesResponseType(typeof(IEnumerable<GradeObjectionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudentGradeObjections(Guid studentId)
@@ -404,7 +383,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("grade-objections/pending")]
     [ProducesResponseType(typeof(IEnumerable<GradeObjectionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingGradeObjections()
@@ -422,7 +400,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPut("grade-objections/approve")]
     [ProducesResponseType(typeof(GradeObjectionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -445,7 +422,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPut("grade-objections/{objectionId}/reject")]
     [ProducesResponseType(typeof(GradeObjectionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -470,7 +446,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpPost("waiting-list/join")]
     [ProducesResponseType(typeof(CourseWaitingListEntryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -495,7 +470,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("courses/{courseId}/waiting-list")]
     [ProducesResponseType(typeof(IEnumerable<CourseWaitingListEntryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseWaitingList(Guid courseId)
@@ -513,7 +487,6 @@ public class AcademicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
-
     [HttpGet("students/{studentId}/waiting-list-positions")]
     [ProducesResponseType(typeof(IEnumerable<CourseWaitingListEntryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStudentWaitingListPositions(Guid studentId)

@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-
 namespace PersonMgmt.Application.Commands;
-
 public class AddRestrictionCommand : IRequest<Result<Unit>>
 {
     public AddRestrictionCommand(Guid personId, Guid appliedBy, AddRestrictionRequest request)
@@ -17,19 +15,15 @@ public class AddRestrictionCommand : IRequest<Result<Unit>>
         AppliedBy = appliedBy;
         Request = request;
     }
-
     public Guid PersonId { get; set; }
     public Guid AppliedBy { get; set; }
     public AddRestrictionRequest Request { get; set; }
-
     public class Handler : IRequestHandler<AddRestrictionCommand, Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -37,7 +31,6 @@ public class AddRestrictionCommand : IRequest<Result<Unit>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<Unit>> Handle(
             AddRestrictionCommand request,
             CancellationToken cancellationToken)
@@ -52,14 +45,12 @@ public class AddRestrictionCommand : IRequest<Result<Unit>>
                     _logger.LogWarning("Person not found with ID: {PersonId}", request.PersonId);
                     return Result<Unit>.Failure("Person not found");
                 }
-
                 if (request.Request.EndDate.HasValue &&
                     request.Request.EndDate <= request.Request.StartDate)
                 {
                     _logger.LogWarning("EndDate must be after StartDate");
                     return Result<Unit>.Failure("End date must be after start date");
                 }
-
                 var restrictionType = (RestrictionType)request.Request.RestrictionType;
                 var restrictionLevel = (RestrictionLevel)request.Request.RestrictionLevel;
                 person.AddRestriction(

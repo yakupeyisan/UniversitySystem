@@ -1,5 +1,4 @@
 namespace PersonMgmt.Application.DTOs;
-
 public class HireStaffRequest
 {
     public string EmployeeNumber { get; set; }

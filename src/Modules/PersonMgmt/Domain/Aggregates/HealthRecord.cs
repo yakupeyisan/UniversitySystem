@@ -1,14 +1,11 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
-
 public class HealthRecord : AuditableEntity, ISoftDelete
 {
     private HealthRecord()
     {
     }
-
     public Guid PersonId { get; private set; }
     public string? BloodType { get; private set; }
     public string? Allergies { get; private set; }
@@ -17,7 +14,6 @@ public class HealthRecord : AuditableEntity, ISoftDelete
     public string? EmergencyHealthInfo { get; private set; }
     public string? Notes { get; private set; }
     public DateTime? LastCheckupDate { get; private set; }
-
     public bool IsEmpty =>
         string.IsNullOrEmpty(BloodType) &&
         string.IsNullOrEmpty(Allergies) &&
@@ -25,11 +21,9 @@ public class HealthRecord : AuditableEntity, ISoftDelete
         string.IsNullOrEmpty(Medications) &&
         string.IsNullOrEmpty(EmergencyHealthInfo) &&
         string.IsNullOrEmpty(Notes);
-
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
@@ -38,7 +32,6 @@ public class HealthRecord : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         IsDeleted = false;
@@ -46,7 +39,6 @@ public class HealthRecord : AuditableEntity, ISoftDelete
         DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static HealthRecord Create(
         Guid personId,
         string? bloodType = null,
@@ -72,47 +64,40 @@ public class HealthRecord : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
-
     public void UpdateBloodType(string? bloodType)
     {
         BloodType = string.IsNullOrEmpty(bloodType) ? null : bloodType.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
-
     public void UpdateAllergies(string? allergies)
     {
         Allergies = string.IsNullOrEmpty(allergies) ? null : allergies.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
-
     public void UpdateChronicDiseases(string? chronicDiseases)
     {
         ChronicDiseases = string.IsNullOrEmpty(chronicDiseases) ? null : chronicDiseases.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
-
     public void UpdateMedications(string? medications)
     {
         Medications = string.IsNullOrEmpty(medications) ? null : medications.Trim();
         UpdatedAt = DateTime.UtcNow;
         LastCheckupDate = DateTime.UtcNow;
     }
-
     public void UpdateEmergencyHealthInfo(string? emergencyHealthInfo)
     {
         EmergencyHealthInfo = string.IsNullOrEmpty(emergencyHealthInfo) ? null : emergencyHealthInfo.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void UpdateNotes(string? notes)
     {
         Notes = string.IsNullOrEmpty(notes) ? null : notes.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void ClearAllHealthInfo()
     {
         BloodType = null;

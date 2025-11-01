@@ -1,8 +1,6 @@
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
-
 namespace PersonMgmt.Domain.Specifications;
-
 public class PersonsByDepartmentSpecification : Specification<Person>
 {
     public PersonsByDepartmentSpecification(Guid departmentId)

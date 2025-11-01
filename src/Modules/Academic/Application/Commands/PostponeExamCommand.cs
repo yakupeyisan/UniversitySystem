@@ -6,24 +6,19 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class PostponeExamCommand : IRequest<Result<ExamResponse>>
 {
     public PostponeExamCommand(PostponeExamRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public PostponeExamRequest Request { get; set; }
-
     public class Handler : IRequestHandler<PostponeExamCommand, Result<ExamResponse>>
     {
         private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Exam> examRepository,
             IMapper mapper,
@@ -33,7 +28,6 @@ public class PostponeExamCommand : IRequest<Result<ExamResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<ExamResponse>> Handle(
             PostponeExamCommand request,
             CancellationToken cancellationToken)
@@ -54,7 +48,6 @@ public class PostponeExamCommand : IRequest<Result<ExamResponse>>
                     return Result<ExamResponse>.Failure(
                         $"Exam with ID {request.Request.ExamId} not found");
                 }
-
                 if (!DateOnly.TryParse(request.Request.NewExamDate, out var newDate))
                     return Result<ExamResponse>.Failure("Invalid exam date format (yyyy-MM-dd)");
                 var newTimeSlot = TimeSlot.Create(

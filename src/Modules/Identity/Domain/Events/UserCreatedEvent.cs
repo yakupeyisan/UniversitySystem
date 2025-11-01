@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
 public class UserCreatedEvent : DomainEvent
 {
     public UserCreatedEvent(Guid userId, string email, string firstName, string lastName)
@@ -11,7 +9,6 @@ public class UserCreatedEvent : DomainEvent
         FirstName = firstName;
         LastName = lastName;
     }
-
     public Guid UserId { get; }
     public string Email { get; }
     public string FirstName { get; }

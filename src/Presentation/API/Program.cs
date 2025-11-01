@@ -9,7 +9,6 @@ using PersonMgmt.Application.Extensions;
 using Serilog;
 using Shared.Infrastructure.Extensions;
 using Shared.Infrastructure.Persistence.Contexts;
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -105,7 +104,6 @@ try
             c.RoutePrefix = string.Empty;
         });
     }
-
     app.MapControllers();
     app.MapHealthChecks("/health");
     if (app.Environment.IsDevelopment())
@@ -124,7 +122,6 @@ try
                 throw;
             }
         }
-
     Log.Information("Application started successfully");
     await app.RunAsync();
 }

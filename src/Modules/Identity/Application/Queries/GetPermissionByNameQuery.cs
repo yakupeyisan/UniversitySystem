@@ -6,29 +6,22 @@ using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Queries;
-
 public class GetPermissionByNameQuery : IRequest<Result<PermissionDto>>
 {
     public GetPermissionByNameQuery(string permissionName)
     {
         if (string.IsNullOrWhiteSpace(permissionName))
             throw new ArgumentException("Permission name cannot be empty", nameof(permissionName));
-
         PermissionName = permissionName.Trim();
     }
-
     public string PermissionName { get; set; } = string.Empty;
-
     public class Handler : IRequestHandler<GetPermissionByNameQuery, Result<PermissionDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Permission>
             _permissionRepository;
-
         public Handler(
             IRepository<Permission>
                 permissionRepository,
@@ -40,7 +33,6 @@ public class GetPermissionByNameQuery : IRequest<Result<PermissionDto>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<PermissionDto>> Handle(
             GetPermissionByNameQuery request,
             CancellationToken cancellationToken)
@@ -48,16 +40,13 @@ public class GetPermissionByNameQuery : IRequest<Result<PermissionDto>>
             try
             {
                 _logger.LogInformation("Fetching permission by name: {PermissionName}", request.PermissionName);
-
                 var spec = new PermissionByNameSpecification(request.PermissionName);
                 var permission = await _permissionRepository.GetAsync(spec, cancellationToken);
-
                 if (permission == null)
                 {
                     _logger.LogWarning("Permission not found: {PermissionName}", request.PermissionName);
                     return Result<PermissionDto>.Failure("Permission not found");
                 }
-
                 return Result<PermissionDto>.Success(_mapper.Map<PermissionDto>(permission));
             }
             catch (Exception ex)

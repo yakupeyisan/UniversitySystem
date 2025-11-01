@@ -3,9 +3,7 @@ using Core.Domain.Filtering;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Filtering;
-
 namespace PersonMgmt.Domain.Specifications;
-
 public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Person>
 {
     public GetPersonsWithFiltersSpecification()
@@ -19,7 +17,6 @@ public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Pers
         );
         ApplyOrderBy(p => p.Name);
     }
-
     public GetPersonsWithFiltersSpecification(string? filterString)
         : base(filterString, new FilterParser<Person>(null, new PersonFilterWhitelist()))
     {
@@ -32,7 +29,6 @@ public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Pers
         );
         ApplyOrderBy(p => p.Name);
     }
-
     public GetPersonsWithFiltersSpecification(
         string? filterString,
         Expression<Func<Person, object>>? orderBy = null,
@@ -64,7 +60,6 @@ public class GetPersonsWithFiltersSpecification : BaseFilteredSpecification<Pers
             ApplyOrderBy(p => p.Name);
         }
     }
-
     public GetPersonsWithFiltersSpecification(
         string? filterString,
         int pageNumber,

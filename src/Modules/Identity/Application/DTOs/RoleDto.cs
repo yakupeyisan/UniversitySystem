@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class RoleDto
 {
     public Guid Id { get; set; }

@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class TokenResponse
 {
     public string AccessToken { get; set; } = string.Empty;

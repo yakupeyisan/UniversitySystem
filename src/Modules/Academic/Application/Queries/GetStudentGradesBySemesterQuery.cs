@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetStudentGradesBySemesterQuery : IRequest<Result<IEnumerable<GradeResponse>>>
 {
     public GetStudentGradesBySemesterQuery(Guid studentId, string semester)
@@ -20,18 +18,14 @@ public class GetStudentGradesBySemesterQuery : IRequest<Result<IEnumerable<Grade
         StudentId = studentId;
         Semester = semester;
     }
-
     public Guid StudentId { get; set; }
     public string Semester { get; set; }
-
     public class Handler : IRequestHandler<GetStudentGradesBySemesterQuery, Result<IEnumerable<GradeResponse>>>
     {
         private readonly IRepository<Grade>
             _gradeRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(IRepository<Grade>
             gradeRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -39,7 +33,6 @@ public class GetStudentGradesBySemesterQuery : IRequest<Result<IEnumerable<Grade
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<GradeResponse>>> Handle(
             GetStudentGradesBySemesterQuery request,
             CancellationToken cancellationToken)

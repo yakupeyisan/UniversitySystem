@@ -2,15 +2,12 @@ using Academic.Domain.Enums;
 using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Aggregates;
-
 public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
 {
     private PrerequisiteWaiver()
     {
     }
-
     public Guid StudentId { get; private set; }
     public Guid PrerequisiteId { get; private set; }
     public Guid CourseId { get; private set; }
@@ -25,17 +22,14 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }
-
     public void Delete(Guid deletedBy)
     {
         throw new NotImplementedException();
     }
-
     public void Restore()
     {
         throw new NotImplementedException();
     }
-
     public static PrerequisiteWaiver Create(
         Guid studentId,
         Guid prerequisiteId,
@@ -63,7 +57,6 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
         };
         return waiver;
     }
-
     public void SubmitForReview()
     {
         if (Status != PrerequisiteWaiverStatus.Submitted)
@@ -71,7 +64,6 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
         Status = PrerequisiteWaiverStatus.UnderReview;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Approve(Guid approvedBy, string? notes = null, int validityDays = 180)
     {
         if (Status == PrerequisiteWaiverStatus.Approved)
@@ -88,7 +80,6 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
             PrerequisiteId,
             CourseId));
     }
-
     public void Deny(Guid reviewedBy, string? notes = null)
     {
         if (Status == PrerequisiteWaiverStatus.Denied)
@@ -98,7 +89,6 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
         ApprovalNotes = notes;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Withdraw()
     {
         if (Status == PrerequisiteWaiverStatus.Withdrawn)
@@ -106,27 +96,22 @@ public class PrerequisiteWaiver : AuditableEntity, ISoftDelete
         Status = PrerequisiteWaiverStatus.Withdrawn;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool IsApproved()
     {
         return Status == PrerequisiteWaiverStatus.Approved;
     }
-
     public bool IsValid()
     {
         return IsApproved() && DateTime.UtcNow <= ExpiryDate;
     }
-
     public bool IsExpired()
     {
         return IsApproved() && DateTime.UtcNow > ExpiryDate;
     }
-
     public bool IsPending()
     {
         return Status == PrerequisiteWaiverStatus.UnderReview;
     }
-
     public bool CanBeWithdrawn()
     {
         return Status is not (PrerequisiteWaiverStatus.Approved or PrerequisiteWaiverStatus.Withdrawn);

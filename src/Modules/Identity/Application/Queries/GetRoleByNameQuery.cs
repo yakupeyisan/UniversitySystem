@@ -6,29 +6,22 @@ using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Queries;
-
 public class GetRoleByNameQuery : IRequest<Result<RoleDto>>
 {
     public GetRoleByNameQuery(string roleName)
     {
         if (string.IsNullOrWhiteSpace(roleName))
             throw new ArgumentException("Role name cannot be empty", nameof(roleName));
-
         RoleName = roleName.Trim();
     }
-
     public string RoleName { get; set; } = string.Empty;
-
     public class Handler : IRequestHandler<GetRoleByNameQuery, Result<RoleDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Role>
             _roleRepository;
-
         public Handler(
             IRepository<Role>
                 roleRepository,
@@ -39,7 +32,6 @@ public class GetRoleByNameQuery : IRequest<Result<RoleDto>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<RoleDto>> Handle(
             GetRoleByNameQuery request,
             CancellationToken cancellationToken)
@@ -47,16 +39,13 @@ public class GetRoleByNameQuery : IRequest<Result<RoleDto>>
             try
             {
                 _logger.LogInformation("Fetching role by name: {RoleName}", request.RoleName);
-
                 var spec = new RoleByNameSpecification(request.RoleName);
                 var role = await _roleRepository.GetAsync(spec, cancellationToken);
-
                 if (role == null)
                 {
                     _logger.LogWarning("Role not found: {RoleName}", request.RoleName);
                     return Result<RoleDto>.Failure("Role not found");
                 }
-
                 return Result<RoleDto>.Success(_mapper.Map<RoleDto>(role));
             }
             catch (Exception ex)

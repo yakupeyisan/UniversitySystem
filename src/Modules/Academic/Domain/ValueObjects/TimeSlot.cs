@@ -1,7 +1,5 @@
 using Core.Domain.ValueObjects;
-
 namespace Academic.Domain.ValueObjects;
-
 public class TimeSlot : ValueObject
 {
     private TimeSlot(TimeOnly startTime, TimeOnly endTime)
@@ -10,11 +8,9 @@ public class TimeSlot : ValueObject
         EndTime = endTime;
         DurationMinutes = (int)(endTime - startTime).TotalMinutes;
     }
-
     public TimeOnly StartTime { get; }
     public TimeOnly EndTime { get; }
     public int DurationMinutes { get; }
-
     public static TimeSlot Create(TimeOnly startTime, TimeOnly endTime)
     {
         if (endTime <= startTime)
@@ -26,7 +22,6 @@ public class TimeSlot : ValueObject
             throw new ArgumentException("Time slot duration cannot exceed 8 hours");
         return new TimeSlot(startTime, endTime);
     }
-
     public static TimeSlot Create(string startTimeString, string endTimeString)
     {
         if (!TimeOnly.TryParse(startTimeString, out var startTime))
@@ -35,22 +30,18 @@ public class TimeSlot : ValueObject
             throw new ArgumentException("Invalid end time format. Use HH:mm");
         return Create(startTime, endTime);
     }
-
     public bool OverlapsWith(TimeSlot other)
     {
         return StartTime < other.EndTime && EndTime > other.StartTime;
     }
-
     public bool Contains(TimeOnly time)
     {
         return time >= StartTime && time < EndTime;
     }
-
     public override string ToString()
     {
         return $"{StartTime:HH:mm} - {EndTime:HH:mm}";
     }
-
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return StartTime;

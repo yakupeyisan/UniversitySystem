@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetStudentGradesQuery : IRequest<Result<StudentGradesResponse>>
 {
     public GetStudentGradesQuery(Guid studentId)
@@ -17,17 +15,13 @@ public class GetStudentGradesQuery : IRequest<Result<StudentGradesResponse>>
             throw new ArgumentException("Student ID cannot be empty", nameof(studentId));
         StudentId = studentId;
     }
-
     public Guid StudentId { get; set; }
-
     public class Handler : IRequestHandler<GetStudentGradesQuery, Result<StudentGradesResponse>>
     {
         private readonly IRepository<Grade>
             _gradeRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Grade>
                 gradeRepository,
@@ -38,7 +32,6 @@ public class GetStudentGradesQuery : IRequest<Result<StudentGradesResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<StudentGradesResponse>> Handle(
             GetStudentGradesQuery request,
             CancellationToken cancellationToken)

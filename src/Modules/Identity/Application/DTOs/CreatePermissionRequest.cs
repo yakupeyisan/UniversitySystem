@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class CreatePermissionRequest
 {
     public string PermissionName { get; set; } = string.Empty;

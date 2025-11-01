@@ -2,9 +2,7 @@ using Academic.Application.DTOs;
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using AutoMapper;
-
 namespace Academic.Application.Mappers;
-
 public class CourseProfile : Profile
 {
     public CourseProfile()

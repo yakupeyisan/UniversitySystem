@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class StudentPromotedFromWaitingList : DomainEvent
 {
     public StudentPromotedFromWaitingList(Guid waitingListEntryId, Guid studentId, Guid courseId)
@@ -10,7 +8,6 @@ public class StudentPromotedFromWaitingList : DomainEvent
         StudentId = studentId;
         CourseId = courseId;
     }
-
     public Guid WaitingListEntryId { get; }
     public Guid StudentId { get; }
     public Guid CourseId { get; }

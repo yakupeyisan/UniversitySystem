@@ -3,15 +3,12 @@ using Academic.Domain.Events;
 using Academic.Domain.ValueObjects;
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Aggregates;
-
 public class Exam : AuditableEntity, ISoftDelete
 {
     private Exam()
     {
     }
-
     public Guid CourseId { get; private set; }
     public ExamType ExamType { get; private set; }
     public DateOnly ExamDate { get; private set; }
@@ -26,7 +23,6 @@ public class Exam : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -37,7 +33,6 @@ public class Exam : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         if (!IsDeleted)
@@ -47,7 +42,6 @@ public class Exam : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static Exam Create(
         Guid courseId,
         ExamType examType,
@@ -91,7 +85,6 @@ public class Exam : AuditableEntity, ISoftDelete
             timeSlot));
         return exam;
     }
-
     public void RegisterStudent()
     {
         if (CurrentRegisteredCount >= MaxCapacity)
@@ -101,7 +94,6 @@ public class Exam : AuditableEntity, ISoftDelete
         CurrentRegisteredCount++;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void UnregisterStudent()
     {
         if (CurrentRegisteredCount <= 0)
@@ -109,7 +101,6 @@ public class Exam : AuditableEntity, ISoftDelete
         CurrentRegisteredCount--;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Start()
     {
         if (Status != ExamStatus.Scheduled)
@@ -117,7 +108,6 @@ public class Exam : AuditableEntity, ISoftDelete
         Status = ExamStatus.InProgress;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Complete()
     {
         if (Status != ExamStatus.InProgress)
@@ -125,7 +115,6 @@ public class Exam : AuditableEntity, ISoftDelete
         Status = ExamStatus.Completed;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Cancel(string reason)
     {
         if (Status == ExamStatus.Cancelled)
@@ -135,7 +124,6 @@ public class Exam : AuditableEntity, ISoftDelete
         Status = ExamStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Postpone(DateOnly newDate, TimeSlot newTimeSlot)
     {
         if (Status == ExamStatus.Completed)
@@ -149,22 +137,18 @@ public class Exam : AuditableEntity, ISoftDelete
         Status = ExamStatus.Postponed;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool HasAvailableSeats()
     {
         return CurrentRegisteredCount < MaxCapacity;
     }
-
     public bool IsCapacityFull()
     {
         return CurrentRegisteredCount >= MaxCapacity;
     }
-
     public bool CanBeRegistered()
     {
         return Status == ExamStatus.Scheduled && HasAvailableSeats();
     }
-
     public void Update(DateOnly newDate, TimeSlot newTimeSlot, Guid? newExamRoomId = null)
     {
         if (Status != ExamStatus.Scheduled)

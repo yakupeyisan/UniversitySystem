@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class PrerequisiteWaiverApproved : DomainEvent
 {
     public PrerequisiteWaiverApproved(Guid waiverId, Guid studentId, Guid prerequisiteId, Guid courseId)
@@ -11,7 +9,6 @@ public class PrerequisiteWaiverApproved : DomainEvent
         PrerequisiteId = prerequisiteId;
         CourseId = courseId;
     }
-
     public Guid WaiverId { get; }
     public Guid StudentId { get; }
     public Guid PrerequisiteId { get; }

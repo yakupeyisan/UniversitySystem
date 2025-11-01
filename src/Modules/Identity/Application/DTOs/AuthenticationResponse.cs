@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class AuthenticationResponse
 {
     public Guid UserId { get; set; }

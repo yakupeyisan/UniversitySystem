@@ -1,8 +1,6 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
-
 public class Address : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; set; }
@@ -13,20 +11,16 @@ public class Address : AuditableEntity, ISoftDelete
     public DateTime ValidFrom { get; set; }
     public DateTime? ValidTo { get; set; }
     public bool IsCurrent { get; set; }
-
     public string FullAddress =>
         $"{Street}, {City}, {Country}" +
         (string.IsNullOrEmpty(PostalCode) ? "" : $", {PostalCode}");
-
     public bool IsActive =>
         IsCurrent &&
         !IsDeleted &&
         (!ValidTo.HasValue || ValidTo > DateTime.UtcNow);
-
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
@@ -35,7 +29,6 @@ public class Address : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         IsDeleted = false;
@@ -43,7 +36,6 @@ public class Address : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static Address Create(
         Guid personId,
         string street,
@@ -66,7 +58,6 @@ public class Address : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
-
     public static Address CreateTurkish(
         Guid personId,
         string street,
@@ -75,7 +66,6 @@ public class Address : AuditableEntity, ISoftDelete
     {
         return Create(personId, street, city, "Turkey", postalCode);
     }
-
     public void Archive()
     {
         if (IsDeleted)
@@ -84,7 +74,6 @@ public class Address : AuditableEntity, ISoftDelete
         IsCurrent = false;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Update(string street, string city, string country, string? postalCode = null)
     {
         ValidateAddress(street, city, country, postalCode);
@@ -94,7 +83,6 @@ public class Address : AuditableEntity, ISoftDelete
         PostalCode = string.IsNullOrEmpty(postalCode) ? null : postalCode.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
-
     private static void ValidateAddress(
         string street,
         string city,
@@ -116,7 +104,6 @@ public class Address : AuditableEntity, ISoftDelete
         if (!string.IsNullOrEmpty(postalCode) && postalCode.Length < 4)
             throw new ArgumentException("Postal code must be at least 4 characters", nameof(postalCode));
     }
-
     public override string ToString()
     {
         return FullAddress;

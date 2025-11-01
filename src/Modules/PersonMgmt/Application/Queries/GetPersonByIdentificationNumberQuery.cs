@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonResponse>>
 {
     public GetPersonByIdentificationNumberQuery(string identificationNumber)
@@ -17,17 +15,13 @@ public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonRespon
             throw new ArgumentException("Identification number cannot be empty", nameof(identificationNumber));
         IdentificationNumber = identificationNumber.Trim();
     }
-
     public string IdentificationNumber { get; set; }
-
     public class Handler : IRequestHandler<GetPersonByIdentificationNumberQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -35,7 +29,6 @@ public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonRespon
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetPersonByIdentificationNumberQuery request,
             CancellationToken cancellationToken)
@@ -56,7 +49,6 @@ public class GetPersonByIdentificationNumberQuery : IRequest<Result<PersonRespon
                     return Result<PersonResponse>.Failure(
                         $"Person with identification number {request.IdentificationNumber} not found");
                 }
-
                 var response = _mapper.Map<PersonResponse>(person);
                 _logger.LogInformation(
                     "Successfully retrieved person by identification number: {IdentificationNumber}",

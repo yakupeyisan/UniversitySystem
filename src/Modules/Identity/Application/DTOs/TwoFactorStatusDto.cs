@@ -1,8 +1,4 @@
 namespace Identity.Application.DTOs;
-
-/// <summary>
-/// 2FA Durumu DTO
-/// </summary>
 public class TwoFactorStatusDto
 {
     public Guid UserId { get; set; }

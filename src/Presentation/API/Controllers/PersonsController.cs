@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PersonMgmt.Application.Commands;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Application.Queries;
-
 namespace API.Controllers;
-
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
@@ -14,13 +12,11 @@ public class PersonsController : ControllerBase
 {
     private readonly ILogger<PersonsController> _logger;
     private readonly IMediator _mediator;
-
     public PersonsController(IMediator mediator, ILogger<PersonsController> logger)
     {
         _mediator = mediator;
         _logger = logger;
     }
-
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -33,7 +29,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPersons(
@@ -46,7 +41,6 @@ public class PersonsController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
-
     [HttpPost]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -59,7 +53,6 @@ public class PersonsController : ControllerBase
             return BadRequest(result);
         return CreatedAtAction(nameof(GetPerson), new { id = result.Value!.Id }, result);
     }
-
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -73,7 +66,6 @@ public class PersonsController : ControllerBase
             return BadRequest(result);
         return Ok(result);
     }
-
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -87,7 +79,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return NoContent();
     }
-
     [HttpGet("search/email")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -100,7 +91,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("search/identification/{identificationNumber}")]
     [ProducesResponseType(typeof(PersonResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -113,7 +103,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("students")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStudents(
@@ -126,7 +115,6 @@ public class PersonsController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
-
     [HttpGet("students/{studentNumber}")]
     [ProducesResponseType(typeof(StudentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -139,7 +127,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("staff")]
     [ProducesResponseType(typeof(PagedList<PersonResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStaff(
@@ -152,7 +139,6 @@ public class PersonsController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
-
     [HttpGet("staff/{employeeNumber}")]
     [ProducesResponseType(typeof(StaffResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -165,7 +151,6 @@ public class PersonsController : ControllerBase
             return NotFound(result);
         return Ok(result);
     }
-
     [HttpGet("{personId}/restrictions")]
     [ProducesResponseType(typeof(IEnumerable<RestrictionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPersonRestrictions(Guid personId)
@@ -175,7 +160,6 @@ public class PersonsController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
-
     [HttpPost("{personId}/restrictions")]
     [ProducesResponseType(typeof(RestrictionResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -189,7 +173,6 @@ public class PersonsController : ControllerBase
             return BadRequest(result);
         return CreatedAtAction(nameof(GetPersonRestrictions), new { personId }, result);
     }
-
     [HttpGet("{personId}/health-record")]
     [ProducesResponseType(typeof(HealthRecordResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

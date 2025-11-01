@@ -1,5 +1,4 @@
 namespace Academic.Domain.Enums;
-
 public enum GradeObjectionStatus
 {
     Submitted = 1,

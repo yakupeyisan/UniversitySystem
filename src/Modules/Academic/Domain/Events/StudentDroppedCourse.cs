@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class StudentDroppedCourse : DomainEvent
 {
     public StudentDroppedCourse(Guid registrationId, Guid studentId, Guid courseId, string reason)
@@ -11,7 +9,6 @@ public class StudentDroppedCourse : DomainEvent
         CourseId = courseId;
         Reason = reason;
     }
-
     public Guid RegistrationId { get; }
     public Guid StudentId { get; }
     public Guid CourseId { get; }

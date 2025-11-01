@@ -7,9 +7,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListResponse>>>
 {
     public GetCoursesByDepartmentQuery(Guid departmentId, PagedRequest pagedRequest)
@@ -19,18 +17,14 @@ public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListR
         DepartmentId = departmentId;
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
     }
-
     public Guid DepartmentId { get; set; }
     public PagedRequest PagedRequest { get; set; }
-
     public class Handler : IRequestHandler<GetCoursesByDepartmentQuery, Result<PagedList<CourseListResponse>>>
     {
         private readonly IRepository<Course>
             _courseRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Course>
                 courseRepository,
@@ -41,7 +35,6 @@ public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListR
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<PagedList<CourseListResponse>>> Handle(
             GetCoursesByDepartmentQuery request,
             CancellationToken cancellationToken)
@@ -53,7 +46,6 @@ public class GetCoursesByDepartmentQuery : IRequest<Result<PagedList<CourseListR
                     _logger.LogWarning("Invalid pagination parameters");
                     return Result<PagedList<CourseListResponse>>.Failure("Invalid pagination parameters");
                 }
-
                 _logger.LogInformation(
                     "Fetching courses for department {DepartmentId} - Page: {PageNumber}, Size: {PageSize}",
                     request.DepartmentId,

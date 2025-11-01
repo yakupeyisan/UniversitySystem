@@ -1,9 +1,7 @@
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Specifications;
-
 public class WaitingListByCourseSpec : Specification<CourseWaitingListEntry>
 {
     public WaitingListByCourseSpec(Guid courseId)

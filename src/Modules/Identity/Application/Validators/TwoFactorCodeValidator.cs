@@ -1,14 +1,12 @@
 using FluentValidation;
-
 namespace Identity.Application.Validators;
-
 public class TwoFactorCodeValidator : AbstractValidator<string>
 {
     public TwoFactorCodeValidator()
     {
         RuleFor(x => x)
-            .NotEmpty().WithMessage("2FA kodu boþ olamaz")
-            .Length(6).WithMessage("2FA kodu 6 rakam olmalý")
-            .Matches("^[0-9]{6}$").WithMessage("2FA kodu sadece rakam içermeli");
+            .NotEmpty().WithMessage("2FA kodu boï¿½ olamaz")
+            .Length(6).WithMessage("2FA kodu 6 rakam olmalï¿½")
+            .Matches("^[0-9]{6}$").WithMessage("2FA kodu sadece rakam iï¿½ermeli");
     }
 }

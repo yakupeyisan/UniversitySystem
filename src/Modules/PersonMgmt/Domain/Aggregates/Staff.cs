@@ -2,21 +2,17 @@ using Core.Domain;
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Events;
-
 namespace PersonMgmt.Domain.Aggregates;
-
 public class Staff : AuditableEntity, ISoftDelete
 {
     private Staff()
     {
     }
-
     public string EmployeeNumber { get; private set; }
     public AcademicTitle AcademicTitle { get; private set; }
     public DateTime HireDate { get; private set; }
     public DateTime? TerminationDate { get; private set; }
     public bool IsActive { get; private set; }
-
     public int YearsOfService
     {
         get
@@ -25,24 +21,19 @@ public class Staff : AuditableEntity, ISoftDelete
             return (endDate - HireDate).Days / 365;
         }
     }
-
     public bool IsProfessional =>
         AcademicTitle == AcademicTitle.Professor ||
         AcademicTitle == AcademicTitle.AssociateProfessor;
-
     public bool IsInManagement =>
         AcademicTitle == AcademicTitle.Professor ||
         AcademicTitle == AcademicTitle.AssociateProfessor;
-
     public bool IsCurrentlyEmployed =>
         IsActive &&
         !IsDeleted &&
         (TerminationDate == null || TerminationDate > DateTime.UtcNow);
-
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         IsActive = false;
@@ -52,7 +43,6 @@ public class Staff : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         IsDeleted = false;
@@ -60,7 +50,6 @@ public class Staff : AuditableEntity, ISoftDelete
         DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static Staff Create(
         string employeeNumber,
         AcademicTitle academicTitle,
@@ -83,27 +72,23 @@ public class Staff : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
-
     public void Activate()
     {
         IsActive = true;
         TerminationDate = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Terminate()
     {
         IsActive = false;
         TerminationDate = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Deactivate()
     {
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void UpdateAcademicTitle(AcademicTitle newTitle)
     {
         if (AcademicTitle == newTitle)
@@ -111,7 +96,6 @@ public class Staff : AuditableEntity, ISoftDelete
         AcademicTitle = newTitle;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void PromoteToNextTitle()
     {
         AcademicTitle = AcademicTitle switch
@@ -126,7 +110,6 @@ public class Staff : AuditableEntity, ISoftDelete
         };
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Terminate(DateTime terminationDate)
     {
         if (terminationDate < HireDate)
@@ -152,7 +135,6 @@ public class Staff : AuditableEntity, ISoftDelete
             DateTime.UtcNow
         ));
     }
-
     public void Rehire(DateTime newHireDate)
     {
         if (!IsDeleted && TerminationDate.HasValue)

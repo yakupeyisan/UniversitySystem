@@ -1,10 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
-/// <summary>
-/// Kullanýcý güncellenmiþ event'i
-/// </summary>
 public class UserUpdatedEvent : DomainEvent
 {
     public UserUpdatedEvent(Guid userId, string email, string firstName, string lastName)
@@ -15,7 +10,6 @@ public class UserUpdatedEvent : DomainEvent
         LastName = lastName;
         OccurredOn = DateTime.UtcNow;
     }
-
     public Guid UserId { get; }
     public string Email { get; }
     public string FirstName { get; }

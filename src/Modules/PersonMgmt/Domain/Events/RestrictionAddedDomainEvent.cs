@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace PersonMgmt.Domain.Events;
-
 public class RestrictionAddedDomainEvent : DomainEvent
 {
     public RestrictionAddedDomainEvent(
@@ -19,7 +17,6 @@ public class RestrictionAddedDomainEvent : DomainEvent
         StartDate = startDate;
         EndDate = endDate;
     }
-
     public Guid PersonId { get; set; }
     public Guid RestrictionId { get; set; }
     public string RestrictionType { get; set; }

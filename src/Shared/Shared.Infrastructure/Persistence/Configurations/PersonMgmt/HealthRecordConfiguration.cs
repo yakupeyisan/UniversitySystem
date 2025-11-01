@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonMgmt.Domain.Aggregates;
-
 namespace Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
-
 public class HealthRecordConfiguration : IEntityTypeConfiguration<HealthRecord>
 {
     public void Configure(EntityTypeBuilder<HealthRecord> builder)

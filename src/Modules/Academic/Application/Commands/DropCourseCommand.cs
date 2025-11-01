@@ -5,23 +5,18 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class DropCourseCommand : IRequest<Result<Unit>>
 {
     public DropCourseCommand(DropCourseRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public DropCourseRequest Request { get; set; }
-
     public class Handler : IRequestHandler<DropCourseCommand, Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IRepository<CourseRegistration> _registrationRepository;
-
         public Handler(
             IRepository<CourseRegistration> registrationRepository,
             ILogger<Handler> logger)
@@ -30,7 +25,6 @@ public class DropCourseCommand : IRequest<Result<Unit>>
                 registrationRepository ?? throw new ArgumentNullException(nameof(registrationRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<Unit>> Handle(
             DropCourseCommand request,
             CancellationToken cancellationToken)
@@ -52,7 +46,6 @@ public class DropCourseCommand : IRequest<Result<Unit>>
                         request.Request.CourseId);
                     return Result<Unit>.Failure("Student is not registered for this course");
                 }
-
                 registration.Drop(request.Request.Reason);
                 await _registrationRepository.UpdateAsync(registration, cancellationToken);
                 await _registrationRepository.SaveChangesAsync(cancellationToken);

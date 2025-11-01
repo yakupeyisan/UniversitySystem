@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace Academic.Domain.Exceptions;
-
 public class CourseCapacityExceededException : DomainException
 {
     public CourseCapacityExceededException(Guid courseId)
@@ -9,7 +7,6 @@ public class CourseCapacityExceededException : DomainException
     {
         CourseId = courseId;
     }
-
     public Guid CourseId { get; }
     public override string ErrorCode => "errors.course.capacity.exceeded";
     public override int StatusCode => 409;

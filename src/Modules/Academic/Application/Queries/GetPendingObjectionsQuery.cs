@@ -7,26 +7,20 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResponse>>>
 {
     public GetPendingObjectionsQuery(PagedRequest? pagedRequest = null)
     {
         PagedRequest = pagedRequest;
     }
-
     public PagedRequest? PagedRequest { get; set; }
-
     public class Handler : IRequestHandler<GetPendingObjectionsQuery, Result<List<GradeObjectionResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<GradeObjection>
             _objectionRepository;
-
         public Handler(
             IRepository<GradeObjection>
                 objectionRepository,
@@ -37,7 +31,6 @@ public class GetPendingObjectionsQuery : IRequest<Result<List<GradeObjectionResp
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<List<GradeObjectionResponse>>> Handle(
             GetPendingObjectionsQuery request,
             CancellationToken cancellationToken)

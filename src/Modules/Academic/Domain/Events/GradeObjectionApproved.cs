@@ -1,8 +1,6 @@
 using Academic.Domain.Enums;
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class GradeObjectionApproved : DomainEvent
 {
     public GradeObjectionApproved(Guid objectionId, Guid gradeId, Guid studentId, float? newScore,
@@ -14,7 +12,6 @@ public class GradeObjectionApproved : DomainEvent
         NewScore = newScore;
         NewLetterGrade = newLetterGrade;
     }
-
     public Guid ObjectionId { get; }
     public Guid GradeId { get; }
     public Guid StudentId { get; }

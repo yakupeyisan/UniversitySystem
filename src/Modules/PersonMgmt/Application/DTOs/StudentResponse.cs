@@ -1,5 +1,4 @@
 namespace PersonMgmt.Application.DTOs;
-
 public class StudentResponse
 {
     public Guid PersonId { get; set; }

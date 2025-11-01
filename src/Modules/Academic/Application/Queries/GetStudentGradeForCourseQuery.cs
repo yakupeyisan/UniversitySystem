@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
 {
     public GetStudentGradeForCourseQuery(Guid studentId, Guid courseId)
@@ -20,18 +18,14 @@ public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
         StudentId = studentId;
         CourseId = courseId;
     }
-
     public Guid StudentId { get; set; }
     public Guid CourseId { get; set; }
-
     public class Handler : IRequestHandler<GetStudentGradeForCourseQuery, Result<GradeResponse>>
     {
         private readonly IRepository<Grade>
             _gradeRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(IRepository<Grade>
             gradeRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -39,7 +33,6 @@ public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<GradeResponse>> Handle(
             GetStudentGradeForCourseQuery request,
             CancellationToken cancellationToken)
@@ -56,7 +49,6 @@ public class GetStudentGradeForCourseQuery : IRequest<Result<GradeResponse>>
                         request.StudentId, request.CourseId);
                     return Result<GradeResponse>.Failure("Grade not found");
                 }
-
                 var response = _mapper.Map<GradeResponse>(grade);
                 return Result<GradeResponse>.Success(response);
             }

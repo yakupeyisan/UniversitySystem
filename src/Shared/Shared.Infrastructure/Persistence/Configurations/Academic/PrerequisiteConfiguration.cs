@@ -1,9 +1,7 @@
 using Academic.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
-
 public class PrerequisiteConfiguration : IEntityTypeConfiguration<Prerequisite>
 {
     public void Configure(EntityTypeBuilder<Prerequisite> builder)

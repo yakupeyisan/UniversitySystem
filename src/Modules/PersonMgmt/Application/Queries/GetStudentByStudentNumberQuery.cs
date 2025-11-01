@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetStudentByStudentNumberQuery : IRequest<Result<PersonResponse>>
 {
     public GetStudentByStudentNumberQuery(string studentNumber)
@@ -17,22 +15,18 @@ public class GetStudentByStudentNumberQuery : IRequest<Result<PersonResponse>>
             throw new ArgumentException("Student number cannot be empty", nameof(studentNumber));
         StudentNumber = studentNumber.Trim();
     }
-
     public string StudentNumber { get; set; }
-
     public class Handler : IRequestHandler<GetStudentByStudentNumberQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IRepository<Person> _personRepository;
-
         public Handler(IRepository<Person> personRepository, IMapper mapper, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetStudentByStudentNumberQuery request,
             CancellationToken cancellationToken)

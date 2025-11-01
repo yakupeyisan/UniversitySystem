@@ -1,5 +1,4 @@
 namespace PersonMgmt.Application.DTOs;
-
 public class EnrollStudentRequest
 {
     public string StudentNumber { get; set; }

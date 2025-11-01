@@ -1,5 +1,4 @@
 namespace Tests.Unit;
-
 public class UnitTest1
 {
     [Fact]

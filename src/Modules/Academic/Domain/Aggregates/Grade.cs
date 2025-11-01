@@ -2,15 +2,12 @@ using Academic.Domain.Enums;
 using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Aggregates;
-
 public class Grade : AuditableEntity, ISoftDelete
 {
     private Grade()
     {
     }
-
     public Guid StudentId { get; private set; }
     public Guid CourseId { get; private set; }
     public Guid RegistrationId { get; private set; }
@@ -28,7 +25,6 @@ public class Grade : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -39,7 +35,6 @@ public class Grade : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         if (!IsDeleted)
@@ -49,7 +44,6 @@ public class Grade : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static Grade Create(
         Guid studentId,
         Guid courseId,
@@ -108,7 +102,6 @@ public class Grade : AuditableEntity, ISoftDelete
             numericScore));
         return grade;
     }
-
     public void UpdateScores(
         float newMidtermScore,
         float newFinalScore,
@@ -126,12 +119,10 @@ public class Grade : AuditableEntity, ISoftDelete
         GradePoint = LetterGrade.GetGradePoint();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool CanObjectGrade()
     {
         return DateTime.UtcNow <= ObjectionDeadline && !IsObjected;
     }
-
     public void MarkAsObjected()
     {
         if (!CanObjectGrade())
@@ -139,17 +130,14 @@ public class Grade : AuditableEntity, ISoftDelete
         IsObjected = true;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool IsPassingGrade()
     {
         return LetterGrade.IsPassingGrade();
     }
-
     public float GetECTSPoints()
     {
         return ECTS * GradePoint;
     }
-
     public void UpdateGradeFromObjection(float newMidtermScore, float newFinalScore, LetterGrade newLetterGrade)
     {
         MidtermScore = newMidtermScore;
@@ -159,7 +147,6 @@ public class Grade : AuditableEntity, ISoftDelete
         GradePoint = newLetterGrade.GetGradePoint();
         UpdatedAt = DateTime.UtcNow;
     }
-
     public override string ToString()
     {
         return $"{Semester} - {LetterGrade} ({NumericScore:F2})";

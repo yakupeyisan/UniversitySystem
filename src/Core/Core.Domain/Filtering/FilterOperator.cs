@@ -1,5 +1,4 @@
 namespace Core.Domain.Filtering;
-
 public enum FilterOperator
 {
     Equals,

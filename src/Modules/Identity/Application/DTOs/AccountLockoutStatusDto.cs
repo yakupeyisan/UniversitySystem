@@ -1,8 +1,4 @@
 namespace Identity.Application.DTOs;
-
-/// <summary>
-/// Hesap Kilitleme Durumu DTO
-/// </summary>
 public class AccountLockoutStatusDto
 {
     public Guid UserId { get; set; }

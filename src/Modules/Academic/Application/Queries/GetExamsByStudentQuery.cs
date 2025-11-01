@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
 {
     public GetExamsByStudentQuery(Guid studentId)
@@ -17,16 +15,13 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
             throw new ArgumentException("Student ID cannot be empty", nameof(studentId));
         StudentId = studentId;
     }
-
     public Guid StudentId { get; set; }
-
     public class Handler : IRequestHandler<GetExamsByStudentQuery, Result<List<ExamResponse>>>
     {
         private readonly IRepository<Exam> _examRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IRepository<CourseRegistration> _registrationRepository;
-
         public Handler(
             IRepository<Exam> examRepository,
             IRepository<CourseRegistration> registrationRepository,
@@ -39,7 +34,6 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<List<ExamResponse>>> Handle(
             GetExamsByStudentQuery request,
             CancellationToken cancellationToken)
@@ -58,7 +52,6 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
                         new List<ExamResponse>(),
                         "Student has no registered courses");
                 }
-
                 var exams = new List<Exam>();
                 foreach (var courseId in courseIds)
                 {
@@ -66,7 +59,6 @@ public class GetExamsByStudentQuery : IRequest<Result<List<ExamResponse>>>
                         await _examRepository.GetAllAsync(new ExamByCourseSpec(courseId), cancellationToken);
                     exams.AddRange(courseExams);
                 }
-
                 var responses = _mapper.Map<List<ExamResponse>>(exams);
                 _logger.LogInformation(
                     "Retrieved {Count} exams for student {StudentId}",

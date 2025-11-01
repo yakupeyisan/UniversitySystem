@@ -1,9 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PersonMgmt.Application.Mappers;
-
 namespace PersonMgmt.Application.Extensions;
-
 public static class ServiceExtensions
 {
     public static IServiceCollection AddPersonMgmtApplication(

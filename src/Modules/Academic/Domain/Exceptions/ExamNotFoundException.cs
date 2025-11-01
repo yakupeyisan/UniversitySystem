@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace Academic.Domain.Exceptions;
-
 public class ExamNotFoundException : DomainException
 {
     public ExamNotFoundException(Guid examId)
@@ -9,7 +7,6 @@ public class ExamNotFoundException : DomainException
     {
         ExamId = examId;
     }
-
     public Guid ExamId { get; }
     public override string ErrorCode => "errors.exam.not.found";
     public override int StatusCode => 404;

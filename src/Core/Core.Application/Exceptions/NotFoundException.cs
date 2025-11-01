@@ -1,5 +1,4 @@
 namespace Core.Application.Exceptions;
-
 public class NotFoundException : ApplicationException
 {
     public NotFoundException(string resourceType, Guid resourceId)
@@ -8,17 +7,14 @@ public class NotFoundException : ApplicationException
         ResourceType = resourceType;
         ResourceId = resourceId;
     }
-
     public NotFoundException(string message)
         : base(message)
     {
     }
-
     public NotFoundException(string message, Exception innerException)
         : base(message, innerException)
     {
     }
-
     public override string ErrorCode => "RESOURCE_NOT_FOUND";
     public override int StatusCode => 404;
     public string? ResourceType { get; }

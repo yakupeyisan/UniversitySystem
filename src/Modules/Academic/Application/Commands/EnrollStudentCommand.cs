@@ -6,25 +6,20 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
 {
     public EnrollStudentCommand(EnrollStudentRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public EnrollStudentRequest Request { get; set; }
-
     public class Handler : IRequestHandler<EnrollStudentCommand, Result<CourseRegistrationResponse>>
     {
         private readonly IRepository<Course> _courseRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IRepository<CourseRegistration> _registrationRepository;
-
         public Handler(
             IRepository<CourseRegistration> registrationRepository,
             IRepository<Course> courseRepository,
@@ -37,7 +32,6 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<CourseRegistrationResponse>> Handle(
             EnrollStudentCommand request,
             CancellationToken cancellationToken)
@@ -60,7 +54,6 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         "Student is already registered for this course");
                 }
-
                 var course = await _courseRepository.GetByIdAsync(
                     request.Request.CourseId,
                     cancellationToken);
@@ -72,7 +65,6 @@ public class EnrollStudentCommand : IRequest<Result<CourseRegistrationResponse>>
                     return Result<CourseRegistrationResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
-
                 var registration = CourseRegistration.Create(
                     request.Request.StudentId,
                     request.Request.CourseId,

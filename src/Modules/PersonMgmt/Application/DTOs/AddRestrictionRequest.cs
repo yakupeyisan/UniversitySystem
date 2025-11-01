@@ -1,5 +1,4 @@
 namespace PersonMgmt.Application.DTOs;
-
 public class AddRestrictionRequest
 {
     public byte RestrictionType { get; set; }

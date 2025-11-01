@@ -1,8 +1,6 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class PostponeExamRequestValidator : AbstractValidator<PostponeExamRequest>
 {
     public PostponeExamRequestValidator()

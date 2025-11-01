@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class CreateRoleRequest
 {
     public string RoleName { get; set; } = string.Empty;

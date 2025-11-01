@@ -1,8 +1,4 @@
 namespace Identity.Domain.Enums;
-
-/// <summary>
-/// Kilitleme süresi tipleri
-/// </summary>
 public enum LockoutDurationType
 {
     Minutes = 1,

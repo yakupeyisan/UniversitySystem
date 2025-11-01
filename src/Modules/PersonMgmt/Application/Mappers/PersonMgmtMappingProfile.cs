@@ -2,9 +2,7 @@ using AutoMapper;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
-
 namespace PersonMgmt.Application.Mappers;
-
 public class PersonMgmtMappingProfile : Profile
 {
     public PersonMgmtMappingProfile()
@@ -168,7 +166,6 @@ public class PersonMgmtMappingProfile : Profile
         CreateMap<RestrictionType, string>().ConvertUsing(src => ConvertRestrictionTypeToString(src));
         CreateMap<RestrictionLevel, string>().ConvertUsing(src => ConvertRestrictionLevelToString(src));
     }
-
     private static string ConvertGenderToString(Gender gender)
     {
         return gender switch
@@ -178,7 +175,6 @@ public class PersonMgmtMappingProfile : Profile
             _ => "Bilinmiyor"
         };
     }
-
     private static string ConvertEducationLevelToString(EducationLevel level)
     {
         return level switch
@@ -190,7 +186,6 @@ public class PersonMgmtMappingProfile : Profile
             _ => "Bilinmiyor"
         };
     }
-
     private static string ConvertStudentStatusToString(StudentStatus status)
     {
         return status switch
@@ -204,7 +199,6 @@ public class PersonMgmtMappingProfile : Profile
             _ => "Bilinmiyor"
         };
     }
-
     private static string ConvertAcademicTitleToString(AcademicTitle title)
     {
         return title switch
@@ -219,7 +213,6 @@ public class PersonMgmtMappingProfile : Profile
             _ => "Bilinmiyor"
         };
     }
-
     private static string ConvertRestrictionTypeToString(RestrictionType type)
     {
         return type switch
@@ -234,7 +227,6 @@ public class PersonMgmtMappingProfile : Profile
             _ => "Bilinmiyor"
         };
     }
-
     private static string ConvertRestrictionLevelToString(RestrictionLevel level)
     {
         return level switch

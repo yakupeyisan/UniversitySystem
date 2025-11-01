@@ -5,24 +5,19 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
 {
     public ApproveGradeObjectionCommand(ApproveGradeObjectionRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public ApproveGradeObjectionRequest Request { get; set; }
-
     public class Handler : IRequestHandler<ApproveGradeObjectionCommand, Result<Unit>>
     {
         private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IRepository<GradeObjection> _objectionRepository;
-
         public Handler(
             IRepository<GradeObjection> objectionRepository,
             IRepository<Grade> gradeRepository,
@@ -32,7 +27,6 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
             _gradeRepository = gradeRepository ?? throw new ArgumentNullException(nameof(gradeRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<Unit>> Handle(
             ApproveGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -54,7 +48,6 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                     return Result<Unit>.Failure(
                         $"Grade objection with ID {request.Request.ObjectionId} not found");
                 }
-
                 objection.Approve(
                     request.Request.ReviewedBy,
                     request.Request.ReviewNotes,
@@ -79,7 +72,6 @@ public class ApproveGradeObjectionCommand : IRequest<Result<Unit>>
                         await _gradeRepository.UpdateAsync(grade, cancellationToken);
                     }
                 }
-
                 await _objectionRepository.UpdateAsync(objection, cancellationToken);
                 await _objectionRepository.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation(

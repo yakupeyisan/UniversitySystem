@@ -6,19 +6,15 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetAvailableCoursesQuery : IRequest<Result<IEnumerable<CourseListResponse>>>
 {
     public class Handler : IRequestHandler<GetAvailableCoursesQuery, Result<IEnumerable<CourseListResponse>>>
     {
         private readonly IRepository<Course>
             _courseRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(IRepository<Course>
             courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -26,7 +22,6 @@ public class GetAvailableCoursesQuery : IRequest<Result<IEnumerable<CourseListRe
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<CourseListResponse>>> Handle(
             GetAvailableCoursesQuery request,
             CancellationToken cancellationToken)

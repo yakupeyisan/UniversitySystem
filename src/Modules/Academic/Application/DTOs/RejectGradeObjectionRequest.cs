@@ -1,5 +1,4 @@
 namespace Academic.Application.DTOs;
-
 public class RejectGradeObjectionRequest
 {
     public Guid ReviewedBy { get; set; }

@@ -6,9 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Persistence.Contexts;
 using Shared.Infrastructure.Persistence.Repositories;
 using Shared.Infrastructure.Services;
-
 namespace Shared.Infrastructure.Extensions;
-
 public static class ServiceExtensions
 {
     public static IServiceCollection AddInfrastructure(
@@ -35,7 +33,6 @@ public static class ServiceExtensions
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         return services;
     }
-
     private static bool IsEnvironmentDevelopment()
     {
         return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";

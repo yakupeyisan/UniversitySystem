@@ -1,9 +1,7 @@
 using Academic.Application.Mappers;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-
 namespace Academic.Application.Extensions;
-
 public static class ServiceExtensions
 {
     public static IServiceCollection AddAcademicApplication(

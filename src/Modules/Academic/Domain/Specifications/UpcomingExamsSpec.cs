@@ -1,9 +1,7 @@
 using Academic.Domain.Aggregates;
 using Academic.Domain.Enums;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Specifications;
-
 public class UpcomingExamsSpec : Specification<Exam>
 {
     public UpcomingExamsSpec()

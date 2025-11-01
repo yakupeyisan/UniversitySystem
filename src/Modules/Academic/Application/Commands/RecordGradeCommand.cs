@@ -5,25 +5,20 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class RecordGradeCommand : IRequest<Result<GradeResponse>>
 {
     public RecordGradeCommand(RecordGradeRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public RecordGradeRequest Request { get; set; }
-
     public class Handler : IRequestHandler<RecordGradeCommand, Result<GradeResponse>>
     {
         private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IRepository<CourseRegistration> _registrationRepository;
-
         public Handler(
             IRepository<Grade> gradeRepository,
             IRepository<CourseRegistration> registrationRepository,
@@ -36,7 +31,6 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<GradeResponse>> Handle(
             RecordGradeCommand request,
             CancellationToken cancellationToken)
@@ -58,7 +52,6 @@ public class RecordGradeCommand : IRequest<Result<GradeResponse>>
                     return Result<GradeResponse>.Failure(
                         $"Registration with ID {request.Request.RegistrationId} not found");
                 }
-
                 var grade = Grade.Create(
                     request.Request.StudentId,
                     request.Request.CourseId,

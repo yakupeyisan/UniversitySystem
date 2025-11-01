@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
 {
     public GetCourseByCourseCodeQuery(string courseCode)
@@ -17,17 +15,13 @@ public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
             throw new ArgumentException("Course code cannot be empty", nameof(courseCode));
         CourseCode = courseCode;
     }
-
     public string CourseCode { get; set; }
-
     public class Handler : IRequestHandler<GetCourseByCourseCodeQuery, Result<CourseResponse>>
     {
         private readonly IRepository<Course>
             _courseRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(IRepository<Course>
             courseRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -35,7 +29,6 @@ public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<CourseResponse>> Handle(
             GetCourseByCourseCodeQuery request,
             CancellationToken cancellationToken)
@@ -51,7 +44,6 @@ public class GetCourseByCourseCodeQuery : IRequest<Result<CourseResponse>>
                     return Result<CourseResponse>.Failure(
                         $"Course with code {request.CourseCode} not found");
                 }
-
                 var response = _mapper.Map<CourseResponse>(course);
                 return Result<CourseResponse>.Success(response);
             }

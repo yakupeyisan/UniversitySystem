@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class PermissionDto
 {
     public Guid Id { get; set; }

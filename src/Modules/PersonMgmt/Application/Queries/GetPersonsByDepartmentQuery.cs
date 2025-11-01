@@ -8,9 +8,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetPersonsByDepartmentQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
     public GetPersonsByDepartmentQuery(
@@ -22,19 +20,15 @@ public class GetPersonsByDepartmentQuery : IRequest<Result<PagedList<PersonRespo
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
         FilterString = filterString;
     }
-
     public Guid DepartmentId { get; set; }
     public PagedRequest PagedRequest { get; set; }
     public string? FilterString { get; set; }
-
     public class Handler : IRequestHandler<GetPersonsByDepartmentQuery, Result<PagedList<PersonResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -42,7 +36,6 @@ public class GetPersonsByDepartmentQuery : IRequest<Result<PagedList<PersonRespo
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PagedList<PersonResponse>>> Handle(
             GetPersonsByDepartmentQuery request,
             CancellationToken cancellationToken)
@@ -57,7 +50,6 @@ public class GetPersonsByDepartmentQuery : IRequest<Result<PagedList<PersonRespo
                         request.PagedRequest.PageSize);
                     return Result<PagedList<PersonResponse>>.Failure(errorMsg);
                 }
-
                 _logger.LogInformation(
                     "Fetching persons by department - DepartmentId: {DepartmentId}, Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}",
                     request.DepartmentId,

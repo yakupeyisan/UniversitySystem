@@ -1,8 +1,4 @@
 namespace Identity.Application.DTOs;
-
-/// <summary>
-/// Baþarýsýz Giriþ Denemesi DTO
-/// </summary>
 public class FailedLoginAttemptDto
 {
     public Guid Id { get; set; }

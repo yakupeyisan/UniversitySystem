@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetStudentGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeObjectionResponse>>>
 {
     public GetStudentGradeObjectionsQuery(Guid studentId)
@@ -17,17 +15,13 @@ public class GetStudentGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeO
             throw new ArgumentException("Student ID cannot be empty", nameof(studentId));
         StudentId = studentId;
     }
-
     public Guid StudentId { get; set; }
-
     public class Handler : IRequestHandler<GetStudentGradeObjectionsQuery, Result<IEnumerable<GradeObjectionResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<GradeObjection>
             _objectionRepository;
-
         public Handler(IRepository<GradeObjection>
             objectionRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -35,7 +29,6 @@ public class GetStudentGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeO
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<GradeObjectionResponse>>> Handle(
             GetStudentGradeObjectionsQuery request,
             CancellationToken cancellationToken)

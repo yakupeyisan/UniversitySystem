@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace Academic.Domain.Exceptions;
-
 public class GradeNotFoundException : DomainException
 {
     public GradeNotFoundException(Guid gradeId)
@@ -9,7 +7,6 @@ public class GradeNotFoundException : DomainException
     {
         GradeId = gradeId;
     }
-
     public Guid GradeId { get; }
     public override string ErrorCode => "errors.grade.not.found";
     public override int StatusCode => 404;

@@ -1,8 +1,6 @@
 using Academic.Domain.Enums;
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class GradeRecorded : DomainEvent
 {
     public GradeRecorded(Guid gradeId, Guid studentId, Guid courseId, LetterGrade letterGrade, float numericScore)
@@ -13,7 +11,6 @@ public class GradeRecorded : DomainEvent
         LetterGrade = letterGrade;
         NumericScore = numericScore;
     }
-
     public Guid GradeId { get; }
     public Guid StudentId { get; }
     public Guid CourseId { get; }

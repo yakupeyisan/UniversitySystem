@@ -1,29 +1,10 @@
-﻿namespace Identity.Application.Abstractions;
-
-/// <summary>
-///     Email service interface for verification and notifications
-/// </summary>
+namespace Identity.Application.Abstractions;
 public interface IEmailService
 {
-    /// <summary>
-    ///     Sends email verification code to user
-    /// </summary>
     Task SendVerificationEmailAsync(string email, string verificationCode,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    ///     Sends password reset email
-    /// </summary>
+    CancellationToken cancellationToken = default);
     Task SendPasswordResetEmailAsync(string email, string resetToken, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    ///     Sends login notification
-    /// </summary>
     Task SendLoginNotificationAsync(string email, string ipAddress, string userAgent,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    ///     Sends account locked notification
-    /// </summary>
+    CancellationToken cancellationToken = default);
     Task SendAccountLockedEmailAsync(string email, CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,5 @@
 using System.Linq.Expressions;
-
 namespace Core.Domain.Specifications;
-
 public interface ISpecification<T> where T : class
 {
     Expression<Func<T, bool>>? Criteria { get; }

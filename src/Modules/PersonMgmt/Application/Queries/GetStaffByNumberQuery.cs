@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
 {
     public GetStaffByNumberQuery(string employeeNumber)
@@ -17,17 +15,13 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
             throw new ArgumentException("Employee number cannot be empty", nameof(employeeNumber));
         EmployeeNumber = employeeNumber.Trim();
     }
-
     public string EmployeeNumber { get; set; }
-
     public class Handler : IRequestHandler<GetStaffByNumberQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -35,7 +29,6 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetStaffByNumberQuery request,
             CancellationToken cancellationToken)
@@ -56,7 +49,6 @@ public class GetStaffByNumberQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Person with employee number {request.EmployeeNumber} not found");
                 }
-
                 var person = persons.FirstOrDefault();
                 if (person == null)
                     return Result<PersonResponse>.Failure(

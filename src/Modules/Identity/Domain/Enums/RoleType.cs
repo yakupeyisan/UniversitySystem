@@ -1,5 +1,4 @@
 namespace Identity.Domain.Enums;
-
 public enum RoleType
 {
     Admin = 0,

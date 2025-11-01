@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionResponse>>
 {
     public RejectGradeObjectionCommand(Guid objectionId, RejectGradeObjectionRequest request)
@@ -18,18 +16,14 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
         ObjectionId = objectionId;
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public Guid ObjectionId { get; set; }
     public RejectGradeObjectionRequest Request { get; set; }
-
     public class Handler : IRequestHandler<RejectGradeObjectionCommand, Result<GradeObjectionResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<GradeObjection>
             _objectionRepository;
-
         public Handler(
             IRepository<GradeObjection>
                 objectionRepository,
@@ -40,7 +34,6 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<GradeObjectionResponse>> Handle(
             RejectGradeObjectionCommand request,
             CancellationToken cancellationToken)
@@ -61,7 +54,6 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                     return Result<GradeObjectionResponse>.Failure(
                         $"Grade objection with ID {request.ObjectionId} not found");
                 }
-
                 if (objection.Status != GradeObjectionStatus.UnderReview &&
                     objection.Status != GradeObjectionStatus.Escalated)
                 {
@@ -72,7 +64,6 @@ public class RejectGradeObjectionCommand : IRequest<Result<GradeObjectionRespons
                     return Result<GradeObjectionResponse>.Failure(
                         $"Grade objection cannot be rejected. Current status: {objection.Status}");
                 }
-
                 objection.Reject(
                     request.Request.ReviewedBy,
                     request.Request.RejectionReason);

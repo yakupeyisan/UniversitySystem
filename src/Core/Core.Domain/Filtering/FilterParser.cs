@@ -1,7 +1,5 @@
 using System.Linq.Expressions;
-
 namespace Core.Domain.Filtering;
-
 public class FilterParser<T> : IFilterParser<T> where T : class
 {
     private const char FilterSeparator = ';';
@@ -9,7 +7,6 @@ public class FilterParser<T> : IFilterParser<T> where T : class
     private const char ValueSeparator = ',';
     private readonly IFilterExpressionBuilder<T> _expressionBuilder;
     private readonly IFilterWhitelist? _whitelist;
-
     public FilterParser(
         IFilterExpressionBuilder<T>? expressionBuilder = null,
         IFilterWhitelist? whitelist = null)
@@ -17,7 +14,6 @@ public class FilterParser<T> : IFilterParser<T> where T : class
         _expressionBuilder = expressionBuilder ?? new FilterExpressionBuilder<T>();
         _whitelist = whitelist;
     }
-
     public Expression<Func<T, bool>> Parse(string? filterString)
     {
         if (string.IsNullOrWhiteSpace(filterString)) return x => true;
@@ -32,7 +28,6 @@ public class FilterParser<T> : IFilterParser<T> where T : class
                 var nextFilter = BuildPredicate(filters[i]);
                 predicate = CombinePredicates(predicate, nextFilter, ExpressionType.AndAlso);
             }
-
             return predicate;
         }
         catch (FilterParsingException)
@@ -45,12 +40,10 @@ public class FilterParser<T> : IFilterParser<T> where T : class
                 $"Filter string parse hatası: {filterString}", ex);
         }
     }
-
     public Expression<Func<T, bool>> BuildPredicate(FilterExpression filter)
     {
         return _expressionBuilder.Build(filter);
     }
-
     private List<FilterExpression> ParseFilterExpressions(string filterString)
     {
         var result = new List<FilterExpression>();
@@ -80,10 +73,8 @@ public class FilterParser<T> : IFilterParser<T> where T : class
                     $"Single filter parse hatası: '{part}'", ex);
             }
         }
-
         return result;
     }
-
     private FilterExpression? ParseSingleFilter(string filterPart)
     {
         var parts = filterPart.Split(ExpressionSeparator);
@@ -113,7 +104,6 @@ public class FilterParser<T> : IFilterParser<T> where T : class
                 $"Operator '{operatorStr}' için en az 1 değer gerekli");
         return new FilterExpression(propertyName, op, values.ToArray());
     }
-
     private bool TryParseOperator(string operatorStr, out FilterOperator result)
     {
         result = operatorStr switch
@@ -135,14 +125,12 @@ public class FilterParser<T> : IFilterParser<T> where T : class
         };
         return true;
     }
-
     private bool IsPropertyAllowed(string propertyName)
     {
         if (_whitelist == null)
             return true;
         return _whitelist.IsAllowed(propertyName);
     }
-
     private Expression<Func<T, bool>> CombinePredicates(
         Expression<Func<T, bool>> left,
         Expression<Func<T, bool>> right,

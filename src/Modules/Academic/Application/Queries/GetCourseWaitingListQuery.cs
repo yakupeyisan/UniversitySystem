@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetCourseWaitingListQuery : IRequest<Result<IEnumerable<CourseWaitingListEntryResponse>>>
 {
     public GetCourseWaitingListQuery(Guid courseId)
@@ -17,18 +15,14 @@ public class GetCourseWaitingListQuery : IRequest<Result<IEnumerable<CourseWaiti
             throw new ArgumentException("Course ID cannot be empty", nameof(courseId));
         CourseId = courseId;
     }
-
     public Guid CourseId { get; set; }
-
     public class Handler : IRequestHandler<GetCourseWaitingListQuery,
         Result<IEnumerable<CourseWaitingListEntryResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<CourseWaitingListEntry>
             _waitingListRepository;
-
         public Handler(IRepository<CourseWaitingListEntry>
             waitingListRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -37,7 +31,6 @@ public class GetCourseWaitingListQuery : IRequest<Result<IEnumerable<CourseWaiti
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<CourseWaitingListEntryResponse>>> Handle(
             GetCourseWaitingListQuery request,
             CancellationToken cancellationToken)

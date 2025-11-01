@@ -1,11 +1,9 @@
 namespace Identity.Application.DTOs;
-
 public class ResetPasswordRequest
 {
     public ResetPasswordRequest()
     {
     }
-
     public ResetPasswordRequest(string email, string resetCode, string newPassword, string confirmPassword)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -16,13 +14,11 @@ public class ResetPasswordRequest
             throw new ArgumentException("Password cannot be empty", nameof(newPassword));
         if (newPassword != confirmPassword)
             throw new ArgumentException("Passwords do not match", nameof(confirmPassword));
-
         Email = email.Trim().ToLower();
         ResetCode = resetCode.Trim();
         NewPassword = newPassword;
         ConfirmPassword = confirmPassword;
     }
-
     public string Email { get; set; } = string.Empty;
     public string ResetCode { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;

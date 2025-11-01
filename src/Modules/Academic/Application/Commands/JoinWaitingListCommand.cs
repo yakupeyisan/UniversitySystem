@@ -6,18 +6,14 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
 {
     public JoinWaitingListCommand(JoinWaitingListRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public JoinWaitingListRequest Request { get; set; }
-
     public class Handler : IRequestHandler<JoinWaitingListCommand, Result<WaitingListResponse>>
     {
         private readonly IRepository<Course> _courseRepository;
@@ -25,7 +21,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
         private readonly IMapper _mapper;
         private readonly IRepository<CourseRegistration> _registrationRepository;
         private readonly IRepository<CourseWaitingListEntry> _waitingListRepository;
-
         public Handler(
             IRepository<CourseWaitingListEntry> waitingListRepository,
             IRepository<CourseRegistration> registrationRepository,
@@ -40,7 +35,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _waitingListRepository = waitingListRepository;
         }
-
         public async Task<Result<WaitingListResponse>> Handle(
             JoinWaitingListCommand request,
             CancellationToken cancellationToken)
@@ -62,7 +56,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     return Result<WaitingListResponse>.Failure(
                         $"Course with ID {request.Request.CourseId} not found");
                 }
-
                 var existingEntry = await _waitingListRepository.GetAsync(
                     new WaitingListByStudentAndCourseSpec(request.Request.StudentId,
                         request.Request.CourseId),
@@ -76,7 +69,6 @@ public class JoinWaitingListCommand : IRequest<Result<WaitingListResponse>>
                     return Result<WaitingListResponse>.Failure(
                         "Student is already on the waiting list for this course");
                 }
-
                 var spec = new WaitingListByCourseSpec(request.Request.CourseId);
                 var result = await _waitingListRepository.GetAllAsync(spec, cancellationToken);
                 var entries = result.ToList();

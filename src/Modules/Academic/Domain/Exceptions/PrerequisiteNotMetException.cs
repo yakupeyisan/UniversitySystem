@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace Academic.Domain.Exceptions;
-
 public class PrerequisiteNotMetException : DomainException
 {
     public PrerequisiteNotMetException(Guid studentId, Guid courseId)
@@ -10,7 +8,6 @@ public class PrerequisiteNotMetException : DomainException
         StudentId = studentId;
         CourseId = courseId;
     }
-
     public Guid StudentId { get; }
     public Guid CourseId { get; }
     public override string ErrorCode => "errors.prerequisite.not.met";

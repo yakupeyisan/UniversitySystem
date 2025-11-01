@@ -1,7 +1,5 @@
 using Core.Application.Abstractions;
-
 namespace Core.Application.Services;
-
 internal class CurrentUserService : ICurrentUserService
 {
     public CurrentUserService()
@@ -16,7 +14,6 @@ internal class CurrentUserService : ICurrentUserService
         IsAdmin = true;
         IsAuthenticated = true;
     }
-
     public Guid UserId { get; }
     public string Username { get; }
     public string Email { get; }
@@ -26,22 +23,18 @@ internal class CurrentUserService : ICurrentUserService
     public Guid? FacultyId { get; }
     public bool IsAdmin { get; }
     public bool IsAuthenticated { get; }
-
     public bool IsInRole(string role)
     {
         return true;
     }
-
     public bool HasPermission(string permission)
     {
         return true;
     }
-
     public bool HasAnyRole(params string[] roles)
     {
         return true;
     }
-
     public bool HasAllRoles(params string[] roles)
     {
         return true;

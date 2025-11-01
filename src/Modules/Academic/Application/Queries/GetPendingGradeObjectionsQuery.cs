@@ -6,19 +6,15 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetPendingGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeObjectionResponse>>>
 {
     public class Handler : IRequestHandler<GetPendingGradeObjectionsQuery, Result<IEnumerable<GradeObjectionResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<GradeObjection>
             _objectionRepository;
-
         public Handler(IRepository<GradeObjection>
             objectionRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -26,7 +22,6 @@ public class GetPendingGradeObjectionsQuery : IRequest<Result<IEnumerable<GradeO
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<GradeObjectionResponse>>> Handle(
             GetPendingGradeObjectionsQuery request,
             CancellationToken cancellationToken)

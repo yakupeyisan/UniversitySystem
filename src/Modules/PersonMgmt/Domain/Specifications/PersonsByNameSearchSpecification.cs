@@ -1,8 +1,6 @@
 using Core.Domain.Specifications;
 using PersonMgmt.Domain.Aggregates;
-
 namespace PersonMgmt.Domain.Specifications;
-
 public class PersonsByNameSearchSpecification : Specification<Person>
 {
     public PersonsByNameSearchSpecification(string firstName, string lastName)

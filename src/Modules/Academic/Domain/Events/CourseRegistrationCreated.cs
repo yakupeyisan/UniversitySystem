@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Academic.Domain.Events;
-
 public class CourseRegistrationCreated : DomainEvent
 {
     public CourseRegistrationCreated(Guid registrationId, Guid studentId, Guid courseId, string semester, bool isRetake)
@@ -12,7 +10,6 @@ public class CourseRegistrationCreated : DomainEvent
         Semester = semester;
         IsRetake = isRetake;
     }
-
     public Guid RegistrationId { get; }
     public Guid StudentId { get; }
     public Guid CourseId { get; }

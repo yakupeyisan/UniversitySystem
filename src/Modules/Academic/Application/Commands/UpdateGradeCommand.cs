@@ -5,24 +5,19 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
 {
     public UpdateGradeCommand(UpdateGradeRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public UpdateGradeRequest Request { get; set; }
-
     public class Handler : IRequestHandler<UpdateGradeCommand, Result<GradeResponse>>
     {
         private readonly IRepository<Grade> _gradeRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Grade> gradeRepository,
             IMapper mapper,
@@ -32,7 +27,6 @@ public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<GradeResponse>> Handle(
             UpdateGradeCommand request,
             CancellationToken cancellationToken)
@@ -53,7 +47,6 @@ public class UpdateGradeCommand : IRequest<Result<GradeResponse>>
                     return Result<GradeResponse>.Failure(
                         $"Grade with ID {request.Request.GradeId} not found");
                 }
-
                 grade.UpdateScores(request.Request.MidtermScore, request.Request.FinalScore);
                 await _gradeRepository.UpdateAsync(grade, cancellationToken);
                 await _gradeRepository.SaveChangesAsync(cancellationToken);

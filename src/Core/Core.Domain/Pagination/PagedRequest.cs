@@ -1,12 +1,10 @@
 namespace Core.Domain.Pagination;
-
 public class PagedRequest
 {
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
     public string? SortBy { get; set; }
     public string? SortDirection { get; set; } = "asc";
-
     public bool IsValid()
     {
         if (PageNumber < 1)
@@ -18,7 +16,6 @@ public class PagedRequest
             return false;
         return true;
     }
-
     public int GetSkipCount()
     {
         return (PageNumber - 1) * PageSize;

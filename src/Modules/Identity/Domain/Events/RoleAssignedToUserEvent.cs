@@ -1,10 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
-/// <summary>
-/// Role atandý event'i
-/// </summary>
 public class RoleAssignedToUserEvent : DomainEvent
 {
     public RoleAssignedToUserEvent(Guid userId, Guid roleId, string roleName)
@@ -14,7 +9,6 @@ public class RoleAssignedToUserEvent : DomainEvent
         RoleName = roleName;
         OccurredOn = DateTime.UtcNow;
     }
-
     public Guid UserId { get; }
     public Guid RoleId { get; }
     public string RoleName { get; }

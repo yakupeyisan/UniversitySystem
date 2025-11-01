@@ -1,5 +1,4 @@
 namespace Identity.Application.DTOs;
-
 public class RegisterUserRequest
 {
     public string Email { get; set; } = string.Empty;

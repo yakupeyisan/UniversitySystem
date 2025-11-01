@@ -1,9 +1,7 @@
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
-
 namespace Core.Domain.Filtering;
-
 public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : class
 {
     public Expression<Func<T, bool>> Build(FilterExpression filter)
@@ -17,7 +15,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         var predicate = BuildFilterExpression(property, filter);
         return Expression.Lambda<Func<T, bool>>(predicate, parameter);
     }
-
     private Expression BuildFilterExpression(Expression property, FilterExpression filter)
     {
         return filter.Operator switch
@@ -38,7 +35,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
             _ => throw new FilterParsingException($"Bilinmeyen operator: {filter.Operator}")
         };
     }
-
     private Expression? GetPropertyExpression(ParameterExpression parameter, string propertyPath)
     {
         if (string.IsNullOrWhiteSpace(propertyPath))
@@ -56,46 +52,38 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
                 return null;
             expression = Expression.Property(expression, property);
         }
-
         return expression;
     }
-
     private Expression BuildEquals(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.Equal(property, constant);
     }
-
     private Expression BuildNotEquals(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.NotEqual(property, constant);
     }
-
     private Expression BuildGreaterThan(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.GreaterThan(property, constant);
     }
-
     private Expression BuildGreaterOrEqual(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.GreaterThanOrEqual(property, constant);
     }
-
     private Expression BuildLessThan(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.LessThan(property, constant);
     }
-
     private Expression BuildLessOrEqual(Expression property, string value)
     {
         var constant = ConvertToConstant(property.Type, value);
         return Expression.LessThanOrEqual(property, constant);
     }
-
     private Expression BuildContains(Expression property, string value)
     {
         if (property.Type != typeof(string))
@@ -113,7 +101,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, containsMethod,
             Expression.Constant(value.ToLower()));
     }
-
     private Expression BuildStartsWith(Expression property, string value)
     {
         if (property.Type != typeof(string))
@@ -130,7 +117,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, startsWithMethod,
             Expression.Constant(value.ToLower()));
     }
-
     private Expression BuildEndsWith(Expression property, string value)
     {
         if (property.Type != typeof(string))
@@ -147,7 +133,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         return Expression.Call(toLowerCall, endsWithMethod,
             Expression.Constant(value.ToLower()));
     }
-
     private Expression BuildBetween(Expression property, List<string> values)
     {
         if (values.Count < 2)
@@ -159,7 +144,6 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
         var lessOrEqual = Expression.LessThanOrEqual(property, value2);
         return Expression.AndAlso(greaterOrEqual, lessOrEqual);
     }
-
     private Expression BuildIn(Expression property, List<string> values)
     {
         if (values.Count == 0)
@@ -174,20 +158,16 @@ public class FilterExpressionBuilder<T> : IFilterExpressionBuilder<T> where T : 
                 ? equal
                 : Expression.OrElse(expression, equal);
         }
-
         return expression ?? Expression.Constant(false);
     }
-
     private Expression BuildIsNull(Expression property)
     {
         return Expression.Equal(property, Expression.Constant(null));
     }
-
     private Expression BuildIsNotNull(Expression property)
     {
         return Expression.NotEqual(property, Expression.Constant(null));
     }
-
     private Expression ConvertToConstant(Type targetType, string value)
     {
         if (string.IsNullOrWhiteSpace(value))

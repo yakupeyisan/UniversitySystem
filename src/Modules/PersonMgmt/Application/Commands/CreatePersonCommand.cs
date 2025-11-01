@@ -7,26 +7,20 @@ using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Commands;
-
 public class CreatePersonCommand : IRequest<Result<PersonResponse>>
 {
     public CreatePersonCommand(CreatePersonRequest request)
     {
         Request = request;
     }
-
     public CreatePersonRequest Request { get; set; }
-
     public class Handler : IRequestHandler<CreatePersonCommand, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -34,7 +28,6 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             CreatePersonCommand request,
             CancellationToken cancellationToken)
@@ -52,7 +45,6 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                         request.Request.IdentificationNumber);
                     return Result<PersonResponse>.Failure("National ID already exists");
                 }
-
                 var isEmailUnique = await _personRepository.IsUniqueAsync(
                     new PersonByEmailSpecification(request.Request.Email),
                     cancellationToken);
@@ -61,7 +53,6 @@ public class CreatePersonCommand : IRequest<Result<PersonResponse>>
                     _logger.LogWarning("Email already exists: {Email}", request.Request.Email);
                     return Result<PersonResponse>.Failure("Email already exists");
                 }
-
                 var gender = (Gender)request.Request.Gender;
                 var person = Person.Create(
                     request.Request.FirstName,

@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
 public class UserLoginFailedEvent : DomainEvent
 {
     public UserLoginFailedEvent(Guid userId, string email, int attemptCount)
@@ -10,7 +8,6 @@ public class UserLoginFailedEvent : DomainEvent
         Email = email;
         AttemptCount = attemptCount;
     }
-
     public Guid UserId { get; }
     public string Email { get; }
     public int AttemptCount { get; }

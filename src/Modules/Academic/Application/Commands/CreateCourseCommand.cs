@@ -8,24 +8,19 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Commands.Courses;
-
 public class CreateCourseCommand : IRequest<Result<CourseResponse>>
 {
     public CreateCourseCommand(CreateCourseRequest request)
     {
         Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-
     public CreateCourseRequest Request { get; set; }
-
     public class Handler : IRequestHandler<CreateCourseCommand, Result<CourseResponse>>
     {
         private readonly IRepository<Course> _courseRepository;
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(
             IRepository<Course> courseRepository,
             IMapper mapper,
@@ -35,7 +30,6 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<CourseResponse>> Handle(
             CreateCourseCommand request,
             CancellationToken cancellationToken)
@@ -57,7 +51,6 @@ public class CreateCourseCommand : IRequest<Result<CourseResponse>>
                     return Result<CourseResponse>.Failure(
                         $"Course with code {request.Request.CourseCode} already exists");
                 }
-
                 var courseCode = CourseCode.Create(request.Request.CourseCode);
                 var capacityInfo = CapacityInfo.Create(request.Request.MaxCapacity);
                 var course = Course.Create(

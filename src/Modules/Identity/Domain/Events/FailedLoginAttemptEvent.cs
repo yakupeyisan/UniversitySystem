@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
 public class FailedLoginAttemptEvent : DomainEvent
 {
     public FailedLoginAttemptEvent(string email, string ipAddress, string reason)
@@ -11,7 +9,6 @@ public class FailedLoginAttemptEvent : DomainEvent
         Reason = reason;
         OccurredOn = DateTime.UtcNow;
     }
-
     public string Email { get; }
     public string IpAddress { get; }
     public string Reason { get; }

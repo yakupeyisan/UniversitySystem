@@ -1,5 +1,4 @@
 namespace PersonMgmt.Domain.Enums;
-
 public enum Gender
 {
     Male = 1,

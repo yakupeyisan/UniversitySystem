@@ -6,29 +6,22 @@ using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Queries;
-
 public class GetPermissionByIdQuery : IRequest<Result<PermissionDto>>
 {
     public GetPermissionByIdQuery(Guid permissionId)
     {
         if (permissionId == Guid.Empty)
             throw new ArgumentException("Permission ID cannot be empty", nameof(permissionId));
-
         PermissionId = permissionId;
     }
-
     public Guid PermissionId { get; set; }
-
     public class Handler : IRequestHandler<GetPermissionByIdQuery, Result<PermissionDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Permission>
             _permissionRepository;
-
         public Handler(
             IRepository<Permission>
                 permissionRepository,
@@ -40,7 +33,6 @@ public class GetPermissionByIdQuery : IRequest<Result<PermissionDto>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<PermissionDto>> Handle(
             GetPermissionByIdQuery request,
             CancellationToken cancellationToken)
@@ -48,16 +40,13 @@ public class GetPermissionByIdQuery : IRequest<Result<PermissionDto>>
             try
             {
                 _logger.LogInformation("Fetching permission: {PermissionId}", request.PermissionId);
-
                 var spec = new PermissionByIdSpecification(request.PermissionId);
                 var permission = await _permissionRepository.GetAsync(spec, cancellationToken);
-
                 if (permission == null)
                 {
                     _logger.LogWarning("Permission not found: {PermissionId}", request.PermissionId);
                     return Result<PermissionDto>.Failure("Permission not found");
                 }
-
                 return Result<PermissionDto>.Success(_mapper.Map<PermissionDto>(permission));
             }
             catch (Exception ex)

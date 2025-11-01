@@ -1,8 +1,6 @@
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace PersonMgmt.Domain.Aggregates;
-
 public class EmergencyContact : AuditableEntity, ISoftDelete
 {
     public Guid PersonId { get; set; }
@@ -14,16 +12,13 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
     public bool IsCurrent { get; set; }
     public int Priority { get; set; } = 1;
     public string ContactInfo => $"{FullName} ({Relationship}) - {PhoneNumber}";
-
     public bool IsActive =>
         IsCurrent &&
         !IsDeleted &&
         (!ValidTo.HasValue || ValidTo > DateTime.UtcNow);
-
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         IsDeleted = true;
@@ -32,7 +27,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         DeletedBy = deletedBy;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         IsDeleted = false;
@@ -40,7 +34,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         DeletedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static EmergencyContact Create(
         Guid personId,
         string fullName,
@@ -63,7 +56,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
             UpdatedAt = DateTime.UtcNow
         };
     }
-
     public void Archive()
     {
         if (IsDeleted)
@@ -72,7 +64,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         IsCurrent = false;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Update(
         string fullName,
         string relationship,
@@ -86,7 +77,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         Priority = priority;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void UpdatePriority(int priority)
     {
         if (priority < 1 || priority > 10)
@@ -94,7 +84,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         Priority = priority;
         UpdatedAt = DateTime.UtcNow;
     }
-
     private static void ValidateContact(
         string fullName,
         string relationship,
@@ -113,7 +102,6 @@ public class EmergencyContact : AuditableEntity, ISoftDelete
         if (phoneNumber.Length < 10)
             throw new ArgumentException("Phone number is invalid", nameof(phoneNumber));
     }
-
     public override string ToString()
     {
         return ContactInfo;

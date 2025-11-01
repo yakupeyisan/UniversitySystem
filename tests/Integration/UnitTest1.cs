@@ -1,5 +1,4 @@
 namespace Tests.Integration;
-
 public class UnitTest1
 {
     [Fact]

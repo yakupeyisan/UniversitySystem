@@ -1,5 +1,4 @@
 namespace PersonMgmt.Application.DTOs;
-
 public class CreatePersonRequest
 {
     public string FirstName { get; set; }

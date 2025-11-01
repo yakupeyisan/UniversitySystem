@@ -1,8 +1,6 @@
 using Academic.Application.DTOs;
 using FluentValidation;
-
 namespace Academic.Application.Validators;
-
 public class UpdateExamRequestValidator : AbstractValidator<UpdateExamRequest>
 {
     public UpdateExamRequestValidator()

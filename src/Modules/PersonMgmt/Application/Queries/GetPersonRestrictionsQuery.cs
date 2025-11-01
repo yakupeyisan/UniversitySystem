@@ -4,9 +4,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
 {
     public GetPersonRestrictionsQuery(Guid personId, bool onlyActive = true)
@@ -16,24 +14,19 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
         PersonId = personId;
         OnlyActive = onlyActive;
     }
-
     public Guid PersonId { get; set; }
     public bool OnlyActive { get; set; }
-
     public class Handler : IRequestHandler<GetPersonRestrictionsQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, ILogger<Handler> logger)
         {
             _personRepository = personRepository;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetPersonRestrictionsQuery request,
             CancellationToken cancellationToken)
@@ -51,7 +44,6 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
                     return Result<PersonResponse>.Failure(
                         $"Person with ID {request.PersonId} not found");
                 }
-
                 var restrictions = request.OnlyActive
                     ? person.GetActiveRestrictions().ToList()
                     : person.Restrictions.Where(r => !r.IsDeleted).ToList();
@@ -62,7 +54,6 @@ public class GetPersonRestrictionsQuery : IRequest<Result<PersonResponse>>
                         : $"Person {request.PersonId} has no restrictions";
                     _logger.LogInformation(message);
                 }
-
                 _logger.LogInformation(
                     "Successfully retrieved {RestrictionCount} restrictions for person: {PersonId}",
                     restrictions.Count,

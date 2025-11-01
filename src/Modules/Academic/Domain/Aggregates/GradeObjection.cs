@@ -2,15 +2,12 @@ using Academic.Domain.Enums;
 using Academic.Domain.Events;
 using Core.Domain;
 using Core.Domain.Specifications;
-
 namespace Academic.Domain.Aggregates;
-
 public class GradeObjection : AuditableEntity, ISoftDelete
 {
     private GradeObjection()
     {
     }
-
     public Guid GradeId { get; private set; }
     public Guid StudentId { get; private set; }
     public Guid CourseId { get; private set; }
@@ -28,7 +25,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
-
     public void Delete(Guid deletedBy)
     {
         if (IsDeleted)
@@ -39,7 +35,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = deletedBy;
     }
-
     public void Restore()
     {
         if (!IsDeleted)
@@ -49,7 +44,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
         DeletedBy = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public static GradeObjection Create(
         Guid gradeId,
         Guid studentId,
@@ -86,7 +80,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
             courseId));
         return objection;
     }
-
     public void SubmitForReview()
     {
         if (Status != GradeObjectionStatus.Submitted)
@@ -94,7 +87,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
         Status = GradeObjectionStatus.UnderReview;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Approve(
         Guid reviewedBy,
         string? notes = null,
@@ -119,7 +111,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
             newScore,
             newLetterGrade));
     }
-
     public void Reject(Guid reviewedBy, string? notes = null)
     {
         if (Status != GradeObjectionStatus.UnderReview && Status != GradeObjectionStatus.Escalated)
@@ -132,7 +123,6 @@ public class GradeObjection : AuditableEntity, ISoftDelete
         ReviewNotes = notes;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public void Escalate()
     {
         if (Status != GradeObjectionStatus.UnderReview)
@@ -143,17 +133,14 @@ public class GradeObjection : AuditableEntity, ISoftDelete
         AppealLevel++;
         UpdatedAt = DateTime.UtcNow;
     }
-
     public bool CanBeSubmitted()
     {
         return DateTime.UtcNow <= ObjectionDeadline && Status == GradeObjectionStatus.Submitted;
     }
-
     public bool IsPending()
     {
         return Status == GradeObjectionStatus.Submitted || Status == GradeObjectionStatus.Pending;
     }
-
     public bool IsResolved()
     {
         return Status == GradeObjectionStatus.Approved || Status == GradeObjectionStatus.Rejected;

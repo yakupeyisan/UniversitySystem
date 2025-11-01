@@ -6,30 +6,23 @@ using Identity.Application.DTOs;
 using Identity.Domain.Aggregates;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Commands;
-
 public class UnlockUserCommand : IRequest<Result<UserDto>>
 {
     public UnlockUserCommand(Guid userId)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
-
         UserId = userId;
     }
-
     public Guid UserId { get; set; }
-
     public class Handler : IRequestHandler<UnlockUserCommand, Result<UserDto>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
-
         private readonly IRepository<User>
             _userRepository;
-
         public Handler(
             IRepository<User>
                 userRepository,
@@ -41,7 +34,6 @@ public class UnlockUserCommand : IRequest<Result<UserDto>>
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentUserService = currentUserService;
         }
-
         public async Task<Result<UserDto>> Handle(
             UnlockUserCommand request,
             CancellationToken cancellationToken)
@@ -49,18 +41,15 @@ public class UnlockUserCommand : IRequest<Result<UserDto>>
             try
             {
                 _logger.LogInformation("Unlocking user: {UserId}", request.UserId);
-
                 var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
                 if (user == null)
                 {
                     _logger.LogWarning("User not found: {UserId}", request.UserId);
                     return Result<UserDto>.Failure("User not found");
                 }
-
                 user.UnlockAccount(_currentUserService.UserId);
                 await _userRepository.UpdateAsync(user, cancellationToken);
                 await _userRepository.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation("User unlocked successfully");
                 return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
             }

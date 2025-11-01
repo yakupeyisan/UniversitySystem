@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetPersonByEmailQuery : IRequest<Result<PersonResponse>>
 {
     public GetPersonByEmailQuery(string email)
@@ -17,17 +15,13 @@ public class GetPersonByEmailQuery : IRequest<Result<PersonResponse>>
             throw new ArgumentException("Email cannot be empty", nameof(email));
         Email = email.Trim().ToLower();
     }
-
     public string Email { get; set; }
-
     public class Handler : IRequestHandler<GetPersonByEmailQuery, Result<PersonResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -35,7 +29,6 @@ public class GetPersonByEmailQuery : IRequest<Result<PersonResponse>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PersonResponse>> Handle(
             GetPersonByEmailQuery request,
             CancellationToken cancellationToken)
@@ -50,7 +43,6 @@ public class GetPersonByEmailQuery : IRequest<Result<PersonResponse>>
                     _logger.LogWarning("Person with email {Email} not found", request.Email);
                     return Result<PersonResponse>.Failure($"Person with email {request.Email} not found");
                 }
-
                 var response = _mapper.Map<PersonResponse>(person);
                 _logger.LogInformation("Successfully retrieved person by email: {Email}", request.Email);
                 return Result<PersonResponse>.Success(response, "Person retrieved successfully");

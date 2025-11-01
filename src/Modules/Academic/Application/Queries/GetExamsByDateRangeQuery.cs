@@ -6,9 +6,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetExamsByDateRangeQuery : IRequest<Result<IEnumerable<ExamResponse>>>
 {
     public GetExamsByDateRangeQuery(DateOnly startDate, DateOnly endDate)
@@ -18,18 +16,14 @@ public class GetExamsByDateRangeQuery : IRequest<Result<IEnumerable<ExamResponse
         StartDate = startDate;
         EndDate = endDate;
     }
-
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
-
     public class Handler : IRequestHandler<GetExamsByDateRangeQuery, Result<IEnumerable<ExamResponse>>>
     {
         private readonly IRepository<Exam>
             _examRepository;
-
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         public Handler(IRepository<Exam>
             examRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -37,7 +31,6 @@ public class GetExamsByDateRangeQuery : IRequest<Result<IEnumerable<ExamResponse
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<IEnumerable<ExamResponse>>> Handle(
             GetExamsByDateRangeQuery request,
             CancellationToken cancellationToken)

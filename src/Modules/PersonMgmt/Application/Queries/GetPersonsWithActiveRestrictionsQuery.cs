@@ -8,9 +8,7 @@ using Microsoft.Extensions.Logging;
 using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Queries;
-
 public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<PersonResponse>>>
 {
     public GetPersonsWithActiveRestrictionsQuery(PagedRequest pagedRequest, string? filterString = null)
@@ -18,18 +16,14 @@ public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<P
         PagedRequest = pagedRequest ?? throw new ArgumentNullException(nameof(pagedRequest));
         FilterString = filterString;
     }
-
     public PagedRequest PagedRequest { get; set; }
     public string? FilterString { get; set; }
-
     public class Handler : IRequestHandler<GetPersonsWithActiveRestrictionsQuery, Result<PagedList<PersonResponse>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -37,7 +31,6 @@ public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<P
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<PagedList<PersonResponse>>> Handle(
             GetPersonsWithActiveRestrictionsQuery request,
             CancellationToken cancellationToken)
@@ -52,7 +45,6 @@ public class GetPersonsWithActiveRestrictionsQuery : IRequest<Result<PagedList<P
                         request.PagedRequest.PageSize);
                     return Result<PagedList<PersonResponse>>.Failure(errorMsg);
                 }
-
                 _logger.LogInformation(
                     "Fetching persons with active restrictions - Filter: {FilterString}, Page: {PageNumber}, Size: {PageSize}",
                     request.FilterString ?? "none",

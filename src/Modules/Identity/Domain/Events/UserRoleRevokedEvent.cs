@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace Identity.Domain.Events;
-
 public class UserRoleRevokedEvent : DomainEvent
 {
     public UserRoleRevokedEvent(Guid userId, string email, string roleName)
@@ -10,7 +8,6 @@ public class UserRoleRevokedEvent : DomainEvent
         Email = email;
         RoleName = roleName;
     }
-
     public Guid UserId { get; }
     public string Email { get; }
     public string RoleName { get; }

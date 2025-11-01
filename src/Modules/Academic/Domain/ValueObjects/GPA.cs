@@ -1,7 +1,5 @@
 using Core.Domain.ValueObjects;
-
 namespace Academic.Domain.ValueObjects;
-
 public class GPA : ValueObject
 {
     private GPA(float sgpa, float cgpa)
@@ -13,50 +11,40 @@ public class GPA : ValueObject
         SGPA = sgpa;
         CGPA = cgpa;
     }
-
     public float SGPA { get; }
     public float CGPA { get; }
-
     public static GPA Create(float sgpa, float cgpa)
     {
         return new GPA(sgpa, cgpa);
     }
-
     public static GPA CreateFromSGPA(float sgpa)
     {
         return new GPA(sgpa, sgpa);
     }
-
     public bool IsExcellent()
     {
         return CGPA >= 3.5;
     }
-
     public bool IsGood()
     {
         return CGPA >= 3.0 && CGPA < 3.5;
     }
-
     public bool IsAcceptable()
     {
         return CGPA >= 2.0 && CGPA < 3.0;
     }
-
     public bool IsBelow2GPA()
     {
         return CGPA < 2.0;
     }
-
     public bool IsGraduationEligible()
     {
         return CGPA >= 2.0;
     }
-
     public override string ToString()
     {
         return $"SGPA: {SGPA:F2}, CGPA: {CGPA:F2}";
     }
-
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return SGPA;

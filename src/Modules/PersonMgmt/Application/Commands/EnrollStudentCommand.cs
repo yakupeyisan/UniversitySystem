@@ -7,9 +7,7 @@ using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Commands;
-
 public class EnrollStudentCommand : IRequest<Result<Unit>>
 {
     public EnrollStudentCommand(Guid personId, EnrollStudentRequest request)
@@ -17,18 +15,14 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
         PersonId = personId;
         Request = request;
     }
-
     public Guid PersonId { get; set; }
     public EnrollStudentRequest Request { get; set; }
-
     public class Handler : IRequestHandler<EnrollStudentCommand, Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -36,7 +30,6 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<Unit>> Handle(
             EnrollStudentCommand request,
             CancellationToken cancellationToken)
@@ -54,7 +47,6 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                     _logger.LogWarning("Person not found with ID: {PersonId}", request.PersonId);
                     return Result<Unit>.Failure("Person not found");
                 }
-
                 var isStudentNumberUnique = await _personRepository.IsUniqueAsync(
                     new PersonByStudentNumberSpecification(request.Request.StudentNumber), cancellationToken);
                 if (!isStudentNumberUnique)
@@ -63,7 +55,6 @@ public class EnrollStudentCommand : IRequest<Result<Unit>>
                         request.Request.StudentNumber);
                     return Result<Unit>.Failure("Student number already exists");
                 }
-
                 if (person.Student != null) return Result<Unit>.Failure("Person is already enrolled as a student");
                 if (person.Staff != null)
                     return Result<Unit>.Failure("Person is already registered as staff - cannot enroll as student");

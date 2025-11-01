@@ -7,9 +7,7 @@ using Core.Domain.Repositories;
 using Core.Domain.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Academic.Application.Queries.Courses;
-
 public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
 {
     public GetStudentCoursesQuery(Guid studentId, PagedRequest? pagedRequest = null)
@@ -19,16 +17,13 @@ public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
         StudentId = studentId;
         PagedRequest = pagedRequest;
     }
-
     public Guid StudentId { get; set; }
     public PagedRequest? PagedRequest { get; set; }
-
     public class Handler : IRequestHandler<GetStudentCoursesQuery, Result<StudentCoursesResponse>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
         private readonly IRepository<CourseRegistration> _registrationRepository;
-
         public Handler(
             IRepository<CourseRegistration> registrationRepository,
             IMapper mapper,
@@ -39,7 +34,6 @@ public class GetStudentCoursesQuery : IRequest<Result<StudentCoursesResponse>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<StudentCoursesResponse>> Handle(
             GetStudentCoursesQuery request,
             CancellationToken cancellationToken)

@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace PersonMgmt.Domain.Exceptions;
-
 public class DuplicateIdentificationNumberException : DomainException
 {
     public DuplicateIdentificationNumberException(string identificationNumber)
@@ -9,7 +7,6 @@ public class DuplicateIdentificationNumberException : DomainException
     {
         IdentificationNumber = identificationNumber;
     }
-
     public string IdentificationNumber { get; }
     public override string ErrorCode => "errors.person.duplicate.national.id";
     public override int StatusCode => 409;

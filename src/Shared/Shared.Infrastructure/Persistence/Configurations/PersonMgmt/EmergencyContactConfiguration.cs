@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PersonMgmt.Domain.Aggregates;
-
 namespace Shared.Infrastructure.Persistence.Configurations.PersonMgmt;
-
 public class EmergencyContactConfiguration : IEntityTypeConfiguration<EmergencyContact>
 {
     public void Configure(EntityTypeBuilder<EmergencyContact> builder)

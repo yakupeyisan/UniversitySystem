@@ -1,20 +1,15 @@
 using FluentValidation;
 using Identity.Application.Commands;
-
 namespace Identity.Application.Validators;
-
 public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
 {
     public ChangePasswordValidator()
     {
         RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("User ID is required");
-
         RuleFor(x => x.Request).NotNull().WithMessage("Change password request cannot be null");
-
         RuleFor(x => x.Request.CurrentPassword)
             .NotEmpty().WithMessage("Current password is required");
-
         RuleFor(x => x.Request.NewPassword)
             .NotEmpty().WithMessage("New password is required")
             .MinimumLength(8).WithMessage("Password must be at least 8 characters long")

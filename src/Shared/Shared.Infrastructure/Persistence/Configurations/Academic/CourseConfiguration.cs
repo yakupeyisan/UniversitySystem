@@ -2,9 +2,7 @@ using Academic.Domain.Aggregates;
 using Academic.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
-
 public class CourseConfiguration : IEntityTypeConfiguration<Course>
 {
     public void Configure(EntityTypeBuilder<Course> builder)

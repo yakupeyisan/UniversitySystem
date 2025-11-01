@@ -7,27 +7,20 @@ using Identity.Domain.Aggregates;
 using Identity.Domain.Specifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 namespace Identity.Application.Queries;
-
 public class ListUsersQuery : IRequest<Result<PagedList<UserDto>>>
 {
     public PagedRequest Request { get; private set; }
-
     public ListUsersQuery(PagedRequest request)
     {
         Request = request;
     }
-
-
     public class Handler : IRequestHandler<ListUsersQuery, Result<PagedList<UserDto>>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<User>
             _userRepository;
-
         public Handler(
             IRepository<User>
                 userRepository,
@@ -38,7 +31,6 @@ public class ListUsersQuery : IRequest<Result<PagedList<UserDto>>>
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
         public async Task<Result<PagedList<UserDto>>> Handle(
             ListUsersQuery request,
             CancellationToken cancellationToken)
@@ -49,15 +41,10 @@ public class ListUsersQuery : IRequest<Result<PagedList<UserDto>>>
                     "Fetching users - PageNumber: {PageNumber}, PageSize: {PageSize}",
                     request.Request.PageNumber,
                     request.Request.PageSize);
-
                 var spec = new ActiveUsersSpecification();
-
                 var users = await _userRepository.GetAllAsync(spec, request.Request, cancellationToken);
-
                 var userDtos = _mapper.Map<List<UserDto>>(users.Data);
-
                 var result = new PagedList<UserDto>(userDtos, users.TotalCount, users.PageNumber, users.PageSize);
-
                 return Result<PagedList<UserDto>>.Success(result);
             }
             catch (Exception ex)

@@ -1,8 +1,4 @@
 namespace Identity.Application.DTOs;
-
-/// <summary>
-/// Giriþ Geçmiþi DTO
-/// </summary>
 public class LoginHistoryDto
 {
     public Guid Id { get; set; }

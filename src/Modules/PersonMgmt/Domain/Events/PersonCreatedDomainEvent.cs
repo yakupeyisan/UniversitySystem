@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace PersonMgmt.Domain.Events;
-
 public class PersonCreatedDomainEvent : DomainEvent
 {
     public PersonCreatedDomainEvent(
@@ -17,7 +15,6 @@ public class PersonCreatedDomainEvent : DomainEvent
         Email = email;
         CreatedAt = createdAt;
     }
-
     public Guid PersonId { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }

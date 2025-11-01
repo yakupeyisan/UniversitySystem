@@ -1,7 +1,5 @@
 using Core.Domain.Exceptions;
-
 namespace Academic.Domain.Exceptions;
-
 public class GradeObjectionDeadlinePassedException : DomainException
 {
     public GradeObjectionDeadlinePassedException(DateTime deadlineDate)
@@ -9,7 +7,6 @@ public class GradeObjectionDeadlinePassedException : DomainException
     {
         DeadlineDate = deadlineDate;
     }
-
     public DateTime DeadlineDate { get; }
     public override string ErrorCode => "errors.grade.objection.deadline.passed";
     public override int StatusCode => 409;

@@ -1,5 +1,4 @@
 namespace Academic.Application.DTOs;
-
 public class SubmitGradeObjectionRequest
 {
     public Guid GradeId { get; set; }

@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
 using Core.Domain.Filtering;
-
 namespace Core.Domain.Specifications;
-
 public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
     where T : class
 {
@@ -10,12 +8,10 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
         : base(x => true)
     {
     }
-
     protected BaseFilteredSpecification(Expression<Func<T, bool>> filter)
         : base(filter)
     {
     }
-
     protected BaseFilteredSpecification(
         string? filterString,
         IFilterParser<T> filterParser)
@@ -24,7 +20,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
             : x => true)
     {
     }
-
     protected BaseFilteredSpecification(
         string? filterString,
         IFilterParser<T> filterParser,
@@ -36,7 +31,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
-
     protected BaseFilteredSpecification(
         string? filterString,
         IFilterParser<T>? filterParser,
@@ -47,7 +41,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
-
     protected BaseFilteredSpecification(
         Expression<Func<T, bool>> filter,
         int pageNumber,
@@ -56,7 +49,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
     {
         ApplyPaging((pageNumber - 1) * pageSize, pageSize);
     }
-
     private static Expression<Func<T, bool>> ParseFilterWithWhitelist(
         string? filterString,
         IFilterParser<T>? filterParser,
@@ -67,7 +59,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
         filterParser ??= new FilterParser<T>(null, whitelist);
         return filterParser.Parse(filterString);
     }
-
     protected void ApplySoftDeleteFilter()
     {
         if (typeof(ISoftDelete).IsAssignableFrom(typeof(T)))
@@ -79,7 +70,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
             AddCriteria(lambda);
         }
     }
-
     protected void ApplyOrderBy<TKey>(
         Expression<Func<T, TKey>> orderByExpression,
         bool orderByDescending = false)
@@ -89,7 +79,6 @@ public abstract class BaseFilteredSpecification<T> : BaseSpecification<T>
         else
             ApplyOrderBy(orderByExpression);
     }
-
     protected void AddIncludes(params Expression<Func<T, object?>>[] includes)
     {
         foreach (var include in includes) AddInclude(include);

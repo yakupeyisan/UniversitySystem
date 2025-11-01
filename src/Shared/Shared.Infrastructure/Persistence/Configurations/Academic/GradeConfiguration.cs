@@ -1,9 +1,7 @@
 using Academic.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Shared.Infrastructure.Persistence.Configurations.Academic;
-
 public class GradeConfiguration : IEntityTypeConfiguration<Grade>
 {
     public void Configure(EntityTypeBuilder<Grade> builder)

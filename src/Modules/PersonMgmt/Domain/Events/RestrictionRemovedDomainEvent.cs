@@ -1,7 +1,5 @@
 using Core.Domain.Events;
-
 namespace PersonMgmt.Domain.Events;
-
 public class RestrictionRemovedDomainEvent : DomainEvent
 {
     public RestrictionRemovedDomainEvent(
@@ -15,7 +13,6 @@ public class RestrictionRemovedDomainEvent : DomainEvent
         RestrictionType = restrictionType;
         RemovedAt = removedAt;
     }
-
     public Guid PersonId { get; set; }
     public Guid RestrictionId { get; set; }
     public string RestrictionType { get; set; }

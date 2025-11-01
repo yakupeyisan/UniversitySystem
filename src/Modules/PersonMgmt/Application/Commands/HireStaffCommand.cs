@@ -7,9 +7,7 @@ using PersonMgmt.Application.DTOs;
 using PersonMgmt.Domain.Aggregates;
 using PersonMgmt.Domain.Enums;
 using PersonMgmt.Domain.Specifications;
-
 namespace PersonMgmt.Application.Commands;
-
 public class HireStaffCommand : IRequest<Result<Unit>>
 {
     public HireStaffCommand(Guid personId, HireStaffRequest request)
@@ -17,18 +15,14 @@ public class HireStaffCommand : IRequest<Result<Unit>>
         PersonId = personId;
         Request = request;
     }
-
     public Guid PersonId { get; set; }
     public HireStaffRequest Request { get; set; }
-
     public class Handler : IRequestHandler<HireStaffCommand, Result<Unit>>
     {
         private readonly ILogger<Handler> _logger;
         private readonly IMapper _mapper;
-
         private readonly IRepository<Person>
             _personRepository;
-
         public Handler(IRepository<Person>
             personRepository, IMapper mapper, ILogger<Handler> logger)
         {
@@ -36,7 +30,6 @@ public class HireStaffCommand : IRequest<Result<Unit>>
             _mapper = mapper;
             _logger = logger;
         }
-
         public async Task<Result<Unit>> Handle(
             HireStaffCommand request,
             CancellationToken cancellationToken)
@@ -53,7 +46,6 @@ public class HireStaffCommand : IRequest<Result<Unit>>
                     _logger.LogWarning("Person not found with ID: {PersonId}", request.PersonId);
                     return Result<Unit>.Failure("Person not found");
                 }
-
                 var isEmployeeNumberUnique = await _personRepository.IsUniqueAsync(
                     new PersonByEmployeeNumberSpecification(request.Request.EmployeeNumber),
                     cancellationToken);
@@ -63,21 +55,18 @@ public class HireStaffCommand : IRequest<Result<Unit>>
                         request.Request.EmployeeNumber);
                     return Result<Unit>.Failure("Employee number already exists");
                 }
-
                 if (person.Staff != null)
                 {
                     _logger.LogWarning("Person with ID {PersonId} is already registered as staff",
                         request.PersonId);
                     return Result<Unit>.Failure("Person is already registered as staff");
                 }
-
                 if (person.Student != null)
                 {
                     _logger.LogWarning("Person with ID {PersonId} is already enrolled as student",
                         request.PersonId);
                     return Result<Unit>.Failure("Person is already enrolled as student and cannot be hired as staff");
                 }
-
                 var academicTitle = Enum.Parse<AcademicTitle>(request.Request.Position);
                 person.HireAsStaff(
                     request.Request.EmployeeNumber,
