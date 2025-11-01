@@ -8,7 +8,7 @@ public class PrerequisiteConfiguration : IEntityTypeConfiguration<Prerequisite>
 {
     public void Configure(EntityTypeBuilder<Prerequisite> builder)
     {
-        builder.ToTable("Prerequisites", "academic");
+        builder.ToTable("Prerequisites");
         builder.HasKey(p => p.Id);
         builder.Property(p => p.CourseId)
             .IsRequired();

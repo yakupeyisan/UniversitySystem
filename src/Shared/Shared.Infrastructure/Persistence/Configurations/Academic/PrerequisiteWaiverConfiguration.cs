@@ -8,7 +8,7 @@ public class PrerequisiteWaiverConfiguration : IEntityTypeConfiguration<Prerequi
 {
     public void Configure(EntityTypeBuilder<PrerequisiteWaiver> builder)
     {
-        builder.ToTable("PrerequisiteWaivers", "academic");
+        builder.ToTable("PrerequisiteWaivers");
         builder.HasKey(pw => pw.Id);
         builder.Property(pw => pw.StudentId)
             .IsRequired();

@@ -8,7 +8,7 @@ public class HealthRecordConfiguration : IEntityTypeConfiguration<HealthRecord>
 {
     public void Configure(EntityTypeBuilder<HealthRecord> builder)
     {
-        builder.ToTable("HealthRecords", "PersonMgmt");
+        builder.ToTable("HealthRecords");
         builder.HasKey(h => h.Id);
         builder.Property(h => h.Id)
             .HasColumnName("Id")

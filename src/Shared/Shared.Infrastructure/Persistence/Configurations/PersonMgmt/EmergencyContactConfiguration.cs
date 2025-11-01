@@ -8,7 +8,7 @@ public class EmergencyContactConfiguration : IEntityTypeConfiguration<EmergencyC
 {
     public void Configure(EntityTypeBuilder<EmergencyContact> builder)
     {
-        builder.ToTable("EmergencyContacts", "PersonMgmt");
+        builder.ToTable("EmergencyContacts");
         builder.HasKey(ec => ec.Id);
         builder.Property(ec => ec.Id)
             .HasColumnName("Id")

@@ -9,72 +9,66 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
 {
     public void Configure(EntityTypeBuilder<Role> builder)
     {
-        builder.ToTable("Roles", "identity");
-
+        builder.ToTable("Roles"); // Primary key
         builder.HasKey(r => r.Id);
 
-        // Properties
+        // Configure properties with constraints
         builder.Property(r => r.Id)
             .HasColumnName("Id")
             .HasColumnType("uniqueidentifier")
             .ValueGeneratedNever();
 
+        // Role name - Unique, Required, Max length 128
         builder.Property(r => r.RoleName)
-            .HasColumnName("RoleName")
+            .HasColumnName("Name")
             .HasColumnType("nvarchar(128)")
-            .HasMaxLength(128)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(128);
 
+        // Create unique index on Name for fast lookup
         builder.HasIndex(r => r.RoleName)
             .IsUnique()
-            .HasDatabaseName("IX_Roles_RoleName_Unique");
+            .HasDatabaseName("IX_Roles_Name_Unique")
+            .HasFilter(null);
 
-        builder.Property(r => r.RoleType)
-            .HasColumnName("RoleType")
-            .HasColumnType("int")
-            .HasConversion<int>()
-            .IsRequired();
-
+        // Role description - Optional, Max length 512
         builder.Property(r => r.Description)
             .HasColumnName("Description")
-            .HasColumnType("nvarchar(500)")
-            .HasMaxLength(500);
+            .HasColumnType("nvarchar(512)")
+            .IsRequired(false)
+            .HasMaxLength(512);
 
-        builder.Property(r => r.IsActive)
-            .HasColumnName("IsActive")
-            .HasColumnType("bit")
-            .HasDefaultValue(true)
-            .IsRequired();
-
-        builder.HasIndex(r => r.IsActive)
-            .HasDatabaseName("IX_Roles_IsActive");
-
+        // Is system role - Cannot be deleted or modified
         builder.Property(r => r.IsSystemRole)
             .HasColumnName("IsSystemRole")
             .HasColumnType("bit")
-            .HasDefaultValue(false)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValue(false);
 
-        builder.HasIndex(r => r.IsSystemRole)
-            .HasDatabaseName("IX_Roles_IsSystemRole");
-
-        // Audit Properties
+        // CreatedAt - Required datetime
         builder.Property(r => r.CreatedAt)
             .HasColumnName("CreatedAt")
             .HasColumnType("datetime2")
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
-        builder.Property(r => r.CreatedBy)
-            .HasColumnName("CreatedBy")
-            .HasColumnType("uniqueidentifier");
-
+        // UpdatedAt - Required datetime
         builder.Property(r => r.UpdatedAt)
             .HasColumnName("UpdatedAt")
-            .HasColumnType("datetime2");
+            .HasColumnType("datetime2")
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
-        builder.Property(r => r.UpdatedBy)
+        // Configure shadow properties for audit tracking
+        builder.Property<string>("CreatedBy")
+            .HasColumnName("CreatedBy")
+            .HasColumnType("nvarchar(256)")
+            .IsRequired(false);
+
+        builder.Property<string>("UpdatedBy")
             .HasColumnName("UpdatedBy")
-            .HasColumnType("uniqueidentifier");
+            .HasColumnType("nvarchar(256)")
+            .IsRequired(false);
 
         // Relationships
         builder.HasMany(r => r.Permissions)

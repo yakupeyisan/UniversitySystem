@@ -8,7 +8,7 @@ public class GradeObjectionConfiguration : IEntityTypeConfiguration<GradeObjecti
 {
     public void Configure(EntityTypeBuilder<GradeObjection> builder)
     {
-        builder.ToTable("GradeObjections", "academic");
+        builder.ToTable("GradeObjections");
         builder.HasKey(go => go.Id);
         builder.Property(go => go.GradeId)
             .IsRequired();

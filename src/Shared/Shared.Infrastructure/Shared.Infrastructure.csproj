@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\Academic\Domain\Academic.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Identity\Domain\Identity.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\PersonMgmt\Domain\PersonMgmt.Domain.csproj" />
     <ProjectReference Include="..\..\Core\Core.Application\Core.Application.csproj" />

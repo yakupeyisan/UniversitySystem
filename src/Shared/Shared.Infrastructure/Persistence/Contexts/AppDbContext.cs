@@ -58,6 +58,10 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new RoleConfiguration());
         modelBuilder.ApplyConfiguration(new PermissionConfiguration());
         modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedLoginAttemptConfiguration());
+        modelBuilder.ApplyConfiguration(new LoginHistoryConfiguration());
+        modelBuilder.ApplyConfiguration(new TwoFactorTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAccountLockoutConfiguration());
         modelBuilder.ApplyConfiguration(new PersonConfiguration());
         modelBuilder.ApplyConfiguration(new AddressConfiguration());
         modelBuilder.ApplyConfiguration(new StudentConfiguration());

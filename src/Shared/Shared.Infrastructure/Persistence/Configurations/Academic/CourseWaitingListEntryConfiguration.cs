@@ -8,7 +8,7 @@ public class CourseWaitingListEntryConfiguration : IEntityTypeConfiguration<Cour
 {
     public void Configure(EntityTypeBuilder<CourseWaitingListEntry> builder)
     {
-        builder.ToTable("CourseWaitingListEntries", "academic");
+        builder.ToTable("CourseWaitingListEntries");
         builder.HasKey(wl => wl.Id);
         builder.Property(wl => wl.StudentId)
             .IsRequired();

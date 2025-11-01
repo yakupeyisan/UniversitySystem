@@ -1,9 +1,11 @@
 using Core.Domain.Repositories;
+using Identity.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Persistence.Contexts;
 using Shared.Infrastructure.Persistence.Repositories;
+using Shared.Infrastructure.Services;
 
 namespace Shared.Infrastructure.Extensions;
 
@@ -13,6 +15,8 @@ public static class ServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddDbContext<AppDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");

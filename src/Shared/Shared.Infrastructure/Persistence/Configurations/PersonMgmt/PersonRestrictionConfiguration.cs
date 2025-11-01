@@ -9,7 +9,7 @@ public class PersonRestrictionConfiguration : IEntityTypeConfiguration<PersonRes
 {
     public void Configure(EntityTypeBuilder<PersonRestriction> builder)
     {
-        builder.ToTable("PersonRestrictions", "PersonMgmt");
+        builder.ToTable("PersonRestrictions");
         builder.HasKey(pr => pr.Id);
         builder.Property(pr => pr.Id)
             .HasColumnName("Id")

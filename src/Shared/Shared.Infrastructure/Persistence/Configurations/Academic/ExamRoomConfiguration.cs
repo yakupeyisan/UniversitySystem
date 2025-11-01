@@ -8,7 +8,7 @@ public class ExamRoomConfiguration : IEntityTypeConfiguration<ExamRoom>
 {
     public void Configure(EntityTypeBuilder<ExamRoom> builder)
     {
-        builder.ToTable("ExamRooms", "academic");
+        builder.ToTable("ExamRooms");
         builder.HasKey(er => er.Id);
         builder.Property(er => er.RoomNumber)
             .HasMaxLength(50)

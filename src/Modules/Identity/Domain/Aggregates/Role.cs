@@ -17,6 +17,7 @@ public class Role : AuditableEntity
     public bool IsActive { get; private set; }
     public bool IsSystemRole { get; private set; }
     public IReadOnlyList<Permission> Permissions => _permissions.AsReadOnly();
+    public ICollection<User> Users { get; private set; } = new List<User>();
 
     public static Role Create(
         string roleName,

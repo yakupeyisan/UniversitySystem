@@ -9,7 +9,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 {
     public void Configure(EntityTypeBuilder<Course> builder)
     {
-        builder.ToTable("Courses", "academic");
+        builder.ToTable("Courses");
         builder.HasKey(c => c.Id);
         builder
             .Property(c => c.Code)

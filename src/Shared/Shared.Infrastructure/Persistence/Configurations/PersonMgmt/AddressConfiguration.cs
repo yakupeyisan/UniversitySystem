@@ -8,7 +8,7 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
 {
     public void Configure(EntityTypeBuilder<Address> builder)
     {
-        builder.ToTable("Addresses", "PersonMgmt");
+        builder.ToTable("Addresses");
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Id)
             .HasColumnName("Id")

@@ -9,7 +9,7 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
 {
     public void Configure(EntityTypeBuilder<Staff> builder)
     {
-        builder.ToTable("Staff", "PersonMgmt");
+        builder.ToTable("Staff");
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id)
             .HasColumnName("Id")
